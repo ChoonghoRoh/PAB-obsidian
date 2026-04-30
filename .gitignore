@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Claude Code 로컬 설정 (개인 환경/잠재 비밀)
+.claude/settings.local.json
+
+# Obsidian per-machine 상태 (vault에 .obsidian/ 생성될 경우)
+.obsidian/workspace*.json
+.obsidian/cache
+.obsidian/appearance.json
+.obsidian/graph.json
+
+# Obsidian 휴지통 / 자동 백업
+.trash/
+.obsidian/trash/
+
+# 에디터/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 로그/임시 파일
+*.log
+*.tmp
+node_modules/
