@@ -98,15 +98,15 @@ print('OK: all 11 fields present')
 print(data)
 "
 
-# Obsidian이 인식하는지 확인
-obsidian search "Index" --vault "$(pwd)/wiki"
+# Obsidian이 인식하는지 확인 (default vault = PAB-obsidian, 프로젝트 루트)
+obsidian search query="Index"
 ```
 
 ## 완료 기준
 
 - [ ] `wiki/_INDEX.md` 존재
 - [ ] frontmatter 11필드 모두 존재 (검증 스크립트 통과)
-- [ ] `obsidian search "Index"` 결과에 `_INDEX.md` 포함
+- [ ] `obsidian search query="Index"` 결과에 `_INDEX.md` 포함
 - [ ] 본문에 폴더 구조 표 + 사용 가이드 포함
 
 ## 보고

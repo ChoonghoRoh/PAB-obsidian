@@ -2,7 +2,7 @@
 phase: "1"
 type: exceptions
 created: 2026-05-01
-ssot_version: 8.2-renewal-6th
+ssot_version: 8.0-renewal-6th
 scope: "Phase 1 (Obsidian Wiki 구축) 한정"
 ssot_modified: false
 ---

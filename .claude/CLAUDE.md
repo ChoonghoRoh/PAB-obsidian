@@ -4,7 +4,7 @@
 
 ## SSOT 진입점
 
-SSOT 버전: **v8.2-renewal-6th** (AutoCycle v1.1)
+SSOT 버전: **v8.0-renewal-6th**
 SSOT 경로: `SSOT/`
 
 - **진입점**: [SSOT/0-entrypoint.md](../SSOT/0-entrypoint.md)

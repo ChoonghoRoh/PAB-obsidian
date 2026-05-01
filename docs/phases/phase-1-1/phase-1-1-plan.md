@@ -9,20 +9,22 @@ master_plan_ref: docs/phases/phase-1-master-plan.md
 
 ## 목표
 
-Obsidian 공식 CLI를 macOS에 등록하고, 프로젝트 내 `wiki/` 디렉터리를 Obsidian vault로 초기화한다. 이후 Phase가 의존하는 **모든 인프라**를 마련한다.
+Obsidian 공식 CLI를 macOS에 등록하고, **프로젝트 루트(`/Users/map-rch/WORKS/PAB-obsidian`)를 vault root**로 사용하며, `wiki/` 하위에 7 콘텐츠 폴더를 초기화한다. 이후 Phase가 의존하는 **모든 인프라**를 마련한다.
+
+> **vault 경로 정책 (사용자 결정 2026-05-01)**: vault.path = 프로젝트 루트. `.obsidian/` 설정 폴더는 프로젝트 루트에 위치. 위키 콘텐츠 폴더(`00_MOC`, `10_Notes` 등)는 `wiki/` 하위.
 
 ## 완료 기준 (Definition of Done)
 
 | # | 기준 | 검증 방법 |
 |---|---|---|
 | DoD-1 | `which obsidian` → `/usr/local/bin/obsidian` 반환 | Bash |
-| DoD-2 | `obsidian --version` 정상 출력 | Bash |
-| DoD-3 | `wiki/.obsidian/` 디렉터리 존재 | ls |
+| DoD-2 | `obsidian version` 정상 출력 | Bash |
+| DoD-3 | 프로젝트 루트 `.obsidian/` 디렉터리 존재 | ls |
 | DoD-4 | `wiki/` 하위 7 폴더(`00_MOC`, `10_Notes`, `20_Lessons`, `30_Constraints`, `40_Templates`, `99_Inbox`, `_attachments`) 존재 | ls |
-| DoD-5 | `obsidian files --vault wiki` 응답 정상 | Bash |
-| DoD-6 | `obsidian search "INDEX" --vault wiki` 결과 ≥1건 | Bash |
+| DoD-5 | `obsidian files` 응답 정상 (default vault = PAB-obsidian) | Bash |
+| DoD-6 | `obsidian search query="INDEX"` 결과 ≥1건 | Bash |
 | DoD-7 | `wiki/_INDEX.md` 존재, frontmatter 11필드 포함 | Read |
-| DoD-8 | `wiki/.obsidian/app.json`, `core-plugins.json`, `appearance.json` 존재 | ls |
+| DoD-8 | 프로젝트 루트 `.obsidian/app.json`, `core-plugins.json`, `appearance.json` 존재 | ls |
 
 ## 접근 방식
 
@@ -41,21 +43,21 @@ Obsidian CLI 등록은 macOS sudo 권한이 필요하므로 **Team Lead 또는 b
 
 ### 2. Vault 초기화 (T-2 ~ T-3)
 
-`wiki/` 디렉터리를 Obsidian vault로 초기화. macOS 내 첫 vault 열기 시 Obsidian 앱이 `.obsidian/` 폴더를 자동 생성하지만, **CLI-only**로 구축하기 위해 다음 핵심 파일을 사전 작성:
+**현재 상태**: 프로젝트 루트가 vault로 등록되어 있고(`obsidian.json`의 `vault.path=/Users/map-rch/WORKS/PAB-obsidian`), 첫 실행 시 Obsidian이 자동으로 `.obsidian/` 폴더를 생성한 상태. T-3에서 자동 생성된 설정을 본 프로젝트 정책에 맞게 검증·튜닝한다.
 
-- `wiki/.obsidian/app.json` — 기본 vault 설정 (`alwaysUpdateLinks: true`, `useMarkdownLinks: false`, `newFileLocation: "folder"`, `newFileFolderPath: "99_Inbox"`)
-- `wiki/.obsidian/core-plugins.json` — 활성화 코어 플러그인 (`file-explorer`, `global-search`, `switcher`, `graph`, `backlink`, `outline`, `tag-pane`, `templates`, `outgoing-link`, `properties`)
-- `wiki/.obsidian/appearance.json` — `enabledCssSnippets: []`, default theme
+- 프로젝트 루트 `.obsidian/app.json` — 기본 vault 설정 (`alwaysUpdateLinks: true`, `useMarkdownLinks: false`, `newFileLocation: "folder"`, `newFileFolderPath: "wiki/99_Inbox"`)
+- 프로젝트 루트 `.obsidian/core-plugins.json` — 활성화 코어 플러그인 (`file-explorer`, `global-search`, `switcher`, `graph`, `backlink`, `outline`, `tag-pane`, `templates`, `outgoing-link`, `properties`)
+- 프로젝트 루트 `.obsidian/appearance.json` — `enabledCssSnippets: []`, default theme
 
-7 폴더를 `mkdir -p`로 생성.
+T-2에서 `wiki/{00_MOC,10_Notes,20_Lessons,30_Constraints,40_Templates,99_Inbox,_attachments}` 7 폴더를 `mkdir -p`로 생성, 각 폴더에 `.gitkeep` 추가.
 
 ### 3. CLI Smoke Test (T-4)
 
-설치된 CLI가 정상 동작하는지 4 명령으로 확인:
-- `obsidian files --vault wiki` — 파일 enumeration
-- `obsidian search "INDEX" --vault wiki` — 검색
-- `obsidian tags --vault wiki` — 태그 목록 (빈 vault → 빈 응답이 정상)
-- `obsidian unresolved --vault wiki` — broken link (빈 vault → 빈 응답이 정상)
+설치된 CLI가 정상 동작하는지 4 명령으로 확인 (Obsidian CLI는 default vault를 자동 선택):
+- `obsidian files` — vault 전체 파일 enumeration
+- `obsidian search query="INDEX"` — 검색
+- `obsidian tags` — 태그 목록 (시드 노트 전 단계 → 빈 응답 가능)
+- `obsidian unresolved` — broken link (시드 노트 전 단계 → 빈 응답이 정상)
 
 각 명령 stdout/stderr를 `docs/phases/phase-1-1/reports/cli-smoke-test.md`에 기록.
 
@@ -102,7 +104,7 @@ T-2와 T-3은 병렬 가능. 이후 T-4 → T-5 순.
 
 ## 산출물
 
-- `wiki/.obsidian/app.json`, `core-plugins.json`, `appearance.json`
+- 프로젝트 루트 `.obsidian/app.json`, `core-plugins.json`, `appearance.json` (검증·튜닝)
 - `wiki/{00_MOC,10_Notes,20_Lessons,30_Constraints,40_Templates,99_Inbox,_attachments}/` (빈 폴더 + `.gitkeep`)
 - `wiki/_INDEX.md`
 - `docs/phases/phase-1-1/reports/cli-smoke-test.md` (CLI 응답 로그)

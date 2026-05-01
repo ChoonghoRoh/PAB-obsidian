@@ -3,7 +3,7 @@ phase: "1"
 title: "Obsidian Karpathy-style Wiki 환경 구축"
 type: master-plan
 created: 2026-05-01
-ssot_version: 8.2-renewal-6th
+ssot_version: 8.0-renewal-6th
 initiator: user
 prompt_quality: pass
 pre_draft_ref: docs/phases/phase-1-pre-analysis.md
@@ -34,7 +34,7 @@ Andrej Karpathy 스타일의 LLM-친화 wiki를 Obsidian으로 구축한다. 공
 | KPI | 목표 | 측정 |
 |---|---|---|
 | Obsidian CLI 동작 | `obsidian search "test"` 정상 응답 | Phase 1-1 |
-| Vault 초기화 | `wiki/.obsidian/` 존재, 7 폴더 생성 | Phase 1-1 |
+| Vault 초기화 | `.obsidian/` 존재 (프로젝트 루트), `wiki/` 하위 7 폴더 생성 | Phase 1-1 |
 | Frontmatter 스키마 준수 | 모든 시드 노트 11필드 100% | Phase 1-2 → Phase 1-6 |
 | MOC 시스템 | TYPES(6) + DOMAINS(6) MOC 자동 갱신 | Phase 1-3 |
 | CLI 자동화 명령 | `wiki new`/`link-check`/`moc-build`/`toc-suggest` 4종 동작 | Phase 1-4 |
@@ -46,16 +46,18 @@ Andrej Karpathy 스타일의 LLM-친화 wiki를 Obsidian으로 구축한다. 공
 
 ### Phase 1-1: Obsidian CLI + Vault 초기화 [WIKI-INFRA]
 
-**목표**: Obsidian 공식 CLI를 macOS에 설치·등록하고, 프로젝트 내 `wiki/` vault를 초기화한다.
+**목표**: Obsidian 공식 CLI를 macOS에 설치·등록하고, **프로젝트 루트(`/Users/map-rch/WORKS/PAB-obsidian`)를 vault root로 사용**하며, `wiki/` 하위에 7 콘텐츠 폴더를 생성한다.
+
+> **vault 경로 정책 (사용자 결정 2026-05-01)**: vault.path = 프로젝트 루트. 따라서 `.obsidian/` 설정 폴더는 프로젝트 루트에 위치한다. 위키 콘텐츠 폴더(00_MOC, 10_Notes 등)는 `wiki/` 서브디렉터리에 두어 SSOT/docs/scripts 등 프로젝트 인프라와 시각적 분리를 유지한다. (Obsidian은 vault root 하위 모든 `.md`를 인덱싱하므로 SSOT/docs도 검색·링크 대상이 됨 — 의도된 동작)
 
 **Tasks**:
-- T-1: Obsidian 데스크톱 앱 설치 확인 + CLI 등록 절차 검증 (사용자 sudo 필요 — `! obsidian register` 안내)
-- T-2: `wiki/` 디렉터리 vault 초기화 + 7 폴더(00_MOC, 10_Notes, 20_Lessons, 30_Constraints, 40_Templates, 99_Inbox, _attachments) 생성
-- T-3: `.obsidian/` 핵심 설정 파일 작성 (`app.json`, `core-plugins.json`, `appearance.json`)
+- T-1: Obsidian 데스크톱 앱 설치 확인 + CLI 등록 절차 검증 (사용자 sudo 필요 — `! obsidian register` 안내) — **본 세션에서 이미 완료**
+- T-2: 프로젝트 루트 vault 등록 확인 (`obsidian.json` 검증) + `wiki/` 하위 7 폴더(00_MOC, 10_Notes, 20_Lessons, 30_Constraints, 40_Templates, 99_Inbox, _attachments) 생성
+- T-3: 프로젝트 루트 `.obsidian/` 핵심 설정 파일 작성·검증 (`app.json`, `core-plugins.json`, `appearance.json`) — Obsidian 첫 실행 시 자동 생성된 항목을 검증·튜닝
 - T-4: `obsidian` CLI 명령 4건 smoke test (`files`, `search`, `tags`, `unresolved`)
 - T-5: 기본 `wiki/_INDEX.md` (최상위 MOC placeholder) 작성
 
-**산출물**: `wiki/` vault, `wiki/.obsidian/`, `wiki/_INDEX.md`, smoke test 보고서
+**산출물**: `obsidian.json` (vault.path=프로젝트 루트), `.obsidian/` (프로젝트 루트), `wiki/` 7 폴더, `wiki/_INDEX.md`, smoke test 보고서
 
 **G2_wiki**: vault 구조 정합성, CLI 응답 정상
 

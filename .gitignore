@@ -6,11 +6,17 @@
 # Claude Code 로컬 설정 (개인 환경/잠재 비밀)
 .claude/settings.local.json
 
-# Obsidian per-machine 상태 (vault에 .obsidian/ 생성될 경우)
+# Obsidian per-machine 상태 (vault root = 프로젝트 루트)
+# 추적 대상: .obsidian/app.json, core-plugins.json, appearance.json (프로젝트 공통 정책)
+# 무시 대상: workspace*, cache, graph 등 per-machine 상태
 .obsidian/workspace*.json
 .obsidian/cache
-.obsidian/appearance.json
 .obsidian/graph.json
+.obsidian/community-plugins.json
+.obsidian/plugins/
+.obsidian/themes/
+.obsidian/snippets/
+.obsidian/hotkeys.json
 
 # Obsidian 휴지통 / 자동 백업
 .trash/

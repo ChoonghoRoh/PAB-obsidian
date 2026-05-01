@@ -2,7 +2,7 @@
 phase: "1-1"
 title: "Obsidian CLI + Vault 초기화"
 team_name: "phase-1-1"
-ssot_version: 8.2-renewal-6th
+ssot_version: 8.0-renewal-6th
 created: 2026-05-01
 updated: 2026-05-01
 current_state: IDLE

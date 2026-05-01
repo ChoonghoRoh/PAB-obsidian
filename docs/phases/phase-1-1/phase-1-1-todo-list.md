@@ -26,10 +26,10 @@ created: 2026-05-01
 
 ## BUILDING
 
-- [ ] T-1: Obsidian CLI 등록 검증 (`which obsidian`, `obsidian --version`)
+- [x] T-1: Obsidian CLI 등록 검증 (`which obsidian`, `obsidian version`) — **완료** (`/usr/local/bin/obsidian`, v1.12.7)
 - [ ] T-2: 7 폴더 생성 (`mkdir -p wiki/{00_MOC,10_Notes,20_Lessons,30_Constraints,40_Templates,99_Inbox,_attachments}` + `.gitkeep`)
-- [ ] T-3: `.obsidian/` 3개 JSON 파일 작성 (`app.json`, `core-plugins.json`, `appearance.json`)
-- [ ] T-3 검증: `python3 -c "import json; [json.load(open(p)) for p in ['wiki/.obsidian/app.json','wiki/.obsidian/core-plugins.json','wiki/.obsidian/appearance.json']]"`
+- [ ] T-3: 프로젝트 루트 `.obsidian/` 3개 JSON 파일 검증·튜닝 (`app.json`, `core-plugins.json`, `appearance.json`)
+- [ ] T-3 검증: `python3 -c "import json; [json.load(open(p)) for p in ['.obsidian/app.json','.obsidian/core-plugins.json','.obsidian/appearance.json']]"`
 - [ ] T-4: 4 CLI 명령 smoke test (`files`/`search`/`tags`/`unresolved`) → `reports/cli-smoke-test.md`
 - [ ] T-5: `wiki/_INDEX.md` 작성 (frontmatter 11필드)
 

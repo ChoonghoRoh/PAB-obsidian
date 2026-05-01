@@ -2,7 +2,7 @@
 phase: "1"
 type: pre-analysis
 created: 2026-05-01
-ssot_version: 8.2-renewal-6th
+ssot_version: 8.0-renewal-6th
 initiator: user
 status: APPROVED
 ---
@@ -86,7 +86,7 @@ wiki/
 
 | KPI | 목표 |
 |---|---|
-| Vault 초기화 완료 | Phase 1-1 종료 시 `wiki/.obsidian/` 존재, `obsidian` CLI 명령 동작 |
+| Vault 초기화 완료 | Phase 1-1 종료 시 프로젝트 루트 `.obsidian/` 존재, `obsidian` CLI 명령 동작 (vault.path=프로젝트 루트) |
 | Frontmatter 스키마 | 11필드 + alias, 모든 시드 노트 100% 준수 |
 | MOC 시스템 | TYPES(6) + DOMAINS(6) + TOPICS(가변) MOC 자동 생성 |
 | CLI 자동화 명령 | `wiki new`/`link-check`/`moc-build`/`toc-suggest` 4종 동작 |
