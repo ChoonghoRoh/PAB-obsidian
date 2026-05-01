@@ -28,6 +28,15 @@
 *.swp
 *.swo
 
+# 비밀 환경변수
+.env
+.env.local
+.env.production
+
+# 외부 차용 자원 (다른 PAB 프로젝트에서 상속, 본 프로젝트는 reference만)
+SSOT/
+scripts/
+
 # 로그/임시 파일
 *.log
 *.tmp
