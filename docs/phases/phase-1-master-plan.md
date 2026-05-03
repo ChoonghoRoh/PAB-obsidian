@@ -48,9 +48,11 @@ Andrej Karpathy 스타일의 LLM-친화 wiki를 Obsidian으로 구축한다. 공
 
 **목표**: Obsidian 공식 CLI를 macOS에 설치·등록하고, **프로젝트 루트(`/Users/map-rch/WORKS/PAB-obsidian`)를 vault root로 사용**하며, `wiki/` 하위에 7 콘텐츠 폴더를 생성한다.
 
-> **vault 경로 정책 (재정정 2026-05-03)**: vault.path = `wiki/`. `.obsidian/` 설정 폴더도 `wiki/.obsidian/`에 위치. SSOT/docs/scripts/skills 등 프로젝트 인프라는 vault 외부에 두어 *순수 지식 vault*로 분리 (Karpathy 본래 의도 정렬). wikilink 단절 영향 분석 결과 0건으로 안전 이동 — 검증 후 진행. 환경변수 `WIKI_VAULT_ROOT="$HOME/WORKS/PAB-obsidian/wiki"`로 skill 호출 정합.
+> **vault 경로 정책 (3차 정정 2026-05-04)**: vault.path = `PAB-LLMDATA/`. 옵시디언 vault 폴더명을 *Personal AI Brain - LLM Data* 의미로 정명. 위치는 `PAB-obsidian/PAB-LLMDATA/`로 PAB-obsidian git 안에 유지 (PAB-obsidian = 튜닝 프로젝트, PAB-LLMDATA = 데이터 vault). `.obsidian/`은 `PAB-LLMDATA/.obsidian/`에 위치. wiki.py + lib/ 전 hardcoded `wiki/` prefix 제거 → 환경변수 `WIKI_VAULT_ROOT` 우선 + default `<project>/wiki/`. 사용자 셋업: `export WIKI_VAULT_ROOT="$HOME/WORKS/PAB-obsidian/PAB-LLMDATA"`.
 >
-> ~~이전 정책 (2026-05-01)~~: vault.path = 프로젝트 루트, SSOT/docs도 vault에 포함. dogfooding 통합 검색 의도였으나 노이즈 / 그래프뷰 오염 / Karpathy 순수 의도 약화로 재정정.
+> ~~2차 (2026-05-03)~~: vault.path = `wiki/`. 옵시디언이 vault 등록 시 nesting/rename으로 `wiki/PAB-WiKi/`로 자동 변경 → 사용자가 PAB-LLMDATA 명칭 채택, 본 위치로 재이전.
+>
+> ~~1차 (2026-05-01)~~: vault.path = 프로젝트 루트, SSOT/docs도 vault 포함. dogfooding 통합 검색 의도였으나 노이즈 / Karpathy 순수 의도 약화로 재정정.
 
 **Tasks**:
 - T-1: Obsidian 데스크톱 앱 설치 확인 + CLI 등록 절차 검증 (사용자 sudo 필요 — `! obsidian register` 안내) — **본 세션에서 이미 완료**

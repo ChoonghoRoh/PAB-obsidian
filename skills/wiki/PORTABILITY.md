@@ -81,44 +81,27 @@ Makefile                               # wiki-* 타겟 (선택)
 | `wiki.py` 호출 경로 | `scripts/wiki/wiki.py` | `SKILL.md` §3 Step 9 |
 | TYPE 6→7 (SOURCE 추가) | 8 enum | `_schema.json` (대상 vault가 다른 schema면 정합) |
 
-### 3.1 vault 운영 모드 선택 (Karpathy 본래 의도 — 공통 vault 권장)
+### 3.1 vault 운영 — 환경변수 1줄 셋업 (Karpathy 본래 의도)
 
-| 모드 | 설정 | 권장 시점 |
-|---|---|---|
-| **공통 vault (γ 하이브리드, 권장)** | `export WIKI_VAULT_ROOT="$HOME/Obsidian/Karpathy-Vault"` | **일반 운영**. 모든 프로젝트의 노트가 한 vault에 누적 — Karpathy "외부 뇌" 본질 충족 |
-| **자기완결 (프로젝트별 vault)** | 환경변수 미설정 → `./wiki/` | 프로젝트 dogfooding(PAB-obsidian 같은 케이스), 임시 테스트 |
+PAB-obsidian이 이미 옵시디언 vault 풀 셋업(`PAB-LLMDATA/` 직하에 8 폴더 + 8 TYPE schema + MOC + 30_Constraints)을 보유. **별도 vault 신설 불요** — 환경변수 1줄로 모든 프로젝트가 PAB-LLMDATA를 공통 vault로 사용:
 
-**공통 vault 셋업 절차**:
 ```bash
-# 1. 공통 vault 생성 (한 번만)
-mkdir -p "$HOME/Obsidian/Karpathy-Vault"/{00_MOC/{TYPES,DOMAINS,TOPICS},10_Notes,15_Sources,20_Lessons,30_Constraints,40_Templates,_attachments,99_Inbox}
+# 맥/리눅스 (zsh)
+echo 'export WIKI_VAULT_ROOT="$HOME/WORKS/PAB-obsidian/PAB-LLMDATA"' >> ~/.zshrc && source ~/.zshrc
 
-# 2. 옵시디언 규격 복사 (원본: PAB-obsidian)
-cp -r <PAB-obsidian>/wiki/40_Templates/* "$HOME/Obsidian/Karpathy-Vault/40_Templates/"
-cp -r <PAB-obsidian>/wiki/00_MOC/* "$HOME/Obsidian/Karpathy-Vault/00_MOC/"
-cp <PAB-obsidian>/wiki/30_Constraints/{frontmatter-spec,naming-convention}.md "$HOME/Obsidian/Karpathy-Vault/30_Constraints/"
-
-# 3. 환경변수 설정 (.zshrc / .bashrc)
-echo 'export WIKI_VAULT_ROOT="$HOME/Obsidian/Karpathy-Vault"' >> ~/.zshrc
-source ~/.zshrc
-
-# 4. 옵시디언에 vault 등록 (앱 GUI)
-
-# 5. 프로젝트별 폴더 분리 (옵션, 권장)
-#    공통 vault 안에서 노트는 자동 누적되지만, 프로젝트 컨텍스트 분리하려면:
-mkdir -p "$WIKI_VAULT_ROOT"/10_Notes/<project-name>
-mkdir -p "$WIKI_VAULT_ROOT"/15_Sources/<project-name>
-#    또는 SKILL.md §2.4를 갱신하여 자동 sub-folder 패턴 사용
+# 윈도우 PowerShell
+[Environment]::SetEnvironmentVariable("WIKI_VAULT_ROOT", "$HOME\WORKS\PAB-obsidian\PAB-LLMDATA", "User")
 ```
 
-**프로젝트 → vault 노트 누적 흐름**:
-```
-PAB-obsidian/        →  $WIKI_VAULT_ROOT/10_Notes/      (PAB-obsidian의 wiki 노트)
-PAB-SSOT-Nexus/      →  $WIKI_VAULT_ROOT/10_Notes/      (nexus의 wiki 노트)
-다른 프로젝트들...    →  $WIKI_VAULT_ROOT/10_Notes/      (모두 누적)
+**옵시디언 앱 vault 등록**: `~/WORKS/PAB-obsidian/PAB-LLMDATA/` (vault 이름은 폴더명 자동 — PAB-LLMDATA).
 
-각 프로젝트의 wiki/  =  Phase 산출물·baseline 등 *프로젝트 고유* 자료만 (옵시디언 노트 제외)
-```
+| 모드 | 설정 | 적용 |
+|---|---|---|
+| **PAB-LLMDATA 공통 vault (권장)** | `WIKI_VAULT_ROOT=$HOME/WORKS/PAB-obsidian/PAB-LLMDATA` | 일반 운영 — 모든 프로젝트의 노트가 한 vault에 누적 (Karpathy "외부 뇌" 본질 충족) |
+| **자기완결 (프로젝트별 wiki/)** | 환경변수 미설정 → `<project>/wiki/` | 임시 테스트 / vault 미준비 환경 |
+| **다른 vault 직접 지정** | `WIKI_VAULT_ROOT=<path>` | 다른 옵시디언 vault 사용 시 |
+
+**프로젝트별 폴더 분리는 자연 발생**: 노트가 늘면 `$WIKI_VAULT_ROOT/10_Notes/<project>/` 패턴 도입 가능 (SKILL.md §2.4 또는 호출 시 사용자 명시). 즉시 도입 불요.
 
 ---
 
@@ -257,6 +240,16 @@ python3 scripts/wiki/wiki.py link-check
 |---|---|---|
 | PAB-obsidian (origin) | A (자기 자신, dogfooding) | ✅ G2-wiki PASS+ (STAGE A 5/5 + Hard 12/12 + Soft 6/6 + AUDITOR 4/4) |
 | PAB-SSOT-Nexus | **D 최소 셋업** (vault 없음, 사용자 명령은 B였으나 조사 결과 D로 정정) | ✅ 이식 완료 (2026-05-03). 복사: `skills/wiki/` + `wiki/{15_Sources,10_Notes}/.gitkeep`. plugin.json 변경 0건 (이미 `name: pab`). nexus 세션에서 `/pab:wiki --help` 자동완성 + 첫 호출 본질 5/5 검증 대기. |
+
+### 9.2 v0.3 보강 (2026-05-04) — vault root 추상화 + PAB-LLMDATA 정식
+
+| 변경 | 영향 |
+|---|---|
+| `wiki.py` + `lib/{validate,frontmatter,moc}.py` 전 hardcoded `wiki/` prefix 제거 | vault 안의 *상대 경로* 사용 (10_Notes / 15_Sources / 00_MOC / 40_Templates 등) |
+| `VAULT_ROOT_DEFAULT` 환경변수 우선 (`$WIKI_VAULT_ROOT`) + default `<project>/wiki/` | skill·CLI 일관성. 후방호환: 환경변수 미설정 시 default 보존 |
+| PAB-obsidian/wiki/ → PAB-obsidian/PAB-LLMDATA/ vault 이름 정명 | "Personal AI Brain - LLM Data" 의미. PAB-obsidian = *튜닝 프로젝트* / PAB-LLMDATA = *vault* 역할 분리 |
+| §3.1 단순화 (5-step → 1-line) | 별도 vault 신설 폐기. PAB-LLMDATA가 이미 풀 셋업 |
+| 본질 5항목 영향 | **변경 없음** — 코드 정합만. 본질 #5 Karpathy 3계층 *강화* (vault = 진짜 외부 뇌) |
 
 ### 9.1 v0.2 보강 (2026-05-03) — 공통 vault 지원
 

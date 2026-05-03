@@ -1,24 +1,20 @@
 {
   "main": {
-    "id": "3d4274df6c2a160a",
+    "id": "c44cc46a2d47a6d8",
     "type": "split",
     "children": [
       {
-        "id": "7c23008403969684",
+        "id": "430c99bfed7499bc",
         "type": "tabs",
         "children": [
           {
-            "id": "918ec9d80f807f4b",
+            "id": "a8646b91bfaec61b",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "wiki/10_Notes/2026-05-02_karpathy_llm_wiki.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "2026-05-02_karpathy_llm_wiki"
+              "title": "새 탭"
             }
           }
         ]
@@ -27,28 +23,15 @@
     "direction": "vertical"
   },
   "left": {
-    "id": "006ced36abee7fdd",
+    "id": "d22dc8dff8ff5082",
     "type": "split",
     "children": [
       {
-        "id": "86ab7874769f241f",
+        "id": "79a1d399e25088ef",
         "type": "tabs",
         "children": [
           {
-            "id": "e9086dfb957ff1eb",
-            "type": "leaf",
-            "state": {
-              "type": "file-explorer",
-              "state": {
-                "sortOrder": "alphabetical",
-                "autoReveal": false
-              },
-              "icon": "lucide-folder-closed",
-              "title": "파일 탐색기"
-            }
-          },
-          {
-            "id": "30cb37cce4ad6b9b",
+            "id": "09af50d25f24fd79",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -65,7 +48,7 @@
             }
           },
           {
-            "id": "5b8221950bdf172f",
+            "id": "d57e72119b496b04",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -73,28 +56,41 @@
               "icon": "lucide-bookmark",
               "title": "북마크"
             }
+          },
+          {
+            "id": "ff9bf8d71b2f70b0",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "파일 탐색기"
+            }
           }
-        ]
+        ],
+        "currentTab": 2
       }
     ],
     "direction": "horizontal",
     "width": 300
   },
   "right": {
-    "id": "179009328d263e61",
+    "id": "62da50cb968939af",
     "type": "split",
     "children": [
       {
-        "id": "766dfae2eb123532",
+        "id": "22ddd4949b1e294c",
         "type": "tabs",
         "children": [
           {
-            "id": "401654e5442032e3",
+            "id": "e1abaaf784469f54",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
-                "file": "docs/data/wiki-doc-meta-sample.jpeg",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,25 +100,24 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "wiki-doc-meta-sample 의 백링크"
+              "title": "백링크"
             }
           },
           {
-            "id": "5532e68df4440d38",
+            "id": "70ec36e8d479d029",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "docs/data/wiki-doc-meta-sample.jpeg",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "wiki-doc-meta-sample 의 나가는 링크"
+              "title": "나가는 링크"
             }
           },
           {
-            "id": "d622edca31d41ffe",
+            "id": "678b8479b5cf9839",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -137,7 +132,7 @@
             }
           },
           {
-            "id": "c06869f3e86dd7de",
+            "id": "5baacb939370c672",
             "type": "leaf",
             "state": {
               "type": "all-properties",
@@ -151,18 +146,17 @@
             }
           },
           {
-            "id": "aaf79e3415d8a44b",
+            "id": "abe6fec8c189cf00",
             "type": "leaf",
             "state": {
               "type": "outline",
               "state": {
-                "file": "docs/data/wiki-doc-meta-sample.jpeg",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "wiki-doc-meta-sample 의 개요"
+              "title": "개요"
             }
           }
         ]
@@ -184,44 +178,43 @@
       "bases:새 베이스 생성하기": false
     }
   },
-  "active": "918ec9d80f807f4b",
+  "active": "ff9bf8d71b2f70b0",
   "lastOpenFiles": [
-    "wiki/10_Notes/2026-05-03_local_llm_under_3090.md",
-    "wiki/10_Notes/2026-05-02_karpathy_llm_wiki.md",
-    "skills/wiki/PORTABILITY.md",
-    "SSOT/0-entrypoint.md",
-    "wiki/15_Sources/2026-05-03_local_llm_under_3090_source.md",
-    "wiki/15_Sources/2026-05-02_karpathy_llm_wiki_source.md",
-    "wiki/00_MOC/TYPES/SOURCE.md",
-    "wiki/00_MOC/TYPES/RESEARCH_NOTE.md",
-    "wiki/00_MOC/TYPES/REFERENCE.md",
-    "wiki/00_MOC/TYPES/LESSON.md",
-    "wiki/00_MOC/TYPES/DAILY.md",
-    "wiki/00_MOC/TYPES/CONCEPT.md",
-    "wiki/00_MOC/TOPICS/CONSTRAINTS.md",
-    "wiki/00_MOC/TOPICS/_README.md",
-    "wiki/00_MOC/DOMAINS/PRODUCT.md",
-    "wiki/00_MOC/DOMAINS/MISC.md",
-    "wiki/00_MOC/DOMAINS/HARNESS.md",
-    "wiki/00_MOC/DOMAINS/ENGINEERING.md",
-    "wiki/00_MOC/DOMAINS/AI.md",
-    "wiki/10_Notes/_old/2026-05-02_karpathy_llm_wiki_v1_backup.md",
-    "docs/phases/phase-1-5/reports/report-verifier-v2.md",
-    "docs/phases/phase-1-5/reports/report-backend-dev-v2.md",
-    "wiki/10_Notes/_old",
-    "wiki/15_Sources/README.md",
-    "wiki/15_Sources",
-    "wiki/40_Templates/SOURCE.md",
-    "docs/phases/phase-1-5/tasks/task-1-5-6.md",
-    "docs/phases/phase-1-5/tasks/task-1-5-5.md",
-    "docs/phases/phase-1-5/reports",
-    "skills/wiki",
-    "skills",
-    "docs/phases/phase-1-5/poc",
-    "docs/phases/phase-1-5/tasks",
-    "docs/phases/phase-1-5",
-    "Makefile",
-    "scripts/wiki/lib/__pycache__/toc.cpython-312.pyc",
-    "docs/data/wiki-doc-meta-sample.jpeg"
+    "_INDEX.md",
+    "환영합니다!.md",
+    "40_Templates/LESSON.md",
+    "40_Templates/_schema.json",
+    "40_Templates/DAILY.md",
+    "40_Templates/RESEARCH_NOTE.md",
+    "40_Templates/PROJECT.md",
+    "40_Templates/SOURCE.md",
+    "40_Templates/REFERENCE.md",
+    "40_Templates/CONCEPT.md",
+    "30_Constraints/linking-policy.md",
+    "30_Constraints/toc-recommendation.md",
+    "30_Constraints/frontmatter-spec.md",
+    "30_Constraints/naming-convention.md",
+    "15_Sources/2026-05-02_karpathy_llm_wiki_source.md",
+    "15_Sources/2026-05-03_local_llm_under_3090_source.md",
+    "10_Notes/2026-05-03_local_llm_under_3090.md",
+    "10_Notes/_old/2026-05-02_karpathy_llm_wiki_v1_backup.md",
+    "10_Notes/_old",
+    "10_Notes/2026-05-02_karpathy_llm_wiki.md",
+    "00_MOC/TOPICS/_README.md",
+    "00_MOC/TOPICS/CONSTRAINTS.md",
+    "00_MOC/TOPICS",
+    "00_MOC/DOMAINS/PRODUCT.md",
+    "00_MOC/DOMAINS/MISC.md",
+    "00_MOC/DOMAINS/KNOWLEDGE_MGMT.md",
+    "00_MOC/DOMAINS/HARNESS.md",
+    "00_MOC/DOMAINS/ENGINEERING.md",
+    "00_MOC/DOMAINS/AI.md",
+    "00_MOC/DOMAINS",
+    "00_MOC/TYPES",
+    "99_Inbox",
+    "40_Templates",
+    "30_Constraints",
+    "20_Lessons",
+    "15_Sources"
   ]
 }
