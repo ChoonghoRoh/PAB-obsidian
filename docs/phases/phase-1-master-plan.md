@@ -65,7 +65,9 @@ Andrej Karpathy 스타일의 LLM-친화 wiki를 Obsidian으로 구축한다. 공
 
 ---
 
-### Phase 1-2: Frontmatter 스키마 + Templater 템플릿 [WIKI-META]
+### Phase 1-2: Frontmatter 스키마 + Templater 템플릿 [WIKI-META] ✅ DONE 2026-05-01
+
+**완료 요약 (CHAIN-5)**: 9 산출물(1 schema + 6 templates + 3 constraints) 작성. JSON Schema(Draft 2020-12) 11필드 + 6 TYPE 템플릿 type/tags enum 정합 + 3 constraints 자기참조 frontmatter. G2_wiki PASS (Critical 5/5, High 4/4, Low 2/2).
 
 **목표**: 11필드 frontmatter 스키마를 확정하고, TYPE별 6종 템플릿을 작성한다.
 
@@ -84,7 +86,9 @@ Andrej Karpathy 스타일의 LLM-친화 wiki를 Obsidian으로 구축한다. 공
 
 ---
 
-### Phase 1-3: TOC/MOC 시스템 (3중 인덱스) [WIKI-META] [WIKI-CONTENT]
+### Phase 1-3: TOC/MOC 시스템 (3중 인덱스) [WIKI-META] [WIKI-CONTENT] ✅ DONE 2026-05-01
+
+**완료 요약 (CHAIN-5)**: 15 산출물(TYPES MOC 6 + DOMAINS MOC 6 + TOPICS _README + _INDEX 갱신 + toc-recommendation 명세) + T-6 schema strict 정렬 add-on. G2_wiki PASS (Critical 0/3, High 0/4, Low 0/2). jsonschema strict 15/15 PASS (옵션 a 채택: tag pattern nested 확장 + type enum INDEX 추가). Phase 1-2 unresolved [[AI]]/[[HARNESS]] 등 12건 1:1 자동 해소.
 
 **목표**: TYPES/DOMAINS/TOPICS 3중 인덱스 MOC를 구축하고, 자동 수집 메커니즘을 설계한다.
 
@@ -103,7 +107,9 @@ Andrej Karpathy 스타일의 LLM-친화 wiki를 Obsidian으로 구축한다. 공
 
 ---
 
-### Phase 1-4: CLI 자동화 (`scripts/wiki/`) [WIKI-CLI]
+### Phase 1-4: CLI 자동화 (`scripts/wiki/`) [WIKI-CLI] ✅ DONE 2026-05-02
+
+**완료 요약 (CHAIN-5)**: scripts/wiki/wiki.py(152) + lib/{frontmatter 134, validate 202, moc 177, toc 200} 5 파일 + README(145) + Makefile 4 타겟. 4 subcommand(new/link-check/moc-build/toc-suggest) 동작. G2_wiki PASS (Critical 0 / High 0 / Low 0). 1차 PARTIAL → hotfix2(FIX-4 fallback basename 비교 + FIX-5 12 MOC 표기 + FIX-6 DAILY→99_Inbox)로 PASS 승급. R-4 가드 전부 통과 (max 202<250). REFACTOR-1 500줄 초과 0건. fallback 단독 환경(obsidian 비활성)에서도 broken=0 확인.
 
 **목표**: 4종 CLI 명령을 Python으로 구현. Obsidian 공식 CLI와 직접 vault 조작을 조합한다.
 
@@ -139,6 +145,8 @@ Andrej Karpathy 스타일의 LLM-친화 wiki를 Obsidian으로 구축한다. 공
 **G2_wiki**: 각 skill을 빈 입력으로 실행 시 정상 에러 메시지 반환
 
 **소요 추정**: 5 task / 90~120분
+
+> **완료 (2026-05-02 / REWORK 후 PASS+)**: 사용자 본질 통찰로 단순화 — 다중 SKILL 분리·skill_bridge·JSON 프로토콜 모두 제거. **단일 `/pab:wiki` skill** 1개로 통합. REWORK 추가: SOURCE TYPE 신설 + `wiki/15_Sources/` 폴더 + TOC 양방향 링크 → **원본 immutable + LLM 요약본 두 산출물 동시 생성** (Karpathy 3계층 충족). 산출: `.claude-plugin/plugin.json` + `skills/wiki/SKILL.md` (220줄) + `wiki/40_Templates/SOURCE.md` + 첫 노트 한 쌍 (원본 12,667B / 요약 5,640B). G2-wiki PASS+ (STAGE A 5/5 + Hard 12/12 + Soft 6/6 + AUDITOR 4/4 cross-model opus). 사용자 액션: Claude Code 세션 재시작 후 `/pab:wiki --help` 자동완성 확인.
 
 ---
 

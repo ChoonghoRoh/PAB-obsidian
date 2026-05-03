@@ -124,3 +124,12 @@ SSOT 경로: `SSOT/`
 - [ ] **CHAIN-5**: Phase Chain 파일에 1줄 완료 요약 기록
 - [ ] **G4**: G2 PASS + G3 PASS 확인 후 DONE 전이
 - [ ] **NOTIFY-1 / HR-8**: `scripts/pmAuto/report_to_telegram.sh` 실행하여 Telegram 완료 알림 발송
+
+---
+
+# Plugin Skills (`pab` namespace)
+
+- `/pab:wiki <내용 또는 URL...>` — 옵시디언 규격 wiki 노트 자동 생성 (frontmatter 11필드 + 6 TYPE + naming-convention 자동 적용 → `wiki/10_Notes/`)
+- `/pab:wiki --help` — 도움말
+
+상세: `skills/wiki/SKILL.md`
