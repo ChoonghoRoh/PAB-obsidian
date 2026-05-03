@@ -1,9 +1,9 @@
 {
   "alwaysUpdateLinks": true,
   "newFileLocation": "folder",
-  "newFileFolderPath": "wiki/99_Inbox",
+  "newFileFolderPath": "99_Inbox",
   "useMarkdownLinks": false,
-  "attachmentFolderPath": "wiki/_attachments",
+  "attachmentFolderPath": "_attachments",
   "showLineNumber": true,
   "spellcheck": false,
   "promptDelete": true

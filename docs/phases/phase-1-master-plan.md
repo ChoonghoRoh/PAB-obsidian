@@ -48,7 +48,9 @@ Andrej Karpathy 스타일의 LLM-친화 wiki를 Obsidian으로 구축한다. 공
 
 **목표**: Obsidian 공식 CLI를 macOS에 설치·등록하고, **프로젝트 루트(`/Users/map-rch/WORKS/PAB-obsidian`)를 vault root로 사용**하며, `wiki/` 하위에 7 콘텐츠 폴더를 생성한다.
 
-> **vault 경로 정책 (사용자 결정 2026-05-01)**: vault.path = 프로젝트 루트. 따라서 `.obsidian/` 설정 폴더는 프로젝트 루트에 위치한다. 위키 콘텐츠 폴더(00_MOC, 10_Notes 등)는 `wiki/` 서브디렉터리에 두어 SSOT/docs/scripts 등 프로젝트 인프라와 시각적 분리를 유지한다. (Obsidian은 vault root 하위 모든 `.md`를 인덱싱하므로 SSOT/docs도 검색·링크 대상이 됨 — 의도된 동작)
+> **vault 경로 정책 (재정정 2026-05-03)**: vault.path = `wiki/`. `.obsidian/` 설정 폴더도 `wiki/.obsidian/`에 위치. SSOT/docs/scripts/skills 등 프로젝트 인프라는 vault 외부에 두어 *순수 지식 vault*로 분리 (Karpathy 본래 의도 정렬). wikilink 단절 영향 분석 결과 0건으로 안전 이동 — 검증 후 진행. 환경변수 `WIKI_VAULT_ROOT="$HOME/WORKS/PAB-obsidian/wiki"`로 skill 호출 정합.
+>
+> ~~이전 정책 (2026-05-01)~~: vault.path = 프로젝트 루트, SSOT/docs도 vault에 포함. dogfooding 통합 검색 의도였으나 노이즈 / 그래프뷰 오염 / Karpathy 순수 의도 약화로 재정정.
 
 **Tasks**:
 - T-1: Obsidian 데스크톱 앱 설치 확인 + CLI 등록 절차 검증 (사용자 sudo 필요 — `! obsidian register` 안내) — **본 세션에서 이미 완료**
