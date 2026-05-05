@@ -1,20 +1,24 @@
 {
   "main": {
-    "id": "c44cc46a2d47a6d8",
+    "id": "4b09d8b64387e093",
     "type": "split",
     "children": [
       {
-        "id": "430c99bfed7499bc",
+        "id": "cddf3867d7e86463",
         "type": "tabs",
         "children": [
           {
-            "id": "a8646b91bfaec61b",
+            "id": "f42ace665dcc1345",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "10_Notes/2026-05-05_qwen36_27b_3090_218k_pn12.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "새 탭"
+              "title": "2026-05-05_qwen36_27b_3090_218k_pn12"
             }
           }
         ]
@@ -23,15 +27,28 @@
     "direction": "vertical"
   },
   "left": {
-    "id": "d22dc8dff8ff5082",
+    "id": "7de40872957693a1",
     "type": "split",
     "children": [
       {
-        "id": "79a1d399e25088ef",
+        "id": "7bfa0678f0c11f6d",
         "type": "tabs",
         "children": [
           {
-            "id": "09af50d25f24fd79",
+            "id": "74e23bc5e064cd00",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "파일 탐색기"
+            }
+          },
+          {
+            "id": "9e2e039bf23d9a1a",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -48,7 +65,7 @@
             }
           },
           {
-            "id": "d57e72119b496b04",
+            "id": "d86630a997dd0eeb",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -56,37 +73,23 @@
               "icon": "lucide-bookmark",
               "title": "북마크"
             }
-          },
-          {
-            "id": "ff9bf8d71b2f70b0",
-            "type": "leaf",
-            "state": {
-              "type": "file-explorer",
-              "state": {
-                "sortOrder": "alphabetical",
-                "autoReveal": false
-              },
-              "icon": "lucide-folder-closed",
-              "title": "파일 탐색기"
-            }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 423.5
   },
   "right": {
-    "id": "62da50cb968939af",
+    "id": "1ae13e87b6a91813",
     "type": "split",
     "children": [
       {
-        "id": "22ddd4949b1e294c",
+        "id": "f9dd137a93c1538b",
         "type": "tabs",
         "children": [
           {
-            "id": "e1abaaf784469f54",
+            "id": "b2c1a6c673768db8",
             "type": "leaf",
             "state": {
               "type": "backlink",
@@ -104,7 +107,7 @@
             }
           },
           {
-            "id": "70ec36e8d479d029",
+            "id": "a5f91488b9d947c1",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
@@ -117,7 +120,7 @@
             }
           },
           {
-            "id": "678b8479b5cf9839",
+            "id": "3add6ce615797493",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -132,7 +135,7 @@
             }
           },
           {
-            "id": "5baacb939370c672",
+            "id": "cb1fd39595f11d7b",
             "type": "leaf",
             "state": {
               "type": "all-properties",
@@ -146,7 +149,7 @@
             }
           },
           {
-            "id": "abe6fec8c189cf00",
+            "id": "014ed172ebe3f69f",
             "type": "leaf",
             "state": {
               "type": "outline",
@@ -178,43 +181,43 @@
       "bases:새 베이스 생성하기": false
     }
   },
-  "active": "ff9bf8d71b2f70b0",
+  "active": "f42ace665dcc1345",
   "lastOpenFiles": [
-    "_INDEX.md",
-    "환영합니다!.md",
-    "40_Templates/LESSON.md",
-    "40_Templates/_schema.json",
-    "40_Templates/DAILY.md",
-    "40_Templates/RESEARCH_NOTE.md",
-    "40_Templates/PROJECT.md",
-    "40_Templates/SOURCE.md",
-    "40_Templates/REFERENCE.md",
-    "40_Templates/CONCEPT.md",
-    "30_Constraints/linking-policy.md",
-    "30_Constraints/toc-recommendation.md",
-    "30_Constraints/frontmatter-spec.md",
-    "30_Constraints/naming-convention.md",
-    "15_Sources/2026-05-02_karpathy_llm_wiki_source.md",
+    "10_Notes/2026-05-05_club_3090.md",
+    "10_Notes/2026-05-05_qwen36_27b_3090_218k_pn12.md",
+    "15_Sources/2026-05-05_qwen36_27b_3090_218k_pn12_source.md",
+    "10_Notes/2026-05-04_pab_ssot_nexus_overview.md",
+    "10_Notes/2026-05-05_pab_ssot_portability.md",
+    "15_Sources/2026-05-05_club_3090_source.md",
     "15_Sources/2026-05-03_local_llm_under_3090_source.md",
     "10_Notes/2026-05-03_local_llm_under_3090.md",
-    "10_Notes/_old/2026-05-02_karpathy_llm_wiki_v1_backup.md",
-    "10_Notes/_old",
+    "10_Notes/2026-05-04_pab_observer_overview.md",
+    "10_Notes/2026-05-04_pab_khala_overview.md",
+    "10_Notes/2026-05-04_pab_conductor_overview.md",
+    "00_MOC/PAB_project_overview.md",
+    "00_MOC/PAB_SSOT_overview.md",
+    "10_Notes/2026-05-04_pab_reader_overview.md",
+    "15_Sources/2026-05-02_karpathy_llm_wiki_source.md",
+    "30_Constraints/frontmatter-spec.md",
+    "30_Constraints/linking-policy.md",
+    "40_Templates/CONCEPT.md",
+    "40_Templates/DAILY.md",
+    "40_Templates/LESSON.md",
+    "40_Templates/PROJECT.md",
+    "00_MOC/TYPES/CONCEPT.md",
     "10_Notes/2026-05-02_karpathy_llm_wiki.md",
-    "00_MOC/TOPICS/_README.md",
-    "00_MOC/TOPICS/CONSTRAINTS.md",
-    "00_MOC/TOPICS",
-    "00_MOC/DOMAINS/PRODUCT.md",
-    "00_MOC/DOMAINS/MISC.md",
-    "00_MOC/DOMAINS/KNOWLEDGE_MGMT.md",
-    "00_MOC/DOMAINS/HARNESS.md",
-    "00_MOC/DOMAINS/ENGINEERING.md",
-    "00_MOC/DOMAINS/AI.md",
-    "00_MOC/DOMAINS",
-    "00_MOC/TYPES",
+    "_INDEX.md",
     "99_Inbox",
+    "40_Templates/_schema.json",
+    "40_Templates/SOURCE.md",
+    "40_Templates/RESEARCH_NOTE.md",
     "40_Templates",
     "30_Constraints",
     "20_Lessons",
-    "15_Sources"
+    "15_Sources",
+    "10_Notes/_old",
+    "10_Notes",
+    "00_MOC/TYPES",
+    "00_MOC/TOPICS"
   ]
 }
