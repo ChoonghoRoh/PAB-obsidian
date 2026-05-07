@@ -20,8 +20,23 @@
               "icon": "lucide-file",
               "title": "2026-05-07_qwen36_dual_3090_25_to_283_tps"
             }
+          },
+          {
+            "id": "3cbe8fce0ae4f702",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "15_Sources/2026-05-07_qwen36_dual_3090_25_to_283_tps_source.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "2026-05-07_qwen36_dual_3090_25_to_283_tps_source"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -181,14 +196,14 @@
       "bases:새 베이스 생성하기": false
     }
   },
-  "active": "74e23bc5e064cd00",
+  "active": "3cbe8fce0ae4f702",
   "lastOpenFiles": [
-    "10_Notes/2026-05-02_karpathy_llm_wiki.md",
     "10_Notes/2026-05-07_qwen36_dual_3090_25_to_283_tps.md",
+    "15_Sources/2026-05-07_qwen36_dual_3090_25_to_283_tps_source.md",
+    "10_Notes/2026-05-02_karpathy_llm_wiki.md",
     "10_Notes/2026-05-03_local_llm_under_3090.md",
     "10_Notes/2026-05-07_qwen36_dual_3090_25_to_283_tps.md.tmp.3239.d8f8a737ee46",
     "00_MOC/TYPES/LESSON.md",
-    "15_Sources/2026-05-07_qwen36_dual_3090_25_to_283_tps_source.md",
     "15_Sources/2026-05-07_qwen36_dual_3090_25_to_283_tps_source.md.tmp.3239.5c3a42ae1711",
     "00_MOC/DOMAINS/MISC.md",
     "00_MOC/DOMAINS/KNOWLEDGE_MGMT.md",
