@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "10_Notes/2026-05-06_greedysearch_pi.md",
+                "file": "10_Notes/2026-05-07_qwen36_dual_3090_25_to_283_tps.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "2026-05-06_greedysearch_pi"
+              "title": "2026-05-07_qwen36_dual_3090_25_to_283_tps"
             }
           }
         ]
@@ -181,43 +181,43 @@
       "bases:새 베이스 생성하기": false
     }
   },
-  "active": "f42ace665dcc1345",
+  "active": "74e23bc5e064cd00",
   "lastOpenFiles": [
-    "10_Notes/2026-05-05_qwen36_27b_3090_218k_pn12.md",
-    "10_Notes/2026-05-05_club_3090.md",
+    "10_Notes/2026-05-02_karpathy_llm_wiki.md",
+    "10_Notes/2026-05-07_qwen36_dual_3090_25_to_283_tps.md",
+    "10_Notes/2026-05-03_local_llm_under_3090.md",
+    "10_Notes/2026-05-07_qwen36_dual_3090_25_to_283_tps.md.tmp.3239.d8f8a737ee46",
+    "00_MOC/TYPES/LESSON.md",
+    "15_Sources/2026-05-07_qwen36_dual_3090_25_to_283_tps_source.md",
+    "15_Sources/2026-05-07_qwen36_dual_3090_25_to_283_tps_source.md.tmp.3239.5c3a42ae1711",
+    "00_MOC/DOMAINS/MISC.md",
+    "00_MOC/DOMAINS/KNOWLEDGE_MGMT.md",
+    "00_MOC/DOMAINS/HARNESS.md",
+    "00_MOC/DOMAINS/ENGINEERING.md",
+    "00_MOC/TOPICS/CONSTRAINTS.md",
+    "00_MOC/TOPICS/_README.md",
+    "00_MOC/DOMAINS/PRODUCT.md",
+    "00_MOC/DOMAINS/AI.md",
+    "15_Sources/2026-05-03_local_llm_under_3090_source.md",
+    "15_Sources/2026-05-05_club_3090_source.md",
     "15_Sources/2026-05-05_qwen36_27b_3090_218k_pn12_source.md",
+    "15_Sources/2026-05-06_greedysearch_pi_source.md",
+    "15_Sources/2026-05-02_karpathy_llm_wiki_source.md",
+    "10_Notes/2026-05-06_greedysearch_pi.md",
+    "10_Notes/2026-05-05_qwen36_27b_3090_218k_pn12.md",
+    "10_Notes/2026-05-05_pab_ssot_intro.md",
+    "10_Notes/2026-05-05_pab_ssot_workflow.md",
+    "10_Notes/2026-05-05_club_3090.md",
     "10_Notes/2026-05-04_pab_ssot_nexus_overview.md",
     "10_Notes/2026-05-05_pab_ssot_portability.md",
-    "15_Sources/2026-05-05_club_3090_source.md",
-    "15_Sources/2026-05-03_local_llm_under_3090_source.md",
-    "10_Notes/2026-05-03_local_llm_under_3090.md",
     "10_Notes/2026-05-04_pab_observer_overview.md",
-    "10_Notes/2026-05-04_pab_khala_overview.md",
-    "10_Notes/2026-05-04_pab_conductor_overview.md",
-    "00_MOC/PAB_project_overview.md",
-    "00_MOC/PAB_SSOT_overview.md",
-    "10_Notes/2026-05-04_pab_reader_overview.md",
-    "15_Sources/2026-05-02_karpathy_llm_wiki_source.md",
-    "30_Constraints/frontmatter-spec.md",
-    "30_Constraints/linking-policy.md",
-    "40_Templates/CONCEPT.md",
-    "40_Templates/DAILY.md",
-    "40_Templates/LESSON.md",
-    "40_Templates/PROJECT.md",
-    "00_MOC/TYPES/CONCEPT.md",
-    "10_Notes/2026-05-02_karpathy_llm_wiki.md",
-    "_INDEX.md",
     "99_Inbox",
     "40_Templates/_schema.json",
-    "40_Templates/SOURCE.md",
-    "40_Templates/RESEARCH_NOTE.md",
     "40_Templates",
     "30_Constraints",
     "20_Lessons",
     "15_Sources",
     "10_Notes/_old",
-    "10_Notes",
-    "00_MOC/TYPES",
-    "00_MOC/TOPICS"
+    "10_Notes"
   ]
 }
