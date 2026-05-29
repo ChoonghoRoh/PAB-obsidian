@@ -235,13 +235,13 @@ aliases: ["96개 규칙", "SSOT 규칙 인덱스", "공통 포맷"]
 
 ### WT — Worktree (병렬 격리) — 5개
 
-| ID | 요약 | 심각도 |
-|---|---|:--:|
-| WT-1 | 병렬 BUILDING 트랙 ≥ 2 시 worktree 격리 필수. A/B 분기·REWINDING도 동일 | CRITICAL |
-| WT-2 | 경로 `../PAB-SSOT-Nexus-wt-phase-{X}-{Y}-{track}` 패턴만 (저장소 내부 `.worktrees/` 금지) | HIGH |
-| WT-3 | 팀원은 주입된 worktree CWD 밖 편집·빌드 금지. 위반 시 즉시 중단·재할당 | CRITICAL |
-| WT-4 | Chain 완료 시 `git worktree remove` + `prune`. 실패·A/B 비선택 브랜치는 §6.5 아카이브 | HIGH |
-| WT-5 | status.md에 `worktree_paths: []` + `cleanup_wt: pending\|done` 필수 기록 | MEDIUM |
+| ID   | 요약                                                                            |   심각도    |
+| ---- | ----------------------------------------------------------------------------- | :------: |
+| WT-1 | 병렬 BUILDING 트랙 ≥ 2 시 worktree 격리 필수. A/B 분기·REWINDING도 동일                     | CRITICAL |
+| WT-2 | 경로 `../PAB-SSOT-Nexus-wt-phase-{X}-{Y}-{track}` 패턴만 (저장소 내부 `.worktrees/` 금지) |   HIGH   |
+| WT-3 | 팀원은 주입된 worktree CWD 밖 편집·빌드 금지. 위반 시 즉시 중단·재할당                               | CRITICAL |
+| WT-4 | Chain 완료 시 `git worktree remove` + `prune`. 실패·A/B 비선택 브랜치는 §6.5 아카이브         |   HIGH   |
+| WT-5 | status.md에 `worktree_paths: []` + `cleanup_wt: pending\|done` 필수 기록           |  MEDIUM  |
 
 ## §2 HR ↔ 다른 규칙 교차 매핑
 

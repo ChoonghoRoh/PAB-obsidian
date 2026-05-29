@@ -27,16 +27,30 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "15_Sources/2026-05-07_qwen36_dual_3090_25_to_283_tps_source.md",
+                "file": "10_Notes/2026-05-26_beellama_v020_dflash_3090.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "2026-05-07_qwen36_dual_3090_25_to_283_tps_source"
+              "title": "2026-05-26_beellama_v020_dflash_3090"
+            }
+          },
+          {
+            "id": "1aefcc73ad416155",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "10_Notes/2026-05-26_beellama_v020_dflash_3090.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "2026-05-26_beellama_v020_dflash_3090"
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -196,9 +210,27 @@
       "bases:새 베이스 생성하기": false
     }
   },
-  "active": "3cbe8fce0ae4f702",
+  "active": "1aefcc73ad416155",
   "lastOpenFiles": [
+    "10_Notes/2026-05-26_beellama_v020_dflash_3090.md.tmp.37526.33492ca1f3ad",
+    "15_Sources/2026-05-26_beellama_v020_dflash_3090_source.md.tmp.37526.0408118a7e76",
+    "15_Sources/2026-05-26_beellama_v020_dflash_3090_source.md.tmp.37526.5ef0cd9a37e1",
     "10_Notes/2026-05-07_qwen36_dual_3090_25_to_283_tps.md",
+    "10_Notes/2026-05-26_beellama_v020_dflash_3090.md",
+    "15_Sources/2026-05-26_beellama_v020_dflash_3090_source.md.tmp.37526.78e35a932f68",
+    "10_Notes/2026-05-05_qwen36_27b_3090_218k_pn12.md",
+    "10_Notes/2026-05-05_pab_ssot_architecture.md",
+    "10_Notes/2026-05-05_pab_ssot_event_automation.md",
+    "10_Notes/2026-05-05_pab_ssot_intro.md",
+    "10_Notes/2026-05-05_pab_ssot_persona_qc.md",
+    "10_Notes/2026-05-05_pab_ssot_portability.md",
+    "10_Notes/2026-05-05_pab_ssot_roles.md",
+    "10_Notes/2026-05-05_pab_ssot_rules_chain.md",
+    "10_Notes/2026-05-05_pab_ssot_skills_catalog.md",
+    "10_Notes/2026-05-05_pab_ssot_skills_detail.md",
+    "10_Notes/2026-05-05_pab_ssot_subssot_misc.md",
+    "10_Notes/2026-05-05_pab_ssot_templates.md",
+    "10_Notes/2026-05-05_pab_ssot_workflow.md",
     "15_Sources/2026-05-07_qwen36_dual_3090_25_to_283_tps_source.md",
     "10_Notes/2026-05-02_karpathy_llm_wiki.md",
     "10_Notes/2026-05-03_local_llm_under_3090.md",
@@ -211,28 +243,10 @@
     "00_MOC/DOMAINS/ENGINEERING.md",
     "00_MOC/TOPICS/CONSTRAINTS.md",
     "00_MOC/TOPICS/_README.md",
-    "00_MOC/DOMAINS/PRODUCT.md",
-    "00_MOC/DOMAINS/AI.md",
-    "15_Sources/2026-05-03_local_llm_under_3090_source.md",
-    "15_Sources/2026-05-05_club_3090_source.md",
-    "15_Sources/2026-05-05_qwen36_27b_3090_218k_pn12_source.md",
-    "15_Sources/2026-05-06_greedysearch_pi_source.md",
-    "15_Sources/2026-05-02_karpathy_llm_wiki_source.md",
-    "10_Notes/2026-05-06_greedysearch_pi.md",
-    "10_Notes/2026-05-05_qwen36_27b_3090_218k_pn12.md",
-    "10_Notes/2026-05-05_pab_ssot_intro.md",
-    "10_Notes/2026-05-05_pab_ssot_workflow.md",
-    "10_Notes/2026-05-05_club_3090.md",
-    "10_Notes/2026-05-04_pab_ssot_nexus_overview.md",
-    "10_Notes/2026-05-05_pab_ssot_portability.md",
-    "10_Notes/2026-05-04_pab_observer_overview.md",
     "99_Inbox",
     "40_Templates/_schema.json",
     "40_Templates",
     "30_Constraints",
-    "20_Lessons",
-    "15_Sources",
-    "10_Notes/_old",
-    "10_Notes"
+    "20_Lessons"
   ]
 }

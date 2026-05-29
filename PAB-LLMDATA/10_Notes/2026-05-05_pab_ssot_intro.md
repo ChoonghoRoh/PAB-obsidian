@@ -29,14 +29,14 @@ aliases: ["SSOT 진입", "SSOT 6세대 진입", "ver6-0 진입점"]
 
 ## 버전 트리 — 4세대 → 5세대 → 6세대 → AutoCycle
 
-| 버전 | 시점 | 핵심 변경 |
-|---|---|---|
-| **v6.0-renewal-4th** | 2026-02-17 | 4세대 — 진입점·1-project·2-architecture·3-workflow + Phase Chain + PERSONA 5종 + claude/ 참조 제거 |
-| **v7.0-renewal-5th** | 2026-02-28 | 5세대 — RESEARCH 상태 + G0 게이트 + Research Team 3역할 + 4-event-protocol + 5-automation + 11명 Verification Council + 상태머신 14→20개 |
-| **v8.0-renewal-6th** | 2026-04-13 | 6세대 — SUB-SSOT 모듈형 로딩 + `core/7-shared-definitions.md` 공통 레이어 + FRESH-10~12 (토큰 60% 절감) |
-| **v8.0.1** | 2026-04-15 (Phase-E) | DEV 3분할 (CODER 전용 축소 + REVIEWER → VERIFIER + VALIDATOR → TESTER 이관) + RESEARCH SUB-SSOT 신설 |
-| **v8.1** | 2026-04-16 (Phase-G+H) | **AutoCycle v1.0** — 14단계 자동 handoff. TEMPLATES 5종 + ITER-PRE/POST + ITERATION-BUDGET 500K + CHAIN-12/13 |
-| **v8.2** | 2026-04-16 (Phase-I) | **AutoCycle v1.1** — Step 0 Pre-draft 게이트 신설 + PROMPT-QUALITY 규칙(HIGH) + `/plan` 스킬 + `pre/` 평탄 폴더. 사용자 주도 15단계 / AI handoff 14단계 분기 |
+| 버전                   | 시점                     | 핵심 변경                                                                                                                                |
+| -------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **v6.0-renewal-4th** | 2026-02-17             | 4세대 — 진입점·1-project·2-architecture·3-workflow + Phase Chain + PERSONA 5종 + claude/ 참조 제거                                             |
+| **v7.0-renewal-5th** | 2026-02-28             | 5세대 — RESEARCH 상태 + G0 게이트 + Research Team 3역할 + 4-event-protocol + 5-automation + 11명 Verification Council + 상태머신 14→20개            |
+| **v8.0-renewal-6th** | 2026-04-13             | 6세대 — SUB-SSOT 모듈형 로딩 + `core/7-shared-definitions.md` 공통 레이어 + FRESH-10~12 (토큰 60% 절감)                                              |
+| **v8.0.1**           | 2026-04-15 (Phase-E)   | DEV 3분할 (CODER 전용 축소 + REVIEWER → VERIFIER + VALIDATOR → TESTER 이관) + RESEARCH SUB-SSOT 신설                                           |
+| **v8.1**             | 2026-04-16 (Phase-G+H) | **AutoCycle v1.0** — 14단계 자동 handoff. TEMPLATES 5종 + ITER-PRE/POST + ITERATION-BUDGET 500K + CHAIN-12/13                             |
+| **v8.2**             | 2026-04-16 (Phase-I)   | **AutoCycle v1.1** — Step 0 Pre-draft 게이트 신설 + PROMPT-QUALITY 규칙(HIGH) + `/plan` 스킬 + `pre/` 평탄 폴더. 사용자 주도 15단계 / AI handoff 14단계 분기 |
 
 **원칙**: 5세대 호환성 유지 — 5th 콘텐츠 전량 보존 + 6th SUB-SSOT 확장 레이어 + AutoCycle Pre-draft Gate.
 
