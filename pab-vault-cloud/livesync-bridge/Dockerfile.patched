@@ -1,0 +1,19 @@
+# livesync-bridge 빌드용 — 공식 Dockerfile 패치판
+# 이유: 업스트림 Dockerfile 의 `deno install -A` 는 Deno 2.3.x 에서 동작하지 않음
+#       (-A 등 권한 플래그는 `--global` 설치에만 허용 → 로컬 의존성 설치는 플래그 없는
+#        `deno install` 이어야 함). 따라서 로컬 의존성 설치로 교정한다.
+# 나머지(베이스 이미지/볼륨/CMD)는 업스트림과 동일하게 유지.
+FROM denoland/deno:2.3.1
+
+WORKDIR /app
+
+VOLUME /app/dat
+VOLUME /app/data
+
+COPY . .
+
+# 로컬 프로젝트 의존성 설치 (nodeModulesDir=manual, byonm 모드)
+# --allow-import: deno.jsonc 의 trystero 가 github.com URL import 라 Deno 2.3 에서 필요
+RUN deno install --allow-import=github.com:443,raw.githubusercontent.com:443,jsr.io:443,registry.npmjs.org:443,deno.land:443
+
+CMD [ "deno", "task", "run" ]

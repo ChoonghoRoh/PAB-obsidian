@@ -1,0 +1,24 @@
+{
+  "peers": [
+    {
+      "type": "couchdb",
+      "name": "pab-llmdata-couchdb",
+      "group": "mirror",
+      "url": "http://pab-couchdb:5984",
+      "database": "pab-llmdata",
+      "username": "__BRIDGE_USER__",
+      "password": "__BRIDGE_PASSWORD__",
+      "passphrase": "",
+      "obfuscatePassphrase": "",
+      "baseDir": "",
+      "useRemoteTweaks": true
+    },
+    {
+      "type": "storage",
+      "name": "pab-vault-mirror",
+      "group": "mirror",
+      "baseDir": "./data/mirror/",
+      "scanOfflineChanges": false
+    }
+  ]
+}

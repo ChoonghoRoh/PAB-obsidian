@@ -1,2 +1,9 @@
 # CouchDB 관리자 자격증명 — 절대 커밋 금지
 .env
+
+# livesync-bridge 읽기전용 계정 자격증명 + 렌더링된 config (비밀 포함)
+livesync-bridge/bridge.env
+livesync-bridge/config.json
+
+# 서버 빌드시 클론되는 livesync-bridge 소스 (repo 에 커밋 안 함)
+livesync-bridge/src/

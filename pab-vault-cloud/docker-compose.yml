@@ -1,5 +1,5 @@
-# Obsidian Self-hosted LiveSync — CouchDB (PAB-LLMDATA vault sync)
-# Phase 2-1 PoC — backend-dev 배포
+# Obsidian Self-hosted LiveSync — CouchDB + livesync-bridge (PAB-LLMDATA vault sync)
+# Phase 2-1 — backend-dev 배포
 #
 # - CouchDB 3.x single-node 공식 이미지
 # - 포트: Tailnet IP(100.109.251.86)에만 :5984 노출 (0.0.0.0 금지, 공개 인터넷 차단)
@@ -7,7 +7,13 @@
 # - CORS + LiveSync 권장 튜닝: ./local.d/livesync.ini 마운트로 영속화
 # - 데이터: named volume (기존 PAB 스택 관례 — postgres_data_ver3 등과 동일)
 #
-# 배포: cd /home/oceanui/pab-vault-cloud && docker compose up -d
+# - livesync-bridge: CouchDB(pab-llmdata) -> 호스트 파일시스템 단방향 .md 미러 (방법 A 외부연계)
+#   * 미러 출력: 호스트 /home/oceanui/pab-vault-mirror  ->  컨테이너 /app/data/mirror
+#   * 단방향 강제: bridge 는 네이티브 one-way 옵션 없음 → CouchDB 읽기전용 계정 +
+#     validate_doc_update 로 역방향(파일->CouchDB) 쓰기 차단 (setup-readonly-account.sh)
+#   * 빌드: 공식 소스(vrtmrz/livesync-bridge)를 서버에서 클론(deploy.sh) → ./livesync-bridge/src
+#
+# 배포: ./deploy.sh  (rsync + compose build/up + 단방향 설정 + 헬스확인)
 
 services:
   couchdb:
@@ -26,12 +32,42 @@ services:
       # NOTE: :ro 금지 — 엔트리포인트가 etc 하위 파일을 chown 하므로 read-only 마운트 시
       #       chown 실패(read-only fs) → set -e → 컨테이너 silent exit. RW 로 마운트한다.
       - ./local.d/livesync.ini:/opt/couchdb/etc/local.d/livesync.ini
+    networks:
+      pab-vault-net:
+        # bridge config 의 couchdb url(http://pab-couchdb:5984) 과 일치시키는 별칭
+        aliases:
+          - pab-couchdb
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5984/_up"]
       interval: 15s
       timeout: 10s
       retries: 5
       start_period: 20s
+
+  livesync-bridge:
+    build:
+      # deploy.sh 가 공식 소스를 클론해 두는 경로 (lib 서브모듈 포함)
+      context: ./livesync-bridge/src
+      # 업스트림 Dockerfile 의 `deno install -A` 버그 회피용 패치 Dockerfile
+      # (deploy.sh 가 Dockerfile.patched 를 빌드컨텍스트로 복사해 둠)
+      dockerfile: Dockerfile.patched
+    image: pab-livesync-bridge:local
+    container_name: pab-livesync-bridge
+    restart: unless-stopped
+    depends_on:
+      couchdb:
+        condition: service_healthy
+    volumes:
+      # 렌더링된 config (비밀 포함, git 미추적) — 컨테이너의 ./dat/config.json
+      - ./livesync-bridge/config.json:/app/dat/config.json:ro
+      # 미러 출력 — 호스트 경로를 컨테이너 ./data/mirror 로 매핑 (baseDir=./data/mirror/)
+      - /home/oceanui/pab-vault-mirror:/app/data/mirror
+    networks:
+      - pab-vault-net
+
+networks:
+  pab-vault-net:
+    name: pab-vault-net
 
 volumes:
   couchdb_data:
