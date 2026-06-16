@@ -14,6 +14,7 @@ sources:
 aliases: ["GreedySearch-pi", "greedy_search 도구", "apmantza GreedySearch"]
 ---
 
+
 # GreedySearch-pi — API 키 없이 헤드리스 브라우저로 Perplexity/Bing/Google AI 병렬 검색
 
 ## TL;DR
