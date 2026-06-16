@@ -1,0 +1,38 @@
+# Obsidian Self-hosted LiveSync — CouchDB (PAB-LLMDATA vault sync)
+# Phase 2-1 PoC — backend-dev 배포
+#
+# - CouchDB 3.x single-node 공식 이미지
+# - 포트: Tailnet IP(100.109.251.86)에만 :5984 노출 (0.0.0.0 금지, 공개 인터넷 차단)
+# - 관리자 계정/비번: .env 참조 (git 미추적)
+# - CORS + LiveSync 권장 튜닝: ./local.d/livesync.ini 마운트로 영속화
+# - 데이터: named volume (기존 PAB 스택 관례 — postgres_data_ver3 등과 동일)
+#
+# 배포: cd /home/oceanui/pab-vault-cloud && docker compose up -d
+
+services:
+  couchdb:
+    image: couchdb:3
+    container_name: pab-couchdb
+    restart: unless-stopped
+    ports:
+      # Tailnet IP에만 바인딩 — 공개 인터넷 차단 (DP-4: raw :5984, no nginx/TLS)
+      - "100.109.251.86:5984:5984"
+    environment:
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+    volumes:
+      - couchdb_data:/opt/couchdb/data
+      # LiveSync 권장 설정 (CORS + 튜닝) — local.d 는 부팅 시 자동 로드, 영속 적용
+      # NOTE: :ro 금지 — 엔트리포인트가 etc 하위 파일을 chown 하므로 read-only 마운트 시
+      #       chown 실패(read-only fs) → set -e → 컨테이너 silent exit. RW 로 마운트한다.
+      - ./local.d/livesync.ini:/opt/couchdb/etc/local.d/livesync.ini
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5984/_up"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  couchdb_data:
+    name: pab_couchdb_data
