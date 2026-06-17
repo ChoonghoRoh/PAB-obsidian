@@ -167,9 +167,15 @@ allowed-tools: "Read, Write, Bash, WebFetch"
 - 양 파일 `index`, `topics`, `created`, `updated` 동일
 
 ### Step 8 vault root 결정 (Step 8a/8b 공통)
-양 파일은 **반드시 같은 vault 안**에 저장 (TOC wikilink가 vault 내부 해소되어야 함). vault root는 다음 우선순위:
-1. 환경변수 `$WIKI_VAULT_ROOT` 설정되어 있으면 그 값 (공통 vault 모드 — Karpathy 본래 의도)
-2. 미설정 시 호출 프로젝트의 `./wiki/` (자기완결 모드 — PAB-obsidian dogfooding 등 예외 케이스)
+양 파일은 **반드시 같은 vault 안**에 저장 (TOC wikilink가 vault 내부 해소되어야 함). vault root는 다음 우선순위로 결정한다. **미설정 상태에서 `./wiki/`를 조용히 생성하지 않는다** (정본 vault를 두고 노트가 흩어지는 사고 방지):
+
+1. **환경변수 `$WIKI_VAULT_ROOT` 설정 시** → 그 값 (공통 vault 모드 — Karpathy 본래 의도, 권장).
+2. **미설정 시 → 정본 vault 자동 탐지**: 호출 프로젝트의 형제 경로(`../*/`)에서 `10_Notes/`와 `15_Sources/`를 모두 갖춘 디렉터리를 찾는다(우선순위: `../PAB-Obsidian/PAB-LLMDATA` 같은 PAB-obsidian vault). 발견 시 → **경고를 출력하고 그 vault를 사용**한다:
+   ```
+   ⚠️ WIKI_VAULT_ROOT 미설정 — 탐지된 정본 vault 사용: <경로>
+      영구 고정하려면 .claude/settings.local.json 의 env 또는 ~/.bashrc 에 export 하세요.
+   ```
+3. **1·2 모두 실패 시 → `./wiki/`를 무단 생성하지 말고 사용자에게 명시 확인**한다: "정본 vault를 찾지 못했습니다. 프로젝트 로컬 `./wiki/`에 자기완결 vault를 새로 만들까요? (dogfooding 등 예외 케이스에만 권장)". **사용자 승인 시에만** `./wiki/` 생성.
 
 ### Step 8a — 원본 저장 (SOURCE, immutable)
 - 경로: `${VAULT_ROOT}/15_Sources/YYYY-MM-DD_<slug>_source.md`
@@ -186,7 +192,7 @@ allowed-tools: "Read, Write, Bash, WebFetch"
 
 ### Step 9 — 검증 (양 파일 모두)
 ```bash
-# vault root 자동 감지 — $WIKI_VAULT_ROOT 우선, 미설정 시 ./wiki
+# vault root 자동 감지 — Step 8 우선순위 적용($WIKI_VAULT_ROOT → 정본 vault 탐지 → 확인 후 ./wiki)
 python3 scripts/wiki/wiki.py link-check  # vault-wide
 ```
 - `violations=0` → Critical/High PASS ✅
@@ -222,5 +228,5 @@ python3 scripts/wiki/wiki.py link-check  # vault-wide
 
 **vault 운영 모드 선택 (권장: 공통 vault)**:
 - **공통 vault** (Karpathy 본래 의도, 권장): `export WIKI_VAULT_ROOT="$HOME/Obsidian/<vault>"` → 모든 프로젝트의 노트가 한 vault에 누적
-- **자기완결 모드**: 환경변수 미설정 → 호출 프로젝트의 `./wiki/` 사용 (프로젝트 dogfooding 등 예외 케이스)
+- **자기완결 모드**: 환경변수 미설정 시 Step 8 가드 적용 — 형제 경로의 정본 vault 자동 탐지(경고 후 사용), 못 찾으면 **사용자 확인 후에만** 호출 프로젝트의 `./wiki/` 생성 (dogfooding 등 예외 케이스). 무단 생성 금지.
 - `scripts/wiki/wiki.py` → 대상 프로젝트 경로 (없으면 LLM 직접 검증)
