@@ -2,12 +2,12 @@
 title: "/pab:wiki PC 구현 가이드 — 데스크톱·Remote Control·headless 워커"
 description: "로컬 PC에서 /pab:wiki 스킬을 (1)데스크톱 앱 (2)모바일 Remote Control (3)상시 headless 워커로 돌리는 단계별 실전 가이드. 명령어·권한 플래그·주의점 포함."
 created: 2026-06-23 22:45
-updated: 2026-06-23 22:45
+updated: 2026-06-24 07:55
 type: "[[REFERENCE]]"
 index: "[[HARNESS]]"
 topics: ["[[WIKI_ARCHITECTURE]]", "[[CLAUDE_CODE]]"]
 tags: [reference, claude-code, pab-wiki, remote-control, headless, worker, cli]
-keywords: [remote-control, headless, "claude -p", allowedTools, permission-mode, dontAsk, bare, cron, synthesis-worker, desktop-app, WIKI_VAULT_ROOT]
+keywords: [remote-control, headless, "claude -p", plugin-dir, allowedTools, permission-mode, dontAsk, bare, cron, synthesis-worker, desktop-app, WIKI_VAULT_ROOT, telegram-ingest]
 sources: ["https://code.claude.com/docs/en/remote-control", "https://code.claude.com/docs/en/headless", "https://code.claude.com/docs/en/cli-reference"]
 aliases: ["pab:wiki PC 가이드", "Remote Control 가이드", "wiki headless 워커"]
 ---
@@ -70,59 +70,65 @@ claude --remote-control "PAB-obsidian wiki"
 
 항상 떠 있는 머신(3800X 등)에서 비대화형으로 스킬을 실행. 모바일/텔레그램/큐는 **트리거만** 보내고 요약은 워커가 수행 → [[capture/store 분리]]의 정식 구현.
 
+> ✅ **2026-06-24 실측 검증 완료** — 아래 명령으로 headless `/pab:wiki`가 정상 동작함을 확인(스킬 로드 → WebFetch → 11필드 frontmatter + SOURCE쌍 미리보기 생성, `is_error:false`). 실제 동작 스크립트는 `scripts/wiki/pab_wiki_worker.sh` + `scripts/wiki/telegram_ingest_listener.sh` (사용법: `scripts/wiki/README-capture.md`).
+
 ### 3-1. 기본 호출 (슬래시 스킬을 -p로)
 
 ```bash
 cd /Users/map-rch/WORKS/PAB-obsidian
 claude -p "/pab:wiki https://example.com/article" \
+  --plugin-dir /Users/map-rch/WORKS/PAB-obsidian \
   --permission-mode dontAsk \
-  --allowedTools "Bash(python3 *)" "Read" "Write" "WebFetch"
+  --allowedTools "Bash" "Read" "Write" "WebFetch"
 ```
 
 - `-p` (= `--print`): 프롬프트 1회 실행 후 종료(비대화형). 프롬프트 문자열에 `/pab:wiki ...`를 넣으면 슬래시 스킬이 확장·실행된다.
 - `--permission-mode dontAsk`: `.claude/settings.json`의 `permissions.allow` + `--allowedTools` 규칙만 실행하고 나머지는 거부(프롬프트 없음) → cron/CI에 적합.
-- `--allowedTools`: 스코프 필터는 괄호 앞 공백 없이 `Bash(python3 *)` 형태. 스킬이 쓰는 툴(Bash/Read/Write/WebFetch)을 모두 허용해야 한다.
+- `--allowedTools "Bash" "Read" "Write" "WebFetch"`: 스킬이 쓰는 툴 전부 허용. **`Bash(python3 *)`로 좁히면 안 됨** — 스킬은 python3 외 `date` 등도 쓰는데 `dontAsk`에서 미허용 도구는 전부 차단되어 스킬이 실패한다(실측에서 `Bash` 전체 허용 시 `permission_denials: []` 확인). URL은 워커 스크립트 경계에서 검증하므로 넓은 Bash 허용이 안전.
 
-### 3-2. ⚠️ `--bare`는 쓰지 말 것 (중요)
+### 3-2. ⚠️ 헤드리스 2대 함정 — `--plugin-dir` 필수 / `--bare` 금지
 
-CI 가이드에 흔히 나오는 `claude --bare -p`는 **hooks·skills·plugins·MCP·CLAUDE.md를 전부 스킵**한다. `/pab:wiki`는 **플러그인 스킬**이므로 `--bare`를 붙이면 스킬이 로드되지 않아 실행 자체가 안 된다.
-
-- 원칙: 스킬 실행 headless에서는 **`--bare` 미사용**.
-- 굳이 빠른 시작이 필요하면 `--bare --plugin-dir <pab 플러그인 경로>`로 플러그인만 다시 붙이는 방식이 있으나, 권장은 그냥 `--bare` 없이 실행.
+- **`--plugin-dir` 필수 (핵심)**: `/pab:wiki`는 **로컬 플러그인(`pab` namespace)** 스킬인데, 헤드리스 `-p` 모드는 대화형과 달리 **cwd의 로컬 플러그인을 자동 발견하지 않는다.** `--plugin-dir <프로젝트 루트>`(= `.claude-plugin/plugin.json`이 있는 디렉토리)를 안 주면 `result: "Unknown command: /pab:wiki"` + `num_turns: 0`으로 **조용히 실패**한다(실측 확인). 반드시 `--plugin-dir /Users/map-rch/WORKS/PAB-obsidian` 추가.
+- **`--bare` 금지**: `claude --bare -p`는 hooks·skills·plugins·MCP·CLAUDE.md를 전부 스킵한다. 플러그인 스킬이 로드 안 됨. 스킬 실행 헤드리스에서는 `--bare` 미사용.
+- **조용한 실패 탐지**: 위 "Unknown command"는 claude 프로세스 exit 0으로 끝나므로, exit code만 믿으면 실패를 SUCCESS로 오보한다. 워커는 JSON `.is_error`와 `.result`("Unknown command" 포함 여부)를 검사해 실패를 판정한다.
 
 ### 3-3. 인증·세션·출력
 
 ```bash
-export ANTHROPIC_API_KEY="sk-..."          # 또는 claude setup-token (장기 토큰)
+export ANTHROPIC_API_KEY="sk-..."          # 또는 claude setup-token (장기 토큰). 로컬은 기존 /login 자격으로 충분
 claude -p "/pab:wiki <url>" \
+  --plugin-dir /Users/map-rch/WORKS/PAB-obsidian \
   --permission-mode dontAsk \
-  --allowedTools "Bash(python3 *)" "Read" "Write" "WebFetch" \
+  --allowedTools "Bash" "Read" "Write" "WebFetch" \
   --output-format json \
   --no-session-persistence                  # 일회성 워커면 세션 저장 끔
 ```
 
-- `--output-format json` → `jq -r '.result'` / `.session_id` 파싱 가능
-- exit code: 0 성공 / 1 실패. `--max-turns N`, `--max-budget-usd N`으로 폭주 방지
+- `--output-format json` → `jq -r '.result'` / `.session_id` / `.is_error` 파싱 가능
+- 성공 판정: claude exit 0이어도 `.is_error == true`거나 `.result`가 비었거나 "Unknown command"면 실패로 취급. `--max-turns N`, `--max-budget-usd N`으로 폭주 방지
 
 ### 3-4. cron 예시 (워커 스크립트)
+
+> 실제 구현은 `scripts/wiki/pab_wiki_worker.sh` 참조(아래는 원리 예시). 워커가 `--plugin-dir`·실패탐지·로깅을 모두 내장하므로 cron에서는 `pab_wiki_worker.sh <url>`만 호출하면 된다.
 
 ```bash
 #!/bin/bash
 set -euo pipefail
-export ANTHROPIC_API_KEY="sk-..."
+export ANTHROPIC_API_KEY="sk-..."          # 서버. 로컬 Mac은 기존 로그인으로 생략 가능
 export WIKI_VAULT_ROOT="/Users/map-rch/WORKS/PAB-obsidian/PAB-LLMDATA"
 cd /Users/map-rch/WORKS/PAB-obsidian
 
 claude -p "/pab:wiki $1" \
+  --plugin-dir /Users/map-rch/WORKS/PAB-obsidian \
   --permission-mode dontAsk \
-  --allowedTools "Bash(python3 *)" "Read" "Write" "WebFetch" \
+  --allowedTools "Bash" "Read" "Write" "WebFetch" \
   --output-format json \
   > "/var/log/pab-wiki-$(date +%Y%m%d-%H%M%S).log" 2>&1
 ```
 
 ### 3-5. 서버 워커 주의점
 
-- **`--bare` 금지** (3-2). 스킬·CLAUDE.md 컨텍스트가 필요하므로.
+- **`--plugin-dir` 필수 / `--bare` 금지** (3-2). 스킬·CLAUDE.md 컨텍스트가 필요하므로.
 - **백그라운드 Bash**: `-p`는 결과 반환 후 ~5초 내 셸 종료 → 워커 안에서 장기 백그라운드 작업 띄우지 말 것(`CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS`로 조정은 가능하나 권장 안 함).
 - **단방향 미러 침범 금지**: 워커는 vault(`PAB-LLMDATA`)에 쓰고, 그다음은 기존 LiveSync→bridge→pab-v4 LV0 경로를 그대로 탄다. 미러(`/home/oceanui/pab-vault-mirror`)에 직접 쓰지 말 것(R-1 위반).
 - **트리거 연결**: 텔레그램 봇/웹훅이 위 스크립트에 URL을 인자로 넘기면 모바일 수집이 완성된다.
@@ -144,5 +150,6 @@ claude -p "/pab:wiki $1" \
 - [ ] 로컬 `/pab:wiki <url>` 정상 생성 + `python3 scripts/wiki/wiki.py link-check` 통과
 - [ ] `claude remote-control --name ...` → 스페이스바 QR → 폰 연결 성공
 - [ ] 폰에서 `/pab:wiki <url>` 실행 → 10_Notes/15_Sources에 파일 생성 확인
-- [ ] (워커) `claude -p "/pab:wiki <url>" --permission-mode dontAsk --allowedTools ...` 단발 성공 (exit 0)
-- [ ] (워커) `--bare` 미사용 확인
+- [x] (워커) `scripts/wiki/pab_wiki_worker.sh "<url>" --dry` 단발 성공 — `is_error:false`, 미리보기 생성 ✅ 2026-06-24 실측
+- [x] (워커) `--plugin-dir` 포함 / `--bare` 미사용 확인 ✅
+- [ ] (리스너) `scripts/wiki/telegram_ingest_listener.sh --once` → 폰에서 `/wiki <url>` 전송 시 노트 생성·회신 확인 (라이브 검증 대기)
