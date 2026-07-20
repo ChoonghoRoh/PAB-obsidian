@@ -37,7 +37,7 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
-_(현재 등록된 노트 없음)_
+- [[2026-06-30_phase6_persona_review]] — PAB-Khala Phase 6 페르소나 검증 — arbiter 적대 리뷰
 <!-- moc-build:auto-end -->
 
 > Phase 1-4 `wiki moc-build` 명령으로 자동 채워질 placeholder.

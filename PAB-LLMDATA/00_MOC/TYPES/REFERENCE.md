@@ -39,6 +39,10 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-06-30_khala_resumable_tools]] — PAB-Khala Resumable Tools API — NVMe 워크스페이스·무손실 재개
+- [[2026-06-30_khala_lineage_guide]] — PAB-Khala Lineage 연결 가이드 — 호출 연결고리 추적
+- [[2026-06-23_pab_wiki_pc_remote_worker_guide]] — /pab:wiki PC 구현 가이드 — 데스크톱·Remote Control·headless 워커
+- [[2026-05-05_pab_ssot_portability]] — PAB SSOT — 다른 프로젝트 이식 가이드 (Portability)
 - [[naming-convention]] — Naming Convention
 - [[frontmatter-spec]] — Frontmatter Spec
 - [[toc-recommendation]] — TOC Recommendation Algorithm

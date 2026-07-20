@@ -33,7 +33,15 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
-_(현재 등록된 노트 없음)_
+- [[2026-06-23_pab_wiki_pc_remote_worker_guide]] — /pab:wiki PC 구현 가이드 — 데스크톱·Remote Control·headless 워커
+- [[2026-06-16_everything_claude_code_source]] — Everything Claude Code 리뷰 (원문 캡처) — 갓대희의 작은공간
+- [[2026-06-16_everything_claude_code]] — Everything Claude Code (ECC) — 에이전트 하네스 최적화 시스템 (갓대희 리뷰)
+- [[2026-06-15_deepseek_v4_opencode_api_source]] — DeepSeek V4 API 가이드: 요금, 설정 및 코드 예제 (2026) — NxCode (원본)
+- [[2026-06-15_deepseek_v4_opencode_api]] — DeepSeek V4를 OpenCode에 이식하기 — OpenAI 호환 base_url로 provider 연결 + oh-my-opencode 프레임워크 활용
+- [[2026-05-06_greedysearch_pi_source]] — GreedySearch-pi — README + skill.md + plugin.json + CHANGELOG v1.8.6 (원본)
+- [[2026-05-06_greedysearch_pi]] — GreedySearch-pi — API 키 없이 헤드리스 브라우저로 Perplexity/Bing/Google AI 병렬 검색 (Pi + Claude Code 플러그인)
+- [[2026-05-05_pab_ssot_skills_detail]] — PAB SSOT — 11 skill 상세 (입출력·내부 절차·예시)
+- [[2026-05-05_pab_ssot_skills_catalog]] — PAB SSOT — 11 skill 카탈로그 (skills/)
 <!-- moc-build:auto-end -->
 
 > Phase 1-4 `wiki moc-build` 명령으로 자동 채워질 placeholder.

@@ -37,7 +37,15 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
-_(현재 등록된 노트 없음)_
+- [[2026-06-30_pab_v4_brain_integration]] — PAB-Khala PAB-v4 Brain 연동 보고서
+- [[2026-06-30_phase6_unified_gateway]] — PAB-Khala Phase 6 통합 게이트웨이 마스터플랜
+- [[2026-06-30_khala_pab_v4_integration]] — PAB-v4 Khala 연동 아키텍처 — 두 옵션 비교·권장
+- [[2026-05-27_pab_mcp_model_sizing]] — PAB × MCP × 모델 사이즈 — RAG에서 tool-call 위임으로, 로컬 약한 모델 vs 엔터프라이즈 의사결정
+- [[2026-05-04_pab_reader_overview]] — PAB-Reader — 프로젝트 개요
+- [[2026-05-04_pab_ssot_nexus_overview]] — PAB-SSOT-Nexus — 프로젝트 개요
+- [[2026-05-04_pab_conductor_overview]] — PAB-Conductor — 프로젝트 개요
+- [[2026-05-04_pab_khala_overview]] — PAB-Khala — 프로젝트 개요
+- [[2026-05-04_pab_observer_overview]] — PAB-Observer — 프로젝트 개요
 <!-- moc-build:auto-end -->
 
 > Phase 1-4 `wiki moc-build` 명령으로 자동 채워질 placeholder.

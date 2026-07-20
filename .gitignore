@@ -42,3 +42,6 @@ scripts/
 *.log
 *.tmp
 node_modules/
+
+# 외부 오픈소스 클론 (분석용, 자체 .git 포함)
+sub/

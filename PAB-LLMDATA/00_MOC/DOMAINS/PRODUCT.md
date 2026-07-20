@@ -33,7 +33,8 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
-_(현재 등록된 노트 없음)_
+- [[2026-05-04_pab_reader_overview]] — PAB-Reader — 프로젝트 개요
+- [[2026-05-04_pab_conductor_overview]] — PAB-Conductor — 프로젝트 개요
 <!-- moc-build:auto-end -->
 
 > Phase 1-4 `wiki moc-build` 명령으로 자동 채워질 placeholder.

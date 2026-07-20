@@ -37,7 +37,9 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
-_(현재 등록된 노트 없음)_
+- [[2026-06-30_khala_lineage_design]] — PAB-Khala 컨텍스트 이어가기·호출 연결고리 설계 (A⊕B)
+- [[2026-06-30_gateway_design_compare]] — PAB-Khala 통합 게이트웨이 설계 — 현행 vs 통합 비교
+- [[2026-06-23_wiki_webservice_migration_risks]] — Obsidian wiki를 웹서비스 레이어로 전환할 때의 6대 리스크
 <!-- moc-build:auto-end -->
 
 > Phase 1-4 `wiki moc-build` 명령으로 자동 채워질 placeholder.

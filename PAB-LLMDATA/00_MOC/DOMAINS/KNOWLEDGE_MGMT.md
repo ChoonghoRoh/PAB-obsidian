@@ -33,7 +33,17 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
-_(현재 등록된 노트 없음)_
+- [[2026-05-05_pab_ssot_portability]] — PAB SSOT — 다른 프로젝트 이식 가이드 (Portability)
+- [[2026-05-05_pab_ssot_intro]] — PAB SSOT v8.2-renewal-6th — 진입점·버전·3계층 아키텍처 개요
+- [[2026-05-05_pab_ssot_templates]] — PAB SSOT — 템플릿 11종 (TEMPLATES/)
+- [[2026-05-05_pab_ssot_persona_qc]] — PAB SSOT — 9 PERSONA Charter + 11명 Verification Council (QUALITY/10-persona-qc)
+- [[2026-05-05_pab_ssot_roles]] — PAB SSOT — 역할 9종 정의 (ROLES/)
+- [[2026-05-05_pab_ssot_workflow]] — PAB SSOT — 워크플로우·상태 머신·게이트·Phase Chain
+- [[2026-05-05_pab_ssot_rules_chain]] — PAB SSOT — 96개 규칙 통합 인덱스 + 공통 포맷 (6-rules-index + 7-shared-definitions)
+- [[2026-05-04_pab_ssot_nexus_overview]] — PAB-SSOT-Nexus — 프로젝트 개요
+- [[2026-05-02_karpathy_llm_wiki_v1_backup]] — Karpathy의 LLM Wiki — 누적되는 지식 산출물 패턴
+- [[2026-05-02_karpathy_llm_wiki_source]] — LLM Wiki (Karpathy) — 원문
+- [[2026-05-02_karpathy_llm_wiki]] — Karpathy의 LLM Wiki — 누적되는 지식 산출물 패턴
 <!-- moc-build:auto-end -->
 
 > Phase 1-4 `wiki moc-build` 명령으로 자동 채워질 placeholder.
