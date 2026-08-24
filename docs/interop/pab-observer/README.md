@@ -1,0 +1,52 @@
+# PAB-obsidian ↔ PAB-Observer 협업 인덱스
+
+> **상위**: [`docs/interop/README.md`](../README.md)
+> **목적**: wiki vault 이원화(정보 vs 개발 데이터)와 4홉 전파 체인의 **관측 계약** 집약·조율 상태.
+> **생성**: 2026-08-24 (PAB-Observer 발신)
+
+---
+
+## 1. 역할 경계 (한 줄)
+
+**PAB-obsidian = vault 정의·전파 계약(무엇이 정보이고 무엇이 개발 데이터인가)** / **PAB-Observer = 4홉 체인 관측·임계·알림**. Observer는 vault에 **쓰지 않는다**(R-1 단일 writer 원칙 준수 — 미러·CouchDB 직접 쓰기 금지).
+
+## 2. 관측 중인 체인
+
+```
+PAB-LLMDATA(정보) → LiveSync → CouchDB pab-llmdata(홉1) → livesync-bridge(홉2)
+  → 미러 /home/oceanui/pab-vault-mirror(홉3) → PAB-v4 /vault-mirror + Qdrant(홉4)
+```
+
+2026-08-24 실측: 화이트리스트 **미러 102 == 컨테이너 vault 102 == Qdrant distinct doc 102**, 게이트 ON.
+
+UK 모니터: `#25`(CouchDB `/_up`) · `#26`(VaultChain 4홉 복합 Push) · `#31`(bridge 등 컨테이너 running).
+
+## 3. 계약 문서 (SSOT 소유권)
+
+> 범례 — **수신본**: PAB-Observer=SSOT, 여기엔 읽기전용 사본 · **회신본**: PAB-obsidian=SSOT.
+
+| # | 문서 | SSOT | 성격 | 링크 |
+|---|---|---|---|---|
+| OB1 | vault 이원화 크로스 체크 점검 요청 (O-1~O-5) | **PAB-Observer** | 수신본(읽기전용) | [`260824-OB1-vault이원화-크로스체크-점검요청.md`](260824-OB1-vault이원화-크로스체크-점검요청.md) |
+| OB2 | O-1~O-5 회신 | **PAB-obsidian** | 회신본 — *미작성* | 이 디렉토리에 작성 예정 |
+
+## 4. 회신 대기 항목 (OB1 §2)
+
+| # | 질의 | 시급도 |
+|---|---|---|
+| **O-1** | vault 2종 authority 확정 — `PAB-LLMDATA`=정보(운영 SSOT) / `PAB-LLMDATA-prove`=개발용 데이터 | 중간 |
+| **O-2** | PAB-Prove 산출물 승격 경로 — 현재 `pab-wiki-vault`에만 쌓이고 운영 전파 0(`WIKI_ENV=dev` 격리). 의도된 PoC인가, 승격 시점은? | 높음 |
+| **O-3** | 승격 시 관측 임계 재산정 — 화이트리스트 102 → 200+ 급증 시 대량 오경보. **승격 전 통지 필수** | **높음 — 승격 실행 전** |
+| **O-4** | 서버 증분 60건 회수 정책 — 개발 vault 서버본에만 존재, 로컬 미회수 | 중간 |
+| **O-5** | 운영 vault 7일 무갱신(미러 mtime 2026-08-17)이 정상 리듬인가 — 현재 **정체와 정지를 구분 못 한다** | 중간 |
+
+## 5. 함께 확인 필요 (문서–실태 불일치)
+
+Khala `docs/interop/pab-prove/README.md` §1이 PAB-Prove를 *"vault(`PAB-LLMDATA`)에 생성 → LiveSync 전파"*로 기술하나, **실태는 `pab-wiki-vault`(= `PAB-LLMDATA-prove` 복제본) write이며 전파는 일어나지 않는다**. authority는 PAB-Prove이므로 정정은 그쪽 소관이나, vault 정의의 SSOT인 obsidian 측 인지가 필요하다. (OB1 §1.4)
+
+## 6. 관측 규격 SSOT
+
+4홉 지표·임계·게이트·화이트리스트 정의는 PAB-Observer `observer/3800x/notes/vault-chain-metrics.md`(현행 v1.2)가 단일 진실 공급원이다.
+
+- §5.4 **경로 케이싱 상이** — 미러/컨테이너 `10_Notes`(대문자) / CouchDB `_id` `10_notes/`(소문자). 통일하면 0 doc 오산.
+- §8.2 **정합 ≠ 생존** — 홉1이 3일간 죽은 동안에도 3자 일치는 정상이었다.
