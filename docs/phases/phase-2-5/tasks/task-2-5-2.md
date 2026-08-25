@@ -4,7 +4,7 @@ title: "GitHub 오프사이트 백업 정상화 + 자동 커밋·푸시"
 domain: "[INFRA]"
 gap: "G-2 (🔴)"
 assignee: backend-dev
-status: pending
+status: running    # 커밋·푸시 실체 충족(2efb00e). ⚠️ cron 활성화만 BL-3(사용자)로 잔여
 depends_on: []
 ---
 

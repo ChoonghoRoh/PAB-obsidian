@@ -4,7 +4,7 @@ title: "헬스 모니터링 + Telegram 알림"
 domain: "[INFRA]"
 gap: "G-1 (🔴)"
 assignee: backend-dev
-status: pending
+status: completed    # T-1 헬스 모니터링 + volbackup 감시 연계 (2026-08-26) — G2_infra PASS
 depends_on: []
 integration_ref: docs/interop/pab-observer/260825-OB2-vault이원화-회신-및-승격사전통지.md
 blocked_on: "UK_PAB_VAULT_PUSH_URL 발급 (Observer 측) — 미설정 시 Push 생략 동작으로 선배포 가능"

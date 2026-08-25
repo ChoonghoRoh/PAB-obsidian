@@ -4,7 +4,7 @@ title: "CouchDB 볼륨 덤프 백업 + 세대 보존"
 domain: "[INFRA]"
 gap: "G-3 (🟡)"
 assignee: backend-dev
-status: pending
+status: running    # 구현·복원 리허설 PASS. ⚠️ 서버 cron 등록만 Observer OB2-C 판정 대기
 depends_on: []
 ---
 

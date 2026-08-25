@@ -4,7 +4,7 @@ title: "workspace.json git 추적 해제"
 domain: "[INFRA]"
 gap: "G-5 (🟡)"
 assignee: backend-dev
-status: pending
+status: completed    # workspace.json 추적 해제 + skip-worktree 비트 제거 (2026-08-26)
 depends_on: []
 ---
 

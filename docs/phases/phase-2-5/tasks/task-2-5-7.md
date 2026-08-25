@@ -4,7 +4,7 @@ title: "/wiki 스킬 MOC 자동화 + link-check 게이트 강제"
 domain: "[INFRA]"
 gap: "G-7 (🟡)"
 assignee: "Team Lead (SKILL.md) + backend-dev (wiki.py)"
-status: pending
+status: running    # 구현 완료(SKILL.md 2판본 + validate.py). ⚠️ G2_infra E2E(/wiki 신규 노트→MOC 자동갱신) 미수행
 depends_on: []
 ---
 
@@ -125,3 +125,20 @@ PASS (notes=146, violations=0, broken=185, orphans=0)
 본 작업의 자동 커밋(`350d1e8`)에 `scripts/wiki/lib/__pycache__/validate.cpython-312.pyc`가 함께 들어갔다.
 저장소에 **`.pyc`가 이미 추적 중이었고 `.gitignore` 규칙이 없었기** 때문이다.
 → `1cae4a8`(Team Lead)에서 6건 인덱스 제거 + `.gitignore` 규칙 추가로 해소. 오염 경로 폐쇄 실증 완료.
+
+---
+
+## ⚠️ 미수행 — G2_infra E2E 검증 (2026-08-26 시점)
+
+구현은 완료됐으나 **정의서 §검증의 첫 항목이 아직 실행되지 않았다**:
+
+> `/wiki` 신규 노트 1건 생성 → **MOC 자동 갱신 확인**(수동 실행 없이 orphan 0 유지)
+
+**의도적으로 미실행**이다. 이 검증은 **정본 vault에 실제 노트를 만드는 것**이라 시험용 더미 노트를 지식베이스에 남기게 된다. `PROJECT.md` §6이 *"이 프로젝트는 지식 자산을 다룬다"*고 명시하므로, 검증 편의로 정본을 오염시키지 않는다.
+
+⇒ **다음에 사용자가 실제로 `/wiki`를 쓸 때 자연스럽게 검증**한다. 그때 확인할 것:
+- Step 9.5가 **실제로 `make wiki-moc-build`를 실행**하는가 (안내 문자열만 출력하고 넘어가지 않는가)
+- 실행 후 `link-check`가 `orphans=0`을 유지하는가
+- `violations > 0`이면 Step 9 게이트가 **중단·보고**하는가
+
+> 이 항목이 남아 있는 한 T-7은 `completed`가 아니다. **구현했다는 사실과 동작한다는 사실은 다르다** — 오늘 T-3에서 "백업했다 ≠ 복구된다"로 정리한 것과 같은 구분이다.
