@@ -33,6 +33,11 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-07-23_scrapling_web_scraping_source]] — Scrapling — Adaptive Web Scraping Framework (D4Vinci/Scrapling README 원문)
+- [[2026-07-23_scrapling_web_scraping]] — Scrapling — 적응형 웹 스크래핑 프레임워크 정리 + Khala webfetch 비교
+- [[2026-07-20_external_data_collection_tooling]] — 외부 자료수집 툴링 조사 — 메신저·크롤러·웹fetch (PAB-Prove 수집 확장)
+- [[2026-07-02_khala_tools_run_max_iter_issues_source]] — PAB-Khala tools/run 빈 응답·버그·개선점 조사 (원본)
+- [[2026-07-02_khala_tools_run_max_iter_issues]] — PAB-Khala tools/run 빈 응답·출력 오염 이슈
 - [[2026-06-30_phase6_persona_review_source]] — PAB-Khala Phase 6 페르소나 검증 — arbiter 적대 리뷰 (원문)
 - [[2026-06-30_gateway_design_compare_source]] — PAB-Khala 통합 게이트웨이 설계 — 현행 vs 통합 비교 (원문)
 - [[2026-06-30_khala_resumable_tools_source]] — PAB-Khala Resumable Tools API — NVMe 워크스페이스·무손실 재개 (원문)

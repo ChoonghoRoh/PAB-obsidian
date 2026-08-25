@@ -15,3 +15,6 @@
 | 파트너 | 인덱스 | 경계 | 상태 |
 |---|---|---|---|
 | PAB-Observer (관측 인프라) | [`pab-observer/README.md`](pab-observer/README.md) | obsidian=vault 정의·전파 계약 / Observer=4홉 체인 관측 | 활성 (2026-08-24 개설) |
+| PAB-Prove (수집 파이프라인) | [`pab-prove/README.md`](pab-prove/README.md) | obsidian=vault 정의·정본 authority / Prove=capture UI·워커 코드 | 활성 (2026-08-25 개설 — **PAB-Prove 발신**) |
+
+> **3자 연동 주의**: PAB-Prove의 3800X 디바이스 편입(PO1·PO2)은 **홉2 구조 변경**이라 PAB-Observer 사전 통지 대상이다(OB2-A §7.3, 리드타임 24h). 두 채널이 한 사안에 물리므로 **편입 실행 전 Observer 통지는 PAB-obsidian이 수행**한다.

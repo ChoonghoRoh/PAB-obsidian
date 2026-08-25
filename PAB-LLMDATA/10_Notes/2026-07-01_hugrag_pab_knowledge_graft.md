@@ -17,7 +17,7 @@ aliases: ["HugRAG접목검토", "HugRAG-PAB비교", "인과게이트접목"]
 > [[HUGRAG]]의 3대 기법(계층 모듈 · 인과 게이트 · 허위상관 억제)은 PAB의 **비어 있는 상위 레이어**(LV1~LV4·`knowledge_relations`·미구현 MOC)에 정확히 대응한다. 단 **LV0(결정적·저자작성)에는 넣지 않고** [[KHALA]] 플래너의 **생성·라우팅축 검색 백엔드**로만 접목해야 결정성 SLA가 보존된다. 원문 전문: [[15_Sources/2026-07-01_hugrag_pab_knowledge_graft_source|SOURCE]].
 
 ## 한 줄 결론 · 요지
-[[2026-07-01_hugrag_pab_knowledge_graft_source#0. 요지 (TL;DR)|원문 §0 →]]
+[[2026-07-01_hugrag_pab_knowledge_graft_source#0. 요지|원문 §0 →]]
 
 - **HugRAG = [[GraphRAG]]의 다음 세대**: (a) 계층 모듈(Leiden 분할+요약), (b) 원거리 모듈을 잇는 **인과 게이트**(LLM 인과 판정), (c) 온라인 **허위상관 인지 프롬프팅**. 재현율↔정밀도를 계층+인과로 동시에 푼다.
 - **PAB 세 체계는 서로 다른 축**: LV0 wiki=결정적 저자링크, 미구현 MOC=계층 인덱스, v3 RAG=유사도 벡터. **아무도 인과·계층·모듈을 안 가졌다.**

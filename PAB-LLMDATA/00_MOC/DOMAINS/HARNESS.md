@@ -33,6 +33,12 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-07-21_grok_build_vs_pab_ssot_harness_compare_source]] — Grok Build 오픈소스 하네스 vs PAB SSOT 하네스 정밀 비교 보고서 (원문)
+- [[2026-07-21_grok_build_vs_pab_ssot_harness_compare]] — Grok Build 하네스 vs PAB SSOT 하네스 정밀 비교 — 코드 강제 vs 문서 규범
+- [[2026-07-08_claude_code_wsl_install_guide_source]] — Windows WSL에서 Claude Code 설치 가이드 (밤밤이)
+- [[2026-07-08_claude_code_wsl_install_guide]] — Windows WSL2에서 Claude Code 설치·설정하기
+- [[2026-07-08_opencode_ohmyopencode_win_install_source]] — Windows 환경에서 opencode·oh-my-opencode 설치 (JNCD/중년코딩)
+- [[2026-07-08_opencode_ohmyopencode_win_install]] — Windows에서 opencode·oh-my-opencode 설치하기
 - [[2026-06-23_pab_wiki_pc_remote_worker_guide]] — /pab:wiki PC 구현 가이드 — 데스크톱·Remote Control·headless 워커
 - [[2026-06-16_everything_claude_code_source]] — Everything Claude Code 리뷰 (원문 캡처) — 갓대희의 작은공간
 - [[2026-06-16_everything_claude_code]] — Everything Claude Code (ECC) — 에이전트 하네스 최적화 시스템 (갓대희 리뷰)

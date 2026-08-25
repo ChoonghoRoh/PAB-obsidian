@@ -42,6 +42,11 @@ PAB-LLMDATA/.obsidian/trash/
 #   ⚠️ 본 저장소는 PUBLIC — scripts/·docs/ 에 실제 토큰·chat_id·비밀번호를 쓰지 않는다.
 #      비밀값은 .env(무시됨)에만 두고, 문서에는 예시 형식으로 적는다.
 
+# docs/history/ — work-log 오프사이트 추적 여부 미결(2026-08-26, Task 2-5-2).
+# PUBLIC 저장소라 공개가 사실상 비가역이므로 사용자 결정 전까지 보류한다.
+# 추적하기로 하면 이 두 줄을 지우면 된다.
+docs/history/
+
 # 로그/임시 파일
 *.log
 *.tmp

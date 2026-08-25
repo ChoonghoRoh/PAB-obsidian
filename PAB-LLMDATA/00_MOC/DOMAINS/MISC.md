@@ -35,7 +35,11 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
-_(현재 등록된 노트 없음)_
+- [[2026-07-10_iyusik_choki_toping_source]] — 다시 시작하는 이유식·초기 이유식 식단 (삐뽀삐뽀119, 하정훈·정유미) — 원본
+- [[2026-07-10_iyusik_choki_toping]] — 초기 이유식 요점정리 & 토핑식 이유식 (삐뽀삐뽀119, 하정훈·정유미)
+- [[2026-07-10_iyusik_bbippo119_2023_source]] — 2023 개정판 이유식 정리(삐뽀삐뽀119 참고) — 원본
+- [[2026-07-10_iyusik_bbippo119_2023]] — 2023 개정판 이유식 정리 (삐뽀삐뽀119)
+- [[2026-06-16]] — 2026-06-16 Inbox 데일리 노트
 <!-- moc-build:auto-end -->
 
 > Phase 1-4 `wiki moc-build` 명령으로 자동 채워질 placeholder.

@@ -48,8 +48,26 @@
 | task-2-5-4 | G-4 | `pabadmin`·`pabbridge` 자격증명 회전 | backend-dev + 사용자(GUI) | 🟡 | ⬜ |
 | task-2-5-5 | G-5 | `workspace.json` git 추적 해제 (R-2 해소) | backend-dev | 🟡 | ⬜ |
 | task-2-5-6 | G-6 | iPhone LiveSync 연동 검증 (2-1 T-4 미완분) | 사용자(GUI) + Team Lead 검증 | 🟢 | ⬜ |
+| task-2-5-7 | G-7 | `/wiki` 스킬 MOC 자동화 + link-check 게이트 강제 (PO1 §4.4 대응) | Team Lead(SKILL.md) + backend-dev(validate.py) | 🟡 | ⬜ |
 
-**순차 제약**: T-4(자격증명 회전)는 **T-1·T-2 완료 후** 착수한다 (PR-1 — 회전 중 동기화 일시 중단, 관측·백업 선행 필수).
+**순차 제약**
+- T-4(자격증명 회전)는 **T-1·T-2 완료 후** 착수한다 (PR-1 — 회전 중 동기화 일시 중단, 관측·백업 선행 필수)
+- **T-2를 최우선으로 앞당긴다** (2026-08-26 결정) — PAB-Prove 3800X 디바이스 편입이 T-4에 물려 있고, T-4는 PR-1에 따라 T-2 완료가 선행이다
+
+### 4.1 PAB-Prove 디바이스 편입 (2026-08-26 편성)
+
+PO1 회답(PO2)으로 **3800X LiveSync 디바이스 편입을 조건부 승인**했다. 편입 실행은 **T-4와 동시**에 처리한다 — 신규 CouchDB 계정 `pabprove` 발급이 필요하고 T-4가 이미 `_users`·`bridge.env`를 다루기 때문이다.
+
+| 항목 | 내용 |
+|---|---|
+| bridge 구조 | **N-1(config `allowWriteBack` 플래그) + ⒜(별도 컨테이너) 병행** — 미러 bridge는 현행 단방향 유지, Prove용 bridge 신설 |
+| 계정 | **`pabprove` 신규 발급** — `pabbridge`는 `_design/zz_bridge_readonly` VDU가 살아 있어 쓰기 시 컨테이너 크래시 |
+| 대상 파일 | `pab-vault-cloud/livesync-bridge/Hub.patched.ts` · `config.json.template` · `docker-compose.yml` · `setup-readonly-account.sh` (전부 backend-dev 위임, HR-1) |
+| 선행 게이트 | **P-1** — Prove 측 검증 시점 이동(write 전 검증) 완료 통지(R-5) 수신 후에만 실행 |
+| 외부 통지 | **Observer 사전 통지 24h**(OB2-A §1.3·§7.3 — 홉2 구조 변경). PAB-obsidian이 수행 |
+| 일시 통지 | 확정 시 **PO3** 발신 |
+
+정본 정비 2건(anchor 수선 + `moc-build`)은 **2026-08-26 적용 완료** — orphan 8→0.
 
 ## 5. 산출물
 
@@ -83,6 +101,9 @@
 | PR-3 | 자동 커밋이 충돌·불완전 상태를 커밋 | DP-1 git-authority 유지. 자동화는 커밋·푸시만, **병합 금지** |
 | PR-4 | Telegram `_` 토큰 parse_mode 충돌 | 기존 회피책 적용 (하이픈 치환·escape) |
 | PR-5 | (구조적) Docker가 tailscaled보다 선행 기동 | `net.ipv4.ip_nonlocal_bind=1` 적용 완료. T-1 모니터링이 재발 시 즉시 감지 |
+| PR-6 | **bridge 양방향 전환 시 미러 체인 동반 크래시** — `forbidden` uncaught는 peer가 아니라 **프로세스 단위**로 죽는다 | 컨테이너 분리(⒜). Prove bridge가 죽어도 미러(홉2~4)는 생존 |
+| PR-7 | **정본 CouchDB probe 중복** — Prove·Observer·우리가 각자 쓰기 시도를 계획 | 역할 분담 고정: `pabbridge` forbidden 확인=**Observer**, `pabprove` 통과 실증=**우리 backend-dev**, Prove는 **금지**(PO2 R-4) |
+| PR-8 | **MOC 진동** — 편입 후 `/wiki`와 Prove 워커가 둘 다 `moc-build` 호출 | `moc.py` idempotent + 출력 동일성 확인(PO2 R-3). T-7이 우리 측 담당 |
 
 ## 8. SSOT 예외 적용 (E-1~E-4 상속)
 

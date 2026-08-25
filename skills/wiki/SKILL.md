@@ -117,7 +117,7 @@ allowed-tools: "Read, Write, Bash, WebFetch"
 - slug: `^[a-z0-9_]{1,50}$` (소문자·숫자·언더스코어, 하이픈 금지)
 - 정규식: `^\d{4}-\d{2}-\d{2}_[a-z0-9_]{1,50}\.md$`
 
-## §3 처리 절차 (12 step)
+## §3 처리 절차 (Step 1~10 + 보조 9.5)
 
 ### Step 1 — 입력 파싱 + WebFetch
 - URL 패턴 추출 (`https?://...`)
@@ -190,15 +190,34 @@ allowed-tools: "Read, Write, Bash, WebFetch"
 - 동일 파일 존재 시 사용자에게 확인
 - `--dry` 시 stdout만 출력
 
-### Step 9 — 검증 (양 파일 모두)
+### Step 9 — 검증 게이트 (양 파일 모두) ⚠️ **필수 실행**
+
 ```bash
 # vault root 자동 감지 — Step 8 우선순위 적용($WIKI_VAULT_ROOT → 정본 vault 탐지 → 확인 후 ./wiki)
-python3 scripts/wiki/wiki.py link-check  # vault-wide
+python3 scripts/wiki/wiki.py --json link-check   # vault-wide
 ```
-- `violations=0` → Critical/High PASS ✅
-- `broken=N` → 미래 노트 unresolved (WARN, 사용자에게 분리 보고, 정상)
-- `schema_violations`만 critical로 취급
-- TOC 링크 검증: 요약본의 `[원본 §... →]` anchor가 원본 실제 헤더와 일치 확인
+
+**판정 근거는 `counts`다 — `status` 문자열이 아니다.**
+
+| 지표 | 판정 | 조치 |
+|---|---|---|
+| `counts.violations > 0` | ❌ **게이트 FAIL** | **중단 + 보고.** 생성한 파일은 남기되 위반 항목을 사용자에게 명시하고, 수정 없이 완료 선언하지 않는다 |
+| `counts.orphans > 0` | ⚠️ MOC 미등재 | Step 9.5가 해소한다. 그래도 남으면 사용자에게 보고 |
+| `counts.broken = N` | ℹ️ **정보 지표** | 미래 노트 unresolved — **정상 동작**. 분리 보고만 |
+
+- `status` 필드는 현행 산정이 `broken>0`이면 `FAIL`을 내므로 **이 판정에 쓰지 않는다** (Phase 2-5 T-7에서 정합 예정)
+- TOC 링크 검증: 요약본의 `[원본 §... →]` anchor가 **원본 실제 헤더와 문자열 단위로 일치**하는지 확인. 원본 헤더가 `## 0. 요지`인데 링크가 `#0. 요지 (TL;DR)`이면 broken이다 — 실제 발생 사례
+
+### Step 9.5 — MOC 갱신 ⚠️ **필수 실행 (수동 안내 금지)**
+
+```bash
+make wiki-moc-build     # 또는: python3 scripts/wiki/wiki.py moc-build
+```
+
+- **반드시 실행한다.** 사용자에게 "나중에 실행하세요"라고 안내만 하고 넘어가지 않는다 — 미실행이 orphan 누적의 원인이었다
+- 실행 결과(갱신 MOC 수 · TOPIC 신규 승격 목록)를 Step 10 응답에 포함한다
+- `moc-build`는 idempotent다 — 여러 번 실행해도 같은 결과에 수렴한다. 안전하게 재실행 가능
+- 실행 후 `link-check`를 1회 더 돌려 `counts.orphans == 0` 을 확인한다
 
 ### Step 10 — 사용자 응답 메시지
 ```
@@ -210,9 +229,11 @@ python3 scripts/wiki/wiki.py link-check  # vault-wide
 🔗 wikilink N개 + TOC 링크 M개 자동 삽입
 ⚠️  원본은 변경 금지 — Karpathy immutable sources 계층
 
-⚠️  (TOPIC 신규 마중물 시) TOPIC `<TOPIC>`은 처음 등장 — 노트 3개 도달 시
-    `make wiki-moc-build`로 MOC 자동 승격됩니다.
+✅ 검증: violations 0 / orphans 0 (broken N — 미래 노트, 정상)
+🗂️  MOC 갱신: N개 갱신 (+ TOPIC 승격: <TOPIC1>, ...)
 ```
+
+> **게이트 FAIL 시**에는 위 형식 대신 **무엇이 위반인지·어느 파일 몇 행인지·어떻게 고치는지**를 먼저 보고한다. 위반을 남긴 채 ✅ 로 응답하지 않는다.
 
 ## §4 이전 가이드 (요약 — 상세는 PORTABILITY.md)
 

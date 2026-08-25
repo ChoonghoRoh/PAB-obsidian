@@ -24,6 +24,12 @@
 #       git-gap 실패 **원인 구분**용 데이터 피드(맥북 침묵 / 미푸시 / 진짜 공백).
 #       판정 자체는 서버가 GitHub tip 으로 독립 수행하므로 이 stamp 에 의존하지 않는다.
 #
+#   [5] pab_git_autocommit_local.sh → 맥북 crontab (2시간마다 :17)  ← Task 2-5-2
+#       오프사이트 백업(GitHub)의 **커밋·푸시 자동화**. [4]가 공백을 *관측*한다면
+#       이것은 공백을 *만들지 않는다*. 커밋·푸시만 하고 병합은 절대 하지 않는다(PR-3).
+#       :17 오프셋은 [4](매시 :00)와 같은 저장소를 동시에 건드리지 않게 하려는 것 —
+#       .git/index.lock 경합을 피하고, stamp 가 커밋 **이후** 상태를 보고하게 만든다.
+#
 # [중요] [2]의 배포 위치를 /home/oceanui/pab-vault-cloud/ **밖**에 둔다.
 #   pab-vault-cloud/deploy.sh 는 `rsync --delete` 로 그 디렉토리를 통째로 맞추므로,
 #   아래에 감시 스크립트를 두면 다음 배포 때 **조용히 삭제**된다. 감시자가 배포
@@ -37,6 +43,10 @@
 #       (~3분)·deploy.sh 재빌드보다 길어야 계획된 유지보수로 울리지 않는다.
 #     · 상한: 08-21 사건은 3일(4,320분) 무인지였다. 최대 15분이면 288배 개선이고,
 #       LiveSync 는 실시간 복제이므로 15분 지연은 데이터 관점에서 무해하다.
+#   맥북 2시간 (:17) — Task 2-5-2. KPI "커밋 공백 <= 24h" 대비 하루 12회로 12배 여유.
+#     macOS cron 은 슬립 중 놓친 실행을 보충하지 않으므로, 여유분은 그대로 "맥북이
+#     깨어 있는 창을 몇 번 만나는가"의 확률이 된다. 2시간이면 하루 22시간을 자도
+#     KPI 를 지킨다. 변경 없으면 no-op 이라 실행 비용은 사실상 0.
 #   맥북 주 1회 (월 09:00) — DP-2-5-1 확정값. 1차 감지는 UK·서버 cron 이 맡고,
 #     이것은 저확률·고영향(서버+UK 동시 침묵)의 2차 안전망이다.
 #
@@ -57,11 +67,13 @@ COLLECT_MARK="# PAB-VAULT-SYNC"
 SERVER_MARK="# PAB-SYNC-MONITOR"
 LOCAL_MARK="# PAB-SYNC-WATCHDOG"
 STAMP_MARK="# PAB-GIT-STAMP"
+AUTOCOMMIT_MARK="# PAB-GIT-AUTOCOMMIT"
 
 COLLECT_CRON="*/5 * * * * ${OBSERVER_DIR}/scripts/pab-vault-sync-collect.sh >> /tmp/obs-pab-vault-sync.log 2>&1  ${COLLECT_MARK}"
 SERVER_CRON="2-57/5 * * * * ${MONITOR_DIR}/pab_sync_healthcheck.sh >> /tmp/pab-sync-health.log 2>&1  ${SERVER_MARK}"
 LOCAL_CRON="0 9 * * 1 ${LOCAL_DIR}/pab_sync_watchdog_local.sh >> /tmp/pab-sync-watchdog.log 2>&1  ${LOCAL_MARK}"
 STAMP_CRON="0 * * * * ${LOCAL_DIR}/pab_git_stamp_local.sh >> /tmp/pab-git-stamp.log 2>&1  ${STAMP_MARK}"
+AUTOCOMMIT_CRON="17 */2 * * * ${LOCAL_DIR}/pab_git_autocommit_local.sh >> /tmp/pab-git-autocommit.log 2>&1  ${AUTOCOMMIT_MARK}"
 
 DO_SERVER=1; DO_LOCAL=1; UNINSTALL=0
 case "${1:-}" in
@@ -99,6 +111,7 @@ if [ "$UNINSTALL" -eq 1 ]; then
   echo "==> 맥북 cron 제거"
   set_local_cron "$LOCAL_MARK" ""
   set_local_cron "$STAMP_MARK" ""
+  set_local_cron "$AUTOCOMMIT_MARK" ""
   echo "완료. 스크립트·상태파일은 남겨둔다."
   exit 0
 fi
@@ -128,14 +141,20 @@ if [ "$DO_SERVER" -eq 1 ]; then
 fi
 
 if [ "$DO_LOCAL" -eq 1 ]; then
-  echo "==> 맥북 crontab 등록 (멱등: watchdog 주1회 + git-stamp 매시)"
-  chmod +x "${LOCAL_DIR}/pab_sync_watchdog_local.sh" "${LOCAL_DIR}/pab_git_stamp_local.sh"
+  echo "==> 맥북 crontab 등록 (멱등: watchdog 주1회 + git-stamp 매시 + 자동커밋 2시간)"
+  chmod +x "${LOCAL_DIR}/pab_sync_watchdog_local.sh" "${LOCAL_DIR}/pab_git_stamp_local.sh" \
+           "${LOCAL_DIR}/pab_git_autocommit_local.sh"
   set_local_cron "$LOCAL_MARK" "$LOCAL_CRON"
   set_local_cron "$STAMP_MARK" "$STAMP_CRON"
+  set_local_cron "$AUTOCOMMIT_MARK" "$AUTOCOMMIT_CRON"
   echo "    등록 결과:"
-  crontab -l | grep -E 'PAB-SYNC-WATCHDOG|PAB-GIT-STAMP' | sed 's/^/      /'
+  crontab -l | grep -E 'PAB-SYNC-WATCHDOG|PAB-GIT-STAMP|PAB-GIT-AUTOCOMMIT' | sed 's/^/      /'
   echo "    stamp 초기 1회 기록:"
   "${LOCAL_DIR}/pab_git_stamp_local.sh" | sed 's/^/      /' || true
+  # 배포 확인은 **드라이런까지만** 한다. 배포 스크립트가 커밋을 만들어 버리면
+  # "무엇을 백업했는지" 결정 주체가 사람에서 배포 도구로 옮겨간다(PR-3 취지 훼손).
+  echo "    자동커밋 드라이런 (실제 커밋·푸시 없음):"
+  "${LOCAL_DIR}/pab_git_autocommit_local.sh" --dry-run 2>&1 | head -12 | sed 's/^/      /' || true
 fi
 
 echo "==> 배포 완료"
@@ -143,3 +162,5 @@ echo "    수집기 로그 : ssh ${SSH_HOST} 'tail -f /tmp/obs-pab-vault-sync.lo
 echo "    보조 로그   : ssh ${SSH_HOST} 'tail -f /tmp/pab-sync-health.log'"
 echo "    상태 확인   : ssh ${SSH_HOST} '${MONITOR_DIR}/pab_sync_healthcheck.sh --status'"
 echo "    전달 확인   : ssh ${SSH_HOST} '${MONITOR_DIR}/pab_sync_healthcheck.sh --test-notify'"
+echo "    자동커밋 로그: tail -f /tmp/pab-git-autocommit.log"
+echo "    자동커밋 상태: ${LOCAL_DIR}/pab_git_autocommit_local.sh --status"

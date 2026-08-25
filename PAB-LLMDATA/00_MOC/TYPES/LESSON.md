@@ -37,6 +37,7 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-07-02_khala_tools_run_max_iter_issues]] — PAB-Khala tools/run 빈 응답·출력 오염 이슈
 - [[2026-06-30_phase6_persona_review]] — PAB-Khala Phase 6 페르소나 검증 — arbiter 적대 리뷰
 <!-- moc-build:auto-end -->
 

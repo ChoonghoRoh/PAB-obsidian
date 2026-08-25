@@ -37,6 +37,20 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-08-17_minimax_h3_3090_feasibility]] — MiniMax-H3 — 33B 옴니모달 비디오 생성 모델의 RTX 3090 24GB 구동 검토
+- [[2026-08-17_qwen3_8_27b_model_card]] — Qwen3.8-27B — Qwen 오픈모델 최신 세대 비전-언어 모델 카드 정리
+- [[2026-07-23_scrapling_web_scraping]] — Scrapling — 적응형 웹 스크래핑 프레임워크 정리 + Khala webfetch 비교
+- [[2026-07-21_grok_build_vs_pab_ssot_harness_compare]] — Grok Build 하네스 vs PAB SSOT 하네스 정밀 비교 — 코드 강제 vs 문서 규범
+- [[2026-07-20_kimi_k3_cost_perf_compare]] — Kimi K3(Moonshot AI) 소개·비용·성능 + Opus 4.8/Fable 5/DeepSeek V4-Pro 비교
+- [[2026-07-20_obsidian_indexing_rag_ontology]] — Obsidian 노트 구분·인덱싱 고도화 + Index/RAG/온톨로지 사례
+- [[2026-07-20_llm_api_cost_local_vs_external]] — LLM 자료수집 비용 — Khala 로컬 vLLM vs 외부 API 손익분기 (PAB-Prove)
+- [[2026-07-20_external_data_collection_tooling]] — 외부 자료수집 툴링 조사 — 메신저·크롤러·웹fetch (PAB-Prove 수집 확장)
+- [[2026-07-16_colibri_glm52_moe_streaming]] — colibrì — 744B MoE를 25GB RAM PC에서 (디스크 스트리밍 MoE 런타임)
+- [[2026-07-10_iyusik_choki_toping]] — 초기 이유식 요점정리 & 토핑식 이유식 (삐뽀삐뽀119, 하정훈·정유미)
+- [[2026-07-10_iyusik_bbippo119_2023]] — 2023 개정판 이유식 정리 (삐뽀삐뽀119)
+- [[2026-07-08_claude_code_wsl_install_guide]] — Windows WSL2에서 Claude Code 설치·설정하기
+- [[2026-07-08_opencode_ohmyopencode_win_install]] — Windows에서 opencode·oh-my-opencode 설치하기
+- [[2026-07-01_hugrag_pab_knowledge_graft]] — HugRAG↔PAB 지식체계 비교 · 외부 brain 접목 검토
 - [[2026-06-23_rtx3090_vllm_context_kv_offload]] — vLLM 컨텍스트 확장 핵심 진단 — 엔진 KV캐시 vs 앱 외부기억 2층위 (RTX3090)
 - [[2026-06-16_everything_claude_code]] — Everything Claude Code (ECC) — 에이전트 하네스 최적화 시스템 (갓대희 리뷰)
 - [[2026-06-15_deepseek_v4_opencode_api]] — DeepSeek V4를 OpenCode에 이식하기 — OpenAI 호환 base_url로 provider 연결 + oh-my-opencode 프레임워크 활용

@@ -1,6 +1,6 @@
 # Phase 2-5 Todo List — 운영 안정화 + 백업 무결성
 
-상태: **PLANNING**
+상태: **IN_PROGRESS** (G1 PASS 2026-08-25 · T-1 완료 · 2026-08-26 T-7 신설)
 
 ## 진입 (ENTRY-1~5)
 - [ ] SSOT 0-entrypoint 리로드 (FRESH-1)
@@ -46,6 +46,23 @@
 - [ ] `chroh-iphone` Tailscale online 확인
 - [ ] Obsidian 모바일 + LiveSync 플러그인 설정
 - [ ] 양방향 동기화 E2E 확인 (Team Lead 독립 검증)
+
+## T-7: [G-7 🟡] `/wiki` 스킬 MOC 자동화 + link-check 게이트  ← 2026-08-26 신설 (PO1 §4.4 대응)
+- [x] 정본 정비 2건 적용 — anchor 수선 + `moc-build` (orphan 8→0, 2026-08-26)
+- [x] SKILL.md Step 9.5 신설 — 실제 `make wiki-moc-build` 필수 실행 (2026-08-26, Team Lead)
+- [x] SKILL.md Step 9 게이트화 — 판정 근거를 `counts`로, `violations>0` 시 중단·보고 (2026-08-26, Team Lead)
+- [ ] `validate.py` status 산정 정합 (`broken`은 정보 지표로 분리) — backend-dev
+- [x] 플러그인 판본(`skills/wiki/`) 동기화 (2026-08-26)
+
+## PAB-Prove 편입 (T-4와 동시 실행) ← 2026-08-26 편성
+- [x] PO1 회답 발신 — PO2 (조건부 승인 + 정정 2건 + 요청 6건)
+- [ ] R-5 수신 — Prove 측 검증 시점 이동 완료 통지 (**편입 게이트 P-1**)
+- [ ] Observer 사전 통지 (홉2 구조 변경, 리드타임 24h)
+- [ ] `Hub.patched.ts` `allowWriteBack` 플래그 조건부화 — backend-dev
+- [ ] Prove 전용 bridge 컨테이너 + config 신설 — backend-dev
+- [ ] `pabprove` 계정 발급 + 쓰기 통과 실증 (T-4 회전과 동시) — backend-dev
+- [ ] 3800X `PAB-LLMDATA` 사본 생성 + LiveSync 참여 확인
+- [ ] PO3 발신 — 편입 실행 일시 통지
 
 ## 게이트
 - [ ] G0 SKIP (research=false — 사전 분석 APPROVED)

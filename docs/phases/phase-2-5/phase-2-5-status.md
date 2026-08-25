@@ -4,13 +4,17 @@ title: "운영 안정화 + 백업 무결성"
 team_name: "phase-2-5"
 ssot_version: v8.2-renewal-6th   # ver6-2 라인 이행 (2026-08-25). v8.3 policy/model-assignment.md는 이식 보존
 created: 2026-08-25
-updated: 2026-08-25
+updated: 2026-08-26
 current_state: IN_PROGRESS
 exceptions: [E-1, E-2, E-3, E-4]
 exceptions_ref: docs/phases/phase-2-exceptions.md
 master_plan_ref: docs/phases/phase-2-master-plan.md
 pre_analysis_ref: docs/phases/phase-2-5-pre-analysis.md
 integration_ref: docs/interop/pab-observer/260825-OB2-vault이원화-회신-및-승격사전통지.md   # Observer/UK 관측 연계 (2026-08-25 신설)
+interop_refs:
+  - docs/interop/pab-observer/260825-OB2A-OB2회답-승격준비확정+B1~B5회신.md   # Observer 회답 (수신, B-1~B-5 전건)
+  - docs/interop/pab-prove/260825-PO1-3800X-LiveSync디바이스편입요청.md      # Prove 발신 (수신본)
+  - docs/interop/pab-prove/260826-PO2-PO1회답-디바이스편입-조건부승인.md      # 우리 회답 (2026-08-26)
 notify_prefix: "[PAB-LLMDATA]"
 execution_order: "2-1 직후 · 2-2 이전 (번호와 실행순서 불일치, master-plan §4 명시)"
 gate_results:
@@ -42,7 +46,7 @@ blockers:
 domain_tags_in_use: [INFRA]
 roles:
   team_lead: main
-  backend_dev: terminated    # T-1 완료 후 보고 불응·유휴 반복 → HR-7 종료 (T-2 착수 시 재스폰)
+  backend_dev: spawning      # 2026-08-26 T-2 착수 위해 재스폰 (직전 인스턴스는 T-1 후 HR-7 종료)
   verifier: not_spawned
   tester: not_spawned        # G3_smoke 장애 주입 (HR-6 독립성)
   frontend_dev: not_spawned  # 미사용
@@ -58,6 +62,7 @@ sub_phase_artifacts:
     - tasks/task-2-5-4.md  # [G-4] 자격증명 회전 (pabadmin·pabbridge)
     - tasks/task-2-5-5.md  # [G-5] workspace.json git 추적 해제
     - tasks/task-2-5-6.md  # [G-6] iPhone LiveSync 연동 검증
+    - tasks/task-2-5-7.md  # [G-7] /wiki 스킬 MOC 자동화 + link-check 게이트 (2026-08-26 신설, PO1 §4.4 대응)
 5th_mode:
   research: false          # 사전 분석 완료 (APPROVED)
   event: true              # 2026-08-21 CouchDB 3일 장애 사건 대응
@@ -68,9 +73,15 @@ decision_points:
   DP-2-5-1: "모니터링 실행 위치 = (A) 3800X crontab + 맥북발 주 1회 역방향 확인 보조"
   DP-2-5-2: "git 자동 커밋 주체 = (A) 맥북 로컬 cron (DP-1 git-authority 무변경)"
   DP-2-5-3: "CouchDB 백업 보존 = 일 1회 × 7세대"
+  DP-2-5-4: "bridge 역방향 허용 = N-1(config allowWriteBack 플래그) + ⒜(별도 컨테이너) 병행 — 미러 체인 가용성을 Prove와 분리 (2026-08-26)"
+  DP-2-5-5: "N-2 쓰기 실증 = T-4 자격증명 회전과 동시. pabbridge는 VDU 생존으로 사용 불가 → pabprove 신규 발급 (2026-08-26)"
+  DP-2-5-6: "정본 정비 2건 = PAB-obsidian 직접 적용 (2026-08-26 완료, orphan 8→0)"
+  DP-2-5-7: "/wiki 개선 = 최소 수정(T-7)만 본 Phase 편입. 저장 계층 통합은 범위 밖 (2026-08-26)"
 ssot_loaded_at: 2026-08-25T00:00:00
 deferred:
-  G-7: "Phase 2-2 범위 재정의 (PAB-v4 기존 RAG 중복 인덱싱 회피) — 본 Phase 범위 밖, 2-2 진입 전 별도 판단"
+  G-8: "Phase 2-2 범위 재정의 (PAB-v4 기존 RAG 중복 인덱싱 회피) — 본 Phase 범위 밖, 2-2 진입 전 별도 판단 (구 G-7, T-7 신설로 재채번)"
+  PROVE-1: "저장 계층 통합 (/wiki ↔ Prove safe_write_* 경유) — 의존 방향 유보. 가드 계층 upstream 편입을 대안 제시, Prove 확정 통지 후 판단 (PO2 §5.4)"
+  O-4: "서버 증분 60건 선별 기준 미확정 — 편입 경계(편입 실행 완료 시각) 이전 산출물이 대상. OB3에 승격 범위와 함께 정리"
 ---
 
 # Phase 2-5 Status — 운영 안정화 + 백업 무결성
@@ -82,9 +93,19 @@ deferred:
 2026-08-21 서버 재부팅으로 `pab-couchdb` 기동 실패 → **3일간 LiveSync 전면 중단이 미인지**된 사건 대응.
 복구는 완료(`ip_nonlocal_bind=1` + `--force-recreate`)했으나 **관측·백업 계층 부재**가 드러나 Phase 2-5를 사후 신설했다.
 
-## 다음 액션
+## 다음 액션 (2026-08-26 갱신)
 
-1. `phase-2-5-plan.md` 확정 → G1 PASS
-2. backend-dev 스폰 → T-1(모니터링) → T-2(백업) 순차 착수
-3. tester 스폰 → G3_smoke 장애 주입 E2E (HR-6: 구현자 셀프체크 금지)
-4. G4 PASS 후 NOTIFY 발송 (`[PAB-LLMDATA]`, HR-8)
+1. ~~`phase-2-5-plan.md` 확정 → G1 PASS~~ ✅ (2026-08-25)
+2. ~~T-1 모니터링~~ ✅ G2_infra 조건부 PASS (2026-08-25)
+3. **backend-dev 재스폰 → T-2(자동 커밋 cron) 최우선 착수** ← 현재. 편입이 T-4에 물리고 T-4는 PR-1로 T-2가 선행
+4. T-3(CouchDB 볼륨 백업) → T-4(자격증명 회전 + `pabprove` 발급 + 편입 실행)
+5. T-5 · T-6 · T-7
+6. tester 스폰 → G3_smoke 장애 주입 E2E (HR-6: 구현자 셀프체크 금지, **사용자 승인 필요** — 가동 서비스 중단 수반)
+7. G4 PASS 후 NOTIFY 발송 (`[PAB-LLMDATA]`, NOTIFY-1)
+
+## 외부 협업 상태 (2026-08-26)
+
+| 채널 | 최근 | 우리 대기 | 상대 대기 |
+|---|---|---|---|
+| PAB-Observer | OB2-A 수신(회답 완료) | OB2-A §8 ①~⑤ 회신 · OB3(승격 실행 통지) | — |
+| PAB-Prove | **PO2 발신**(2026-08-26) | PO3(편입 일시 통지) | PO2 §8 R-1~R-6 (**R-5가 편입 게이트 P-1**) |

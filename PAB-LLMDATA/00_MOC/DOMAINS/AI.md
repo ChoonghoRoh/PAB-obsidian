@@ -33,6 +33,22 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-08-17_minimax_h3_3090_feasibility_source]] — MiniMax-H3 모델 카드 원문 (Hugging Face)
+- [[2026-08-17_minimax_h3_3090_feasibility]] — MiniMax-H3 — 33B 옴니모달 비디오 생성 모델의 RTX 3090 24GB 구동 검토
+- [[2026-08-17_qwen3_8_27b_model_card_source]] — Qwen3.8-27B 모델 카드 원문 (Hugging Face)
+- [[2026-08-17_qwen3_8_27b_model_card]] — Qwen3.8-27B — Qwen 오픈모델 최신 세대 비전-언어 모델 카드 정리
+- [[2026-07-21_kimi_k3_platform_docs_source]] — Kimi K3 Platform Docs (platform.kimi.ai 원문 캡처)
+- [[2026-07-20_kimi_k3_cost_perf_compare_source]] — Kimi Code Overview (kimi.com 공식 문서 원문)
+- [[2026-07-20_kimi_k3_cost_perf_compare]] — Kimi K3(Moonshot AI) 소개·비용·성능 + Opus 4.8/Fable 5/DeepSeek V4-Pro 비교
+- [[2026-07-20_llm_api_cost_local_vs_external]] — LLM 자료수집 비용 — Khala 로컬 vLLM vs 외부 API 손익분기 (PAB-Prove)
+- [[2026-07-16_local_llm_limit_ladder_source]] — 로컬 LLM 한계 사다리 실험 프로토콜 (원본) — 3800X/24GB GPU/64GB RAM
+- [[2026-07-16_local_llm_limit_ladder]] — 로컬 LLM 한계 사다리 실험 — 기존 하드웨어로 어디까지 (3800X/24GB GPU/64GB RAM)
+- [[2026-07-16_colibri_glm52_moe_streaming_source]] — colibrì — GLM-5.2(744B MoE)를 25GB RAM PC에서 (GitHub README 원문)
+- [[2026-07-16_colibri_glm52_moe_streaming]] — colibrì — 744B MoE를 25GB RAM PC에서 (디스크 스트리밍 MoE 런타임)
+- [[2026-07-10_imagegen_3090_comprehensive_report_source]] — [원본] 로컬 이미지 생성(RTX 3090) 종합 평가 보고서 전문 (PAB-MakeIMG, 2026-07-10)
+- [[2026-07-10_imagegen_3090_comprehensive_report]] — 로컬 이미지 생성(RTX 3090) 종합 평가 — 배포 실측과 클라우드 3자 비교 (PAB-MakeIMG)
+- [[2026-07-01_hugrag_pab_knowledge_graft_source]] — HugRAG↔PAB 지식체계 비교·외부 brain 접목 검토 (원문)
+- [[2026-07-01_hugrag_pab_knowledge_graft]] — HugRAG↔PAB 지식체계 비교 · 외부 brain 접목 검토
 - [[2026-06-23_rtx3090_vllm_context_kv_offload_source]] — RTX 3090 환경 NVMe·RAM 컨텍스트 한계 극복 전략 보고서 (원본)
 - [[2026-06-23_rtx3090_vllm_context_kv_offload]] — vLLM 컨텍스트 확장 핵심 진단 — 엔진 KV캐시 vs 앱 외부기억 2층위 (RTX3090)
 - [[2026-06-01_samsung_sds_public_ax_strategy_source]] — 공공AX 전환 전략: 공공 AI·클라우드 기반 구조 설계 — 삼성SDS 인사이트 원본 (2026)

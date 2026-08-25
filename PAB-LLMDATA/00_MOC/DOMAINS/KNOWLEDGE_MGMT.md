@@ -33,6 +33,7 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-07-20_obsidian_indexing_rag_ontology]] — Obsidian 노트 구분·인덱싱 고도화 + Index/RAG/온톨로지 사례
 - [[2026-05-05_pab_ssot_portability]] — PAB SSOT — 다른 프로젝트 이식 가이드 (Portability)
 - [[2026-05-05_pab_ssot_intro]] — PAB SSOT v8.2-renewal-6th — 진입점·버전·3계층 아키텍처 개요
 - [[2026-05-05_pab_ssot_templates]] — PAB SSOT — 템플릿 11종 (TEMPLATES/)

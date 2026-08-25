@@ -36,7 +36,7 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
-_(현재 등록된 노트 없음)_
+- [[2026-06-16]] — 2026-06-16 Inbox 데일리 노트
 <!-- moc-build:auto-end -->
 
 > Phase 1-4 `wiki moc-build` 명령으로 자동 채워질 placeholder.

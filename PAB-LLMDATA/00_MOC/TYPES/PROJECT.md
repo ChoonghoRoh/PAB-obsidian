@@ -37,6 +37,8 @@ LIMIT 100
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-07-16_local_llm_limit_ladder]] — 로컬 LLM 한계 사다리 실험 — 기존 하드웨어로 어디까지 (3800X/24GB GPU/64GB RAM)
+- [[2026-07-10_imagegen_3090_comprehensive_report]] — 로컬 이미지 생성(RTX 3090) 종합 평가 — 배포 실측과 클라우드 3자 비교 (PAB-MakeIMG)
 - [[2026-06-30_pab_v4_brain_integration]] — PAB-Khala PAB-v4 Brain 연동 보고서
 - [[2026-06-30_phase6_unified_gateway]] — PAB-Khala Phase 6 통합 게이트웨이 마스터플랜
 - [[2026-06-30_khala_pab_v4_integration]] — PAB-v4 Khala 연동 아키텍처 — 두 옵션 비교·권장
