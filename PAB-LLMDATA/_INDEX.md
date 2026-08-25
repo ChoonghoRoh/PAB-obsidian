@@ -84,15 +84,15 @@ SORT file.name ASC
 
 ## 폴더 구조
 
-| 폴더 | 용도 |
-|---|---|
-| `00_MOC/` | TYPES/DOMAINS/TOPICS Map of Content |
-| `10_Notes/` | 시간순 노트 (`YYYY-MM-DD_*.md`) |
-| `20_Lessons/` | 정제된 교훈 |
-| `30_Constraints/` | 규약·제약 (frontmatter 스펙·네이밍·링크 정책) |
-| `40_Templates/` | Templater 템플릿 (TYPE별 6종) |
-| `99_Inbox/` | 미분류 임시 보관 |
-| `_attachments/` | 이미지·첨부 |
+| 폴더                | 용도                                  |
+| ----------------- | ----------------------------------- |
+| `00_MOC/`         | TYPES/DOMAINS/TOPICS Map of Content |
+| `10_Notes/`       | 시간순 노트 (`YYYY-MM-DD_*.md`)          |
+| `20_Lessons/`     | 정제된 교훈                              |
+| `30_Constraints/` | 규약·제약 (frontmatter 스펙·네이밍·링크 정책)    |
+| `40_Templates/`   | Templater 템플릿 (TYPE별 6종)            |
+| `99_Inbox/`       | 미분류 임시 보관                           |
+| `_attachments/`   | 이미지·첨부                              |
 
 ---
 
