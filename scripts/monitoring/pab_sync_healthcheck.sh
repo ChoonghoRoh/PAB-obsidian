@@ -94,7 +94,13 @@ REMIND_SEC="${PAB_REMIND_SEC:-86400}"
 CURL_TIMEOUT="${PAB_CURL_TIMEOUT:-10}"
 RESTART_STORM_DELTA="${PAB_RESTART_STORM_DELTA:-3}"
 
-CHECK_KEYS="couchdb-container couchdb-endpoint couchdb-db bridge-container github-backup"
+# 볼륨 백업 감시 (T-3) — 36h = 일1회 주기의 1회 결번 + 12h 여유 / 10일 = 주1회 + 3일 여유
+VOLBACKUP_STATE="${PAB_VOLBACKUP_STATE:-$STATE_DIR/couchdb-volbackup.env}"
+VOLBACKUP_MAX_AGE_H="${PAB_VOLBACKUP_MAX_AGE_H:-36}"
+VOLBACKUP_VERIFY_MAX_AGE_D="${PAB_VOLBACKUP_VERIFY_MAX_AGE_D:-10}"
+VOLBACKUP_KEEP="${PAB_VOLBACKUP_KEEP:-7}"
+CHECK_VOLBACKUP_ENABLED="${PAB_CHECK_VOLBACKUP_ENABLED:-auto}"
+CHECK_KEYS="couchdb-container couchdb-endpoint couchdb-db bridge-container github-backup couchdb-volbackup"
 
 # 보조 경로 활성 판정 — UK Push URL 이 발급되면 Telegram 직접 발송을 자동으로 멈춘다.
 PAB_UK_ENV_FILE="${PAB_UK_ENV_FILE:-/home/oceanui/observer/.env}"
@@ -333,6 +339,35 @@ check_github_backup() {
   st_set GIT_LAST_RESULT 0; return 0
 }
 
+# 백업은 죽어도 아무 일이 안 일어난다 — "있는 줄 알았는데 없는" 08-21 실패 모드 그대로다.
+# auto 는 **cron 등록 뒤에만** 감시한다: 미리 켜면 36h 뒤 위양성이고, 별도 플래그로 켜게
+# 하면 "등록했는데 감시는 안 켠" 어긋남이 난다 — 마커를 직접 봐 둘을 한 몸으로 묶는다.
+vb_get() { local v; v="$(grep -m1 "^${1}=" "$VOLBACKUP_STATE" 2>/dev/null | cut -d= -f2-)"
+  v="${v%\'}"; v="${v#\'}"; printf '%s' "$v"; }
+vb_num() { case "${1-}" in ''|*[!0-9]*) printf 0 ;; *) printf '%s' "$1" ;; esac; }
+check_couchdb_volbackup() {
+  local en="$CHECK_VOLBACKUP_ENABLED" ok_ts vf_ts gens sz age_h vage_d
+  if [ "$en" = "auto" ]; then
+    crontab -l 2>/dev/null | grep -q 'PAB-COUCHDB-VOLBACKUP' && en=1 || en=0
+  fi
+  [ "$en" = "1" ] || { DETAIL="cron 미등록 — 감시 대기(위양성 방지)"; return 0; }
+  [ -f "$VOLBACKUP_STATE" ] || { DETAIL="상태파일 없음 — 백업이 한 번도 돌지 않았다"; return 1; }
+  ok_ts="$(vb_num "$(vb_get LAST_OK_TS)")"; vf_ts="$(vb_num "$(vb_get LAST_VERIFY_TS)")"
+  gens="$(vb_num "$(vb_get GENERATIONS)")"; sz="$(vb_num "$(vb_get TOTAL_SIZE)")"
+  age_h=$(( (ts_now - ok_ts) / 3600 )); vage_d=$(( (ts_now - vf_ts) / 86400 ))
+  if [ "$ok_ts" -eq 0 ] || [ "$age_h" -gt "$VOLBACKUP_MAX_AGE_H" ]; then
+    DETAIL="볼륨 백업 정체 ${age_h}시간 (임계 ${VOLBACKUP_MAX_AGE_H}h, 세대 ${gens})"; return 1
+  fi
+  # 백업만 돌고 리허설이 멈춤 = "복구 보증 만료된 채 백업만 쌓임". 가장 위험한 조합.
+  if [ "$vf_ts" -eq 0 ] || [ "$vage_d" -gt "$VOLBACKUP_VERIFY_MAX_AGE_D" ]; then
+    DETAIL="복원 리허설 ${vage_d}일 경과 (임계 ${VOLBACKUP_VERIFY_MAX_AGE_D}일) — 복구 보증 만료"; return 1
+  fi
+  DETAIL="경과 ${age_h}h, 세대 ${gens}/${VOLBACKUP_KEEP}, 총 ${sz}B, 리허설 ${vage_d}일 전"
+  # 세대 미달은 알림이 아니다 — 초기 7일간은 정상적으로 모자란다(정보 표시).
+  [ "$gens" -lt "$VOLBACKUP_KEEP" ] && DETAIL="${DETAIL} [세대 축적 중]"
+  return 0
+}
+
 run_check() {   # $1=key → echo "0|1<TAB>detail"
   DETAIL=""
   case "$1" in
@@ -341,6 +376,7 @@ run_check() {   # $1=key → echo "0|1<TAB>detail"
     couchdb-db)        check_couchdb_db ;;
     bridge-container)  check_bridge_container ;;
     github-backup)     check_github_backup ;;
+    couchdb-volbackup) check_couchdb_volbackup ;;
     *) DETAIL="unknown check"; false ;;
   esac
 }
