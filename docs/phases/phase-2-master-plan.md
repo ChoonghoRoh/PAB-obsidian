@@ -3,13 +3,14 @@ phase: "2"
 title: "PAB-LLMDATA 셀프호스팅 클라우드 활용 (동기화 + RAG/MCP + LLM 자동화)"
 type: master-plan
 created: 2026-05-29
-ssot_version: 8.0-renewal-6th
+updated: 2026-08-24   # Phase 2-5 편성 (CouchDB 3일 장애 대응)
+ssot_version: 8.3-renewal-6th
 initiator: user
 prompt_quality: pass
 pre_draft_ref: docs/phases/phase-2-pre-analysis.md
 exceptions_ref: docs/phases/phase-2-exceptions.md
 exceptions: [E-1, E-2, E-3, E-4]
-sub_phases: [2-1, 2-2, 2-3, 2-4]
+sub_phases: [2-1, 2-5, 2-2, 2-3, 2-4]   # 실행 순서 기준 (2-5는 2026-08-24 사후 삽입)
 status: DRAFT
 notify_prefix: "[PAB-LLMDATA]"
 ---
@@ -52,7 +53,10 @@ notify_prefix: "[PAB-LLMDATA]"
 |---|---|---|
 | LiveSync 동기화 | 폰(Tailscale) 편집 → PC 수초 반영 | Phase 2-1 |
 | per-machine 제외 | `workspace*.json`/`graph.json` 미동기화 | Phase 2-1 |
-| GitHub 백업 | 자동 커밋·푸시 도달 | Phase 2-1 |
+| GitHub 백업 | 자동 커밋·푸시 도달 | Phase 2-1 → **2-5 재이관** |
+| 장애 감지 | CouchDB/bridge 다운 시 Telegram 알림 도달 | Phase 2-5 |
+| 백업 무공백 | 오프사이트 커밋 공백 ≤ 24h, CouchDB 볼륨 덤프 세대 보존 | Phase 2-5 |
+| 자격증명 위생 | `pabadmin`·`pabbridge` 회전 완료, 평문 노출 0 | Phase 2-5 |
 | MCP 서버 응답 | stateless `search()` → 관련 노트+frontmatter 반환 | Phase 2-2 |
 | 인덱싱 | 64파일 임베딩 → Qdrant upsert, 재인덱싱 <1s | Phase 2-2 |
 | Claude Code MCP 연결 | `.mcp.json`으로 볼트 쿼리 동작 | Phase 2-2 |
@@ -153,17 +157,48 @@ notify_prefix: "[PAB-LLMDATA]"
 
 ---
 
+### Phase 2-5: 운영 안정화 + 백업 무결성 [INFRA] — **2-2보다 선행 실행**
+
+**목표**: 가동 중인 동기화 인프라에 관측(모니터링·알림)과 백업(오프사이트·볼륨) 계층을 확립하고, Phase 2-1 잔여 인계사항을 해소한다.
+
+**신설 근거**: 2026-08-21 서버 재부팅으로 CouchDB가 기동 실패한 뒤 **3일간 라이브싱크 전면 중단이 미인지**되었다. 복구는 완료(`ip_nonlocal_bind=1` + `--force-recreate`)했으나 관측·백업 계층 부재가 드러났다. 상세: [phase-2-5-pre-analysis.md](phase-2-5-pre-analysis.md)
+
+**실행 순서**: 번호는 2-5이나 **2-1 직후, 2-2 이전**에 실행한다. ① 2-2/2-3은 vault 데이터를 소비·가공하므로 백업·관측 없는 기반 위에 자동화를 쌓으면 장애 시 손실 범위가 커진다 ② 2-2는 범위 재정의(G-7) 미해결로 즉시 착수 불가 ③ 백업 공백이 매일 누적되는 진행형 리스크다.
+
+**Tasks** (사용자 지정 우선순위 순차):
+- T-1: [G-1 🔴] 헬스 모니터링 — CouchDB `/_up` + bridge 상태 주기 점검, 연속 실패 시에만 Telegram 발송 + 복구 시 1회 발송
+- T-2: [G-2 🔴] GitHub 오프사이트 백업 정상화 — 미커밋 34일 공백 해소 + 자동 커밋·푸시 (DP-1 git-authority 유지, 병합 금지)
+- T-3: [G-3 🟡] CouchDB 볼륨 덤프 백업 자동화 + 세대 보존 정책
+- T-4: [G-4 🟡] 자격증명 회전 — `pabadmin`(관리자) + `pabbridge`(읽기전용), 전 기기 재설정 절차·롤백 문서화
+- T-5: [G-5 🟡] `PAB-LLMDATA/.obsidian/workspace.json` git 추적 해제 (§7 R-2 해소)
+- T-6: [G-6 🟢] iPhone LiveSync 연동 검증 (Phase 2-1 T-4 미완분)
+
+**산출물**: 모니터링 스크립트 + cron 등록, 백업 스크립트, 자격증명 회전 절차서, 운영 런북(장애 진단 순서), 검증 보고서
+
+**G2_infra**: 모니터링 알림 수신 확인, 백업 산출물 생성·복원 확인, 자격증명 회전 후 전 기기 동기화 정상, per-machine 미추적 확인
+
+**G3_smoke**: **장애 주입 테스트** — 컨테이너 강제 정지 → 알림 수신 → 복구 → 복구 알림 수신 E2E
+
+**소요 추정**: 6 task / 90~150분
+
+---
+
 ## §5 Sub-Phase 의존 관계
 
 ```
-2-1 (동기화 인프라: CouchDB LiveSync + 백업)
+2-1 (동기화 인프라: CouchDB LiveSync + 백업)                       [DONE 2026-06-16]
    ↓
-2-2 (RAG/MCP: Qdrant + bge-m3 + pab-kb-mcp)  ── reindex 엔드포인트 제공
-   ↓
+2-5 (운영 안정화: 모니터링·알림 + 백업 무결성 + 자격증명)          [선행 삽입 2026-08-24]
+   ↓   ── 관측·백업 계층 확보 후 데이터 소비 단계로 진입
+2-2 (RAG/MCP)  ── ⚠️ 범위 재정의 선행 필요 (pre-analysis §2 G-7)
+   ↓                PAB-v4가 이미 vault 미러 인덱싱 중 → 중복 구축 위험
+   ↓                "신규 RAG 구축" → "기존 PAB-v4 RAG를 MCP로 노출"로 재정의
 2-3 (LLM 자동화: Conductor wiki-ingest + 로컬 vLLM)  ── 2-1 동기화 타겟 + 2-2 reindex 의존
    ↓
 2-4 (통합 검증 + 운영 가이드)
 ```
+
+**주의**: 번호 순서(2-2→2-5)와 실행 순서(2-5→2-2)가 다르다. 2-5는 2-1 잔여 인계사항 해소 + 장애 대응으로 사후 삽입된 Sub-Phase다.
 
 각 sub-phase 완료 시 NOTIFY-1(`[PAB-LLMDATA]` prefix) 발송 → 다음 sub-phase status.md 진입.
 
@@ -228,11 +263,12 @@ Phase 2-1을 시작한다.
 
 ## §11 종료 조건 (Phase 2 DONE)
 
-- [ ] Phase 2-1 ~ 2-4 모두 DONE
+- [ ] Phase 2-1, 2-5, 2-2 ~ 2-4 모두 DONE
 - [ ] G2_infra + G3_smoke 전 계층 PASS
 - [ ] 3목표 검증: 다기기 동기화 / MCP 쿼리 / 로컬 자동 ingest
 - [ ] 외부 LLM API 호출 0 (데이터 주권)
 - [ ] 전 서비스 Tailnet 전용, 공개 노출 0
+- [ ] **운영 안정화(2-5)**: 장애 알림 수신 확인, 오프사이트 백업 무공백, 자격증명 회전 완료
 - [ ] master-final-report 작성
 - [ ] `[PAB-LLMDATA]` 텔레그램 알림 발송 (각 sub-phase + 최종)
 - [ ] `phase-2-exceptions.md` status: ARCHIVED 전이
