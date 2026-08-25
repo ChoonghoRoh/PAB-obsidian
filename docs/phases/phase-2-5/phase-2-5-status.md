@@ -60,7 +60,7 @@ blockers:
 domain_tags_in_use: [INFRA]
 roles:
   team_lead: main
-  backend_dev: active        # 2026-08-26 재스폰. T-2 구현·검증 완료 → T-7(validate.py) 진행 중
+  backend_dev: terminated    # 2026-08-26 정식 shutdown. T-2·T-3·T-5·T-7(§3)·T-1연계·G9 완료. 잔여는 전부 외부 대기(OB2-C·BL-3·Prove R-5)라 재스폰은 대기 해소 후
   verifier: not_spawned
   tester: not_spawned        # G3_smoke 장애 주입 (HR-6 독립성)
   frontend_dev: not_spawned  # 미사용
@@ -126,6 +126,18 @@ deferred:
 |---|---|---|---|
 | PAB-Observer | OB2-A 수신(회답 완료) | OB2-A §8 ①~⑤ 회신 · OB3(승격 실행 통지) | — |
 | PAB-Prove | **PO2 발신**(2026-08-26) | PO3(편입 일시 통지) | PO2 §8 R-1~R-6 (**R-5가 편입 게이트 P-1**) |
+
+### 세션 종료 시점 잔여 (2026-08-26)
+
+| 항목 | 대기 사유 | owner |
+|---|---|---|
+| **T-2 cron 활성화** | **BL-3** — 맥북 crontab 쓰기 차단 | **사용자** (`deploy_monitoring.sh --local-only` 1회) |
+| T-3 서버 cron 2줄 + `deploy_monitoring.sh` 통합 | Observer **OB2-C** 정식 판정 | Observer(다음 세션) |
+| `UK_COUCHDB_VERIFY_PUSH_URL` + `#33` 실번호 | 〃 (코드 변경 불요, 값만 들어오면 동작) | 〃 |
+| T-4 자격증명 회전 + `pabprove` 발급 | **PR-1**(T-2 cron 선행) + Prove **R-5** | 사용자·Prove |
+| T-6 iPhone LiveSync | `depends_on: 2-5-4` — 회전 전 설정하면 재설정 2회 | 사용자(T-4 이후) |
+| T-7 G2_infra E2E | `/wiki` 실사용 시 자연 검증 (더미 노트로 정본 오염 금지) | — |
+| G3_smoke 장애 주입 | tester 미스폰 + **가동 서비스 중단 수반 → 사용자 승인 필요** | 사용자 |
 
 **진행 중 조율** (2026-08-26)
 - **T-3 사전 통지 완료** — Observer 전건 수용 가능 회신, 정식 판정은 OB2-C. **cron 등록은 판정 후**
