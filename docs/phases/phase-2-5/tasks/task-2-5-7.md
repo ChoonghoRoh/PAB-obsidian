@@ -58,3 +58,70 @@ PAB-Prove PO1 §4.4가 정본 vault의 link-check FAIL(critical 1 + orphan 8)을
 
 - 본 Task는 PO1 §4.4 지적의 **최소 대응**이다. Prove가 제안한 "저장 계층 통합"(스킬이 Prove `safe_write_*` 경유)은 **범위 밖** — 정본 authority가 상대 저장소 코드에 의존하는 역전이 생긴다(PO2 §5.4). 가드 계층은 **원산지(PAB-obsidian)로 upstream 편입**하는 방향을 대안으로 제시했고, Prove 확정 통지 후 별도 판단한다
 - **C-2 idempotent 요건**: 편입 후 `/wiki`와 Prove 워커가 **둘 다** `moc-build`를 호출한다. 두 판본이 같은 출력을 내야 진동하지 않는다 (PO2 §6.3 C-2, R-3으로 Prove에 확인 요청 중)
+
+---
+
+## 검증 결과 — §작업 3 `status` 산정 정합 (2026-08-26, backend-dev)
+
+> ⚠️ **범위**: 본 절은 **§작업 3(`validate.py`)** 만 다룬다. §작업 1·2·4(`SKILL.md` 2판본)는 Team Lead 담당분이다.
+
+**커밋** `350d1e8` — `scripts/wiki/lib/validate.py` (201→222줄) · `scripts/wiki/wiki.py` (160→165줄)
+
+### 변경 내용
+
+| 등급 | 조건 |
+|---|---|
+| `FAIL` | `violations > 0` |
+| `PARTIAL` | `violations == 0 && orphans > 0` |
+| `PASS` | 둘 다 0 |
+
+`broken`은 `counts`에만 남는 **정보 지표**로 분리. 주석에 **PO2 §4.2 R-1 근거와 `SKILL.md` Step 9 인용**을 명시했다 — 양측 계약 문서와 코드가 서로를 가리키게 했다.
+
+### exit code 하위호환 — 영향 범위 전수 조사
+
+| 호출부 | 판정 근거 | 영향 |
+|---|---|---|
+| `Makefile: wiki-link-check` | exit code | **무영향** — `--vault` 미지정(기본 vault)이라 변경 전후 모두 exit 0 |
+| `.claude/hooks/` | — | **사용 0건** |
+| `deploy_monitoring.sh` | — | **사용 0건** |
+| `SKILL.md` Step 9 (개정본) | `--json` + `counts` | exit code 미의존 |
+| **PAB-Prove FC-14 커밋 게이트** | **`status` 문자열** (PO1 §4.1 / PO2 §4.2) | exit code 미의존 |
+
+⇒ **핵심**: Prove FC-14는 exit code가 아니라 **`status` 문자열**을 읽는다. 따라서 `status` FAIL→PASS 정정이 곧 **R-1 이행**이며, 계약을 **깨는 게 아니라 고치는 방향**이다.
+
+의미가 바뀌는 유일한 지점은 *broken만 있는 경우: FAIL/exit1 → PASS/exit0* 이고, **그것이 본 작업의 목적 자체**다.
+
+### 하위호환 탈출구 — `--strict-broken`
+
+구 동작(`broken`을 critical로 합산)을 **완전히 복원**하는 플래그를 추가했다(기본값은 신규 규격).
+phase-1-5 verifier 보고서 R-3/R-4가 이미 권고했던 형태다. **Prove가 R-1을 수용할지 회답 전이므로 되돌릴 수단을 남긴다** — 협상 여지 보존.
+
+### 실측 (5종 + 회귀 1종)
+
+| 케이스 | status | exit |
+|---|---|---|
+| 빈 vault | `PASS (empty vault)` | 0 |
+| `violations>0` 재현 | `FAIL (violations=1, broken=0, orphans=1)` | 1 |
+| `violations=0 && orphans>0` | `PARTIAL (violations=0, broken=6, orphans=1)` | 0 |
+| **정본 `PAB-LLMDATA`** | **`PASS (notes=146, violations=0, broken=185, orphans=0)`** | **0** |
+| 정본 + `--strict-broken` | `FAIL` (동일 counts) | 1 |
+| `make wiki-link-check` 회귀 | 정상 | 0 |
+
+**목표 조건 충족**: 정본이 `violations=0 / orphans=0` 상태에서 **PASS**가 나온다.
+
+> 📌 `broken`은 PO2 기록 시점 **206** → 현재 **185**. 그 사이 MOC 정비·TOPIC 3종 추가로 해소된 분이며 판정에는 무관하다.
+
+### 텍스트 리포트 — 파서 호환 유지
+
+첫 줄 포맷은 **불변**으로 두고(기존 파서 호환) 아래에 한 줄만 덧붙였다:
+
+```
+PASS (notes=146, violations=0, broken=185, orphans=0)
+  ※ broken 185건은 정보 지표 — 미래 노트 unresolved 는 정상(판정 제외)
+```
+
+### 부수 발견 — `.pyc` 추적
+
+본 작업의 자동 커밋(`350d1e8`)에 `scripts/wiki/lib/__pycache__/validate.cpython-312.pyc`가 함께 들어갔다.
+저장소에 **`.pyc`가 이미 추적 중이었고 `.gitignore` 규칙이 없었기** 때문이다.
+→ `1cae4a8`(Team Lead)에서 6건 인덱스 제거 + `.gitignore` 규칙 추가로 해소. 오염 경로 폐쇄 실증 완료.

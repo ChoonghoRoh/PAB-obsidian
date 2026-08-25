@@ -188,3 +188,48 @@ pab_couchdb_data-20260826-044750.tar.gz → 격리 컨테이너 (127.0.0.1:15984
 > ✅ **`#31` 조치 불요 확인** — `container-health-collect.sh`는 전체 스캔이 아니라 화이트리스트(`CONTAINER_WATCH`)라 `pab-couchdb-restoretest-*`는 `docker inspect` 대상 자체가 아니다. 오탐 0.
 
 > **자체 결함 1건 수정 이력**: 초기 판본은 `--verify-restore`가 상태파일의 백업 메타(`LAST_FILE`/`LAST_SIZE`/`TOTAL_SIZE`)를 덮어써 지웠다. 상태파일은 T-1이 읽는 단일 창구라, **리허설 한 번이 "마지막 백업이 언제였는지"를 지우면 감시자가 백업 공백을 못 본다.** `carry()`로 상호 보존하도록 수정. — 감시 대상이 감시자를 눈멀게 하는 구조였다.
+
+### UK Push 연계 — **구현 완료** (2026-08-26, 커밋 `49dd1d9`)
+
+위 2계층 설계를 코드에 반영했다. **URL은 아직 미발급이므로 폴백만 동작한다** — 발급되면 코드 변경 없이 즉시 붙는다.
+
+| 검증 경로 | 결과 |
+|---|---|
+| ① URL 미설정 | `UK Push URL 미설정 — 생략(T-1 로컬 폴백이 감시)` / 리허설 PASS / exit 0 |
+| ② 도달 불가 URL | `WARN UK Push 실패 — T-1 로컬 폴백 유지` / **리허설 PASS 유지** / exit 0 |
+| ③ 실제 전송(로컬 수신기) | 수신: `status=up&msg=verify-ok-docs3064-local13-ddoc194&ping=3` |
+| ④ 리허설 실패 | 수신: `status=down&msg=verify-FAIL-no-backup&ping=0` |
+| ⑤ dry-run | 억제 |
+
+②가 핵심이다 — **Push 실패가 리허설 성패를 바꾸지 않는다. 관측이 본업을 막지 않는다.**
+
+⚠️ **비밀 취급**: `UK_COUCHDB_VERIFY_PUSH_URL` 환경변수 또는 `/home/oceanui/observer/.env`에서 **해당 키 1개만 추출**(전체 `source` 금지). **로그·상태파일·커밋 어디에도 값을 남기지 않는다**(본 저장소는 PUBLIC).
+
+- HR-5 **386줄**
+- 주석의 `(Observer #33 예정)`은 **가번호**다 — OB2-C에서 Observer가 지정하는 실제 번호로 맞출 것
+
+### 재사용 — 양 프로젝트 공용 리허설 절차
+
+`#32`가 *"신설 이후 복원 검증 0건"*이라 자기 진단했으므로, 리허설 대상을 전부 환경변수로 빼 이식 가능하게 했다:
+
+```
+PAB_COUCHDB_VOLUME · PAB_VOLBACKUP_ROOT · PAB_MAIN_DB · PAB_COUCHDB_URL
+PAB_NETRC · PAB_COUCHDB_IMAGE · PAB_MONITOR_STATE · PAB_VOLBACKUP_KEEP
+
+예) PAB_COUCHDB_VOLUME=other_data PAB_VOLBACKUP_ROOT=/path \
+      ./pab_couchdb_volume_backup.sh --verify-restore
+```
+
+### 세대 회전 검증
+
+격리 루트에서 가짜 8세대 + 신규 1 = 9개 → **정확히 7세대** 유지, 오래된 것부터 삭제 확인.
+자기 접두사(`pab_couchdb_data-*.tar.gz`)만 회전하므로 Observer 세대를 건드릴 여지가 없다.
+
+### 경로 (재확인)
+
+| 항목 | 값 |
+|---|---|
+| 스크립트 | `/home/oceanui/pab-vault-monitor/pab_couchdb_volume_backup.sh` (⚠️ `pab-vault-cloud/` **밖** — `rsync --delete` 대상 회피) |
+| 산출물 | `/home/oceanui/pab-vault-backups/couchdb-volume/` (⚠️ Observer `/home/oceanui/backups`와 **분리** — 그쪽 `ls -1d 20*-*` 회전이 우리 세대를 지우는 것을 차단) |
+| 세대 용량 | 1.49MB × 7 ≈ **10.4MB** (볼륨 4.0MB 압축) |
+| 상태파일 | `state/couchdb-volbackup.env` (**644** — T-1이 읽는다) |
