@@ -27,6 +27,7 @@
 #   G6 behind       : 원격이 로컬보다 앞서면 중단 (**강제 푸시 절대 없음**)
 #   G7 secret       : PUBLIC 저장소 — 비밀 파일명·봇 토큰 형태가 섞이면 중단
 #   G8 mass-delete  : 삭제 파일이 임계 초과면 중단 (복제로 전파된 대량 삭제 방어)
+#   G9 skip-worktree: **경고만** — `git add -A` 가 건너뛰는 파일을 드러낸다(중단 없음)
 #
 # 무소음 원칙:
 #   변경이 없으면 아무것도 하지 않고 종료한다(알림 없음). 알림은 **이상·실패에만**,
@@ -66,6 +67,7 @@ LOCK_DIR="$STATE_DIR/autocommit.lock"
 LOCK_STALE="${PAB_LOCK_STALE:-1800}"              # 30분 넘은 락은 잔재로 간주
 MAX_DELETE="${PAB_MAX_DELETE:-50}"                # 대량 삭제 중단 임계
 PUSH_FAIL_LIMIT="${PAB_PUSH_FAIL_STREAK:-3}"      # 연속 푸시 실패 N회부터 알림
+SKIP_CAP="${PAB_SKIP_LIST_CAP:-5}"                # G9 경고에 나열할 파일 수 상한
 export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes -o ConnectTimeout=15}"
 export GIT_TERMINAL_PROMPT=0
 
@@ -286,6 +288,30 @@ DEL_N="$(printf '%s' "$STAGED" | grep -c '^D' || true)"
   "삭제 ${DEL_N}건이 임계(${MAX_DELETE})를 넘었다 — 사고 삭제가 복제로 전파됐을 수 있다" \
   "대응: git diff --cached --diff-filter=D --name-only 로 확인. 의도된 정리면 사람이 직접 커밋하라"
 
+# ── G9 (경고 전용 — 중단하지 않는다): skip-worktree / assume-unchanged ───────
+# `git add -A` 는 이 비트가 걸린 파일을 **건너뛴다**. vault 노트에 걸리면 자동
+# 백업이 그 파일만 조용히 누락하는데, 백업은 "매일 성공"이라 하고 T-1 도 "정상"이라
+# 한다 — 2026-08-21 과 같은 구조다(지표는 전부 정상인데 실체가 죽어 있다).
+# 실제로 2026-08-26 `PAB-LLMDATA/.obsidian/workspace.json` 에서 이 비트가 발견됐다.
+#
+# ⚠️ G7·G8 과 달리 **중단시키지 않는다.** 정당한 용도가 있을 수 있고(로컬 전용 설정
+#    파일 등), 백업 자체를 막을 사안이 아니다. 목적은 차단이 아니라 **보이게 만드는
+#    것**이다 — 보이지 않으면 확인할 동기조차 생기지 않는다.
+# ※ 이 문자열은 Telegram 으로 나가지 않는다(로그 + 커밋 메시지 전용). 알림 경로에
+#   싣게 되면 그때는 md-safe() 를 반드시 경유할 것 — 경로에 `_` 가 흔하다(PR-4).
+SKIP_LIST="$(g ls-files -v 2>/dev/null | grep -E '^[Sh]' | awk '{ $1=""; sub(/^ /,""); print }')"
+SKIP_N="$(printf '%s' "$SKIP_LIST" | grep -c . || true)"
+SKIP_NOTE=""
+if [ "${SKIP_N:-0}" -gt 0 ]; then
+  SKIP_SHOWN="$(printf '%s' "$SKIP_LIST" | head -"$SKIP_CAP" | tr '\n' ' ')"
+  [ "$SKIP_N" -gt "$SKIP_CAP" ] && SKIP_SHOWN="${SKIP_SHOWN}… 외 $(( SKIP_N - SKIP_CAP ))건"
+  log "WARN skip-worktree/assume-unchanged ${SKIP_N}건 — 자동 백업이 건너뛴다: ${SKIP_SHOWN}"
+  SKIP_NOTE="
+주의: skip-worktree/assume-unchanged ${SKIP_N}건 감지 — 아래는 자동 백업에서 누락된다.
+      ${SKIP_SHOWN}
+      해제: git update-index --no-skip-worktree <경로>"
+fi
+
 # ── 커밋 ─────────────────────────────────────────────────────────────────────
 MOD_N="$(printf '%s' "$STAGED" | grep -c '^M' || true)"
 ADD_N="$(printf '%s' "$STAGED" | grep -c '^A' || true)"
@@ -293,7 +319,7 @@ REN_N="$(printf '%s' "$STAGED" | grep -c '^R' || true)"
 SUBJECT="chore(auto): vault 자동 백업 — ${CHANGED_N}개 파일 변경"
 BODY="자동 생성: pab_git_autocommit_local.sh (맥북 로컬 cron, Task 2-5-2)
 시각: ${iso_now}
-내역: 수정 ${MOD_N} / 추가 ${ADD_N} / 삭제 ${DEL_N} / 이름변경 ${REN_N}"
+내역: 수정 ${MOD_N} / 추가 ${ADD_N} / 삭제 ${DEL_N} / 이름변경 ${REN_N}${SKIP_NOTE}"
 
 if [ "${CHANGED_N:-0}" -gt 0 ]; then
   if [ "$DRY_RUN" -eq 1 ]; then
