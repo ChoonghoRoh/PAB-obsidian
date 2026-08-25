@@ -92,3 +92,28 @@ depends_on: []
 - **사전 통지 발신 완료** (2026-08-26) — 물리 방식·04:17·경로 분리·7세대 명시
 - Observer **전건 수용 가능** 회신, 정식 판정은 **OB2-C**에서
 - ⚠️ **cron 등록은 OB2-C 판정 후** — `docs/interop/pab-observer/` §3.3 사전 통지 규율(2026-08-26 합의)
+
+### Team Lead 독립 검증 — 아카이브 무결성 (2026-08-26, HR-6)
+
+backend-dev 산출물을 Team Lead가 별도로 열어 확인했다(읽기 전용).
+
+대상: `pab_couchdb_data-20260826-044750.tar.gz` (1,488,261B)
+
+```
+총 15 엔트리
+./shards/00000000-7fffffff/pab-llmdata.1781570471.couch    ← q=2 shard 1
+./shards/80000000-ffffffff/pab-llmdata.1781570471.couch    ← q=2 shard 2
+./shards/*/                _users · _replicator · _global_changes
+./_dbs.couch  ./_nodes.couch  ./.delete/
+```
+
+| 검증 | 결과 |
+|---|---|
+| 아카이브 읽힘 (`tar tzf`) | ✅ |
+| `_dbs.couch` · `_nodes.couch` · `shards/` | ✅ 전부 존재 |
+| `pab-llmdata` **양 shard 모두** 포함 | ✅ (한쪽만 있으면 복구 불가) |
+| `_users` DB 포함 | ✅ — 물리 덤프는 계정도 함께 담는다 |
+| CouchDB 무정지 | ✅ `RestartCount=0`, `StartedAt` 불변 |
+| 세대 2건 생성·회전 동작 | ✅ 각 1.49MB → 7세대 ≈ 10.5MB |
+
+⚠️ **여기까지는 "백업이 만들어진다"의 증명이다. "복구된다"는 아직 미증명** — `--verify` 복원 리허설이 남아 있다.

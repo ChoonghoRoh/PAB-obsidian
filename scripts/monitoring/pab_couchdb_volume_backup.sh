@@ -3,17 +3,22 @@
 # pab_couchdb_volume_backup.sh — CouchDB named volume 덤프 + 7세대 보존
 # Phase 2-5 / Task 2-5-3 (G-3) — backend-dev
 # ─────────────────────────────────────────────────────────────────────────────
-# 왜 별도로 필요한가 (기존 backup-datastores.sh 와 중복이 아니다):
-#   Observer 의 backup-datastores.sh 는 이미 CouchDB 를 매일 03:17 에 받는다.
-#   그러나 그것은 `_all_docs?include_docs=true` — **논리(문서) 덤프**다. 거기엔
-#     · 리비전 트리(_revisions)      · `_local/` 복제 체크포인트
-#     · 청크 내부 배치·샤드 구조
-#   가 들어 있지 않다. LiveSync 는 `_local/` 체크포인트로 "각 기기가 어디까지
-#   복제했는지"를 기억한다. 논리 덤프로 복원하면 문서는 살아나도 **그 기억이 사라져
-#   전 기기가 full resync 를 하게 되고**, 그 과정에서 충돌·중복이 생긴다.
-#   볼륨 덤프는 그 메타데이터까지 통째로 보존해 **사고 시점 그대로** 되돌린다.
-#   ⇒ 논리 덤프 = 내용 보험 / 볼륨 덤프 = 동기화 상태 보험. 대체재가 아니라 보완재다.
-#   (Task 2-5-3 §G-2와의 구분과 동일한 구분선이다)
+# 역할 분담 — PAB-Observer #32(논리) 와 무엇이 다른가:
+#   #32 `backup-datastores.sh` 가 매일 **03:17** 에 논리 백업을 돈다
+#   (`_all_docs?include_docs=true` → `pab-llmdata` + `_users`, `_local` 도 추가 예정).
+#   본 스크립트는 매일 **04:17** 에 **볼륨 물리 덤프**를 받는다. 둘은 보완재다.
+#
+#   ⚠️ 고유 가치를 정확히 적어 둔다 — 근거가 틀리면 다음 사람이 "중복 아닌가"로 지운다:
+#     ⑴ **리비전 트리** — 논리 덤프에는 `_revisions` 가 없다. 충돌 해소 이력이 사라진다
+#     ⑵ **뷰 인덱스** — 재빌드 가능하지만, 복구 직후 인덱싱 폭주 없이 바로 선다
+#     ⑶ **볼륨 일관 복구 신뢰성** ← 가장 중요하다.
+#        *"문서를 재조립하는 것"과 "볼륨을 통째로 되돌리는 것"은 복구 신뢰성이 다르다.*
+#        논리 복원은 수천 건을 다시 써 넣는 절차라 중간 실패·부분 적용 여지가 있다.
+#        물리 복원은 파일을 제자리에 놓고 컨테이너를 띄우면 끝이다.
+#
+#   ※ `_local` 복제 체크포인트도 부수적으로 담기지만 **이것이 존재 이유는 아니다** —
+#     `_local_docs` 는 논리적으로도 받을 수 있고(#32 가 추가하기로 합의), 현재
+#     #32 산출물에 없을 뿐 "못 받는 것"이 아니다. 근거를 여기에 걸지 않는다.
 #
 # 왜 컨테이너를 세우지 않아도 되는가:
 #   CouchDB 파일은 **append-only** 다. 쓰기 도중 복사되면 꼬리만 잘릴 뿐이고,
@@ -60,6 +65,13 @@
 #   --verify-restore : **복원 리허설**. 최신 덤프를 격리된 임시 컨테이너/볼륨에
 #                      복원해 doc_count 를 대조한다. 가동 중인 pab-couchdb 는
 #                      건드리지 않는다(이름·볼륨·포트 전부 분리, 127.0.0.1 바인딩).
+#
+# [재사용] 복원 리허설 절차를 다른 백업 체계(#32 등)에 그대로 이식할 수 있게
+#   대상은 전부 환경변수로 뺐다:
+#     PAB_COUCHDB_VOLUME · PAB_VOLBACKUP_ROOT · PAB_MAIN_DB · PAB_COUCHDB_URL
+#     PAB_NETRC · PAB_COUCHDB_IMAGE · PAB_MONITOR_STATE · PAB_VOLBACKUP_KEEP
+#   예) 다른 볼륨을 같은 절차로 검증:
+#     PAB_COUCHDB_VOLUME=other_data PAB_VOLBACKUP_ROOT=/path ./pab_couchdb_volume_backup.sh --verify-restore
 #
 # 의존: docker, tar(alpine 이미지), curl, python3
 # ─────────────────────────────────────────────────────────────────────────────
@@ -287,6 +299,14 @@ if [ "$MODE" = dry ]; then
   log "  회전 예정(삭제): $(gens_list | tail -n +"$((KEEP + 1))" | wc -l | tr -d ' ')개"
   exit 0
 fi
+
+# [최선노력] _ensure_full_commit — CouchDB **3.x 에서는 사실상 no-op** 이다
+#   (delayed_commits 제거로 모든 쓰기가 이미 동기 커밋. 실측: {"ok":true} 만 반환).
+#   그럼에도 한 줄 남기는 이유는 **버전이 내려갔을 때의 안전판**이다. 실패해도 무시한다
+#   — 이 호출의 성공 여부에 백업을 걸면, 되레 백업이 네트워크에 종속된다.
+curl -fsS --netrc-file "$NETRC" -X POST --max-time 15 \
+  -H "Content-Type: application/json" "${LIVE_URL}/${MAIN_DB}/_ensure_full_commit" \
+  >/dev/null 2>&1 || log "WARN _ensure-full-commit 미적용(3.x no-op 이므로 무해) — 계속 진행"
 
 # 읽기 전용 마운트로 뜬다 — R-1(단일 writer) 위반 여지 자체를 없앤다.
 # tar 는 "읽는 중 파일이 변했다"로 1을 반환할 수 있다(append-only 라 정상 상황).
