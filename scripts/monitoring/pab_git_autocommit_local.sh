@@ -117,6 +117,40 @@ st_flush() {
   chmod 600 "$STATE_FILE" 2>/dev/null || true
 }
 
+# ── G9 (경고 전용 — 중단하지 않는다): skip-worktree / assume-unchanged ───────
+# `git add -A` 는 이 비트가 걸린 파일을 **건너뛴다**. vault 노트에 걸리면 자동
+# 백업이 그 파일만 조용히 누락하는데, 백업은 "매일 성공"이라 하고 T-1 도 "정상"이라
+# 한다 — 2026-08-21 과 같은 구조다(지표는 전부 정상인데 실체가 죽어 있다).
+# 실제로 2026-08-26 `PAB-LLMDATA/.obsidian/workspace.json` 에서 이 비트가 발견됐다.
+#
+# ⚠️ **반드시 스테이징·no-op 판정보다 먼저 호출한다.** 초판은 이 검사를 커밋 직전에
+#    두었는데, 그러면 **가드가 자기 시나리오에서만 침묵**했다: 비트가 걸린 노트를
+#    편집 → `add -A` 가 건너뜀 → CHANGED_N=0 → "변경 없음" no-op exit → G9 미도달.
+#    누락이 일어난 바로 그 순간에 경고가 안 나오고, 다른 파일이 우연히 함께 바뀐
+#    때에만 떴다 — 가장 필요할 때 침묵하는 가드였다. (2026-08-26 Team Lead 실측 지적)
+#    비트 감지는 스테이징 결과와 무관하다 — `git ls-files -v` 만 보면 된다.
+#
+# ⚠️ G7·G8 과 달리 **중단시키지 않는다.** 정당한 용도가 있을 수 있고(로컬 전용 설정
+#    파일 등), 백업 자체를 막을 사안이 아니다. 목적은 차단이 아니라 **보이게 만드는
+#    것**이다 — 보이지 않으면 확인할 동기조차 생기지 않는다.
+# ※ 알림은 보내지 않는다(로그 + 커밋 메시지 전용). "변경 없음"은 정상 상태이고 비트
+#   감지는 경고이지 이상이 아니다 — 무소음 원칙과 충돌시키지 않는다. 나중에 알림
+#   경로에 싣게 되면 그때는 md-safe() 를 반드시 경유할 것(경로에 `_` 가 흔하다, PR-4).
+SKIP_NOTE=""
+detect_skip() {
+  local list n shown
+  list="$(g ls-files -v 2>/dev/null | grep -E '^[Sh]' | awk '{ $1=""; sub(/^ /,""); print }')"
+  n="$(printf '%s' "$list" | grep -c . || true)"
+  [ "${n:-0}" -gt 0 ] || return 0
+  shown="$(printf '%s' "$list" | head -"$SKIP_CAP" | tr '\n' ' ')"
+  [ "$n" -gt "$SKIP_CAP" ] && shown="${shown}… 외 $(( n - SKIP_CAP ))건"
+  log "WARN skip-worktree/assume-unchanged ${n}건 — 자동 백업이 건너뛴다: ${shown}"
+  SKIP_NOTE="
+주의: skip-worktree/assume-unchanged ${n}건 감지 — 아래는 자동 백업에서 누락된다.
+      ${shown}
+      해제: git update-index --no-skip-worktree <경로>"
+}
+
 mkdir -p "$STATE_DIR"; chmod 700 "$STATE_DIR" 2>/dev/null || true
 PREV_KIND="$(st_get ALERT_KIND '')"
 PREV_STREAK="$(st_get PUSH_FAIL_STREAK 0)"; [ -n "$PREV_STREAK" ] || PREV_STREAK=0
@@ -126,6 +160,7 @@ if [ "$SHOW_STATUS" -eq 1 ]; then
   echo "== repo : $REPO_DIR"
   echo "   branch=$(g rev-parse --abbrev-ref HEAD 2>/dev/null) head=$(g rev-parse --short=12 HEAD 2>/dev/null)"
   echo "   dirty=$(g status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
+  detect_skip
   exit 0
 fi
 
@@ -174,6 +209,9 @@ if ! mkdir "$LOCK_DIR" 2>/dev/null; then
   fi
 fi
 trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
+
+# G9 는 여기서 부른다 — 스테이징·no-op 판정보다 앞이라 **모든 경로에서 발화**한다.
+detect_skip
 
 # ── G2: 진행 중인 병합·리베이스·체리픽 잔존 ──────────────────────────────────
 INPROG=""
@@ -287,30 +325,6 @@ DEL_N="$(printf '%s' "$STAGED" | grep -c '^D' || true)"
 [ "${DEL_N:-0}" -gt "$MAX_DELETE" ] && abort "mass-delete" \
   "삭제 ${DEL_N}건이 임계(${MAX_DELETE})를 넘었다 — 사고 삭제가 복제로 전파됐을 수 있다" \
   "대응: git diff --cached --diff-filter=D --name-only 로 확인. 의도된 정리면 사람이 직접 커밋하라"
-
-# ── G9 (경고 전용 — 중단하지 않는다): skip-worktree / assume-unchanged ───────
-# `git add -A` 는 이 비트가 걸린 파일을 **건너뛴다**. vault 노트에 걸리면 자동
-# 백업이 그 파일만 조용히 누락하는데, 백업은 "매일 성공"이라 하고 T-1 도 "정상"이라
-# 한다 — 2026-08-21 과 같은 구조다(지표는 전부 정상인데 실체가 죽어 있다).
-# 실제로 2026-08-26 `PAB-LLMDATA/.obsidian/workspace.json` 에서 이 비트가 발견됐다.
-#
-# ⚠️ G7·G8 과 달리 **중단시키지 않는다.** 정당한 용도가 있을 수 있고(로컬 전용 설정
-#    파일 등), 백업 자체를 막을 사안이 아니다. 목적은 차단이 아니라 **보이게 만드는
-#    것**이다 — 보이지 않으면 확인할 동기조차 생기지 않는다.
-# ※ 이 문자열은 Telegram 으로 나가지 않는다(로그 + 커밋 메시지 전용). 알림 경로에
-#   싣게 되면 그때는 md-safe() 를 반드시 경유할 것 — 경로에 `_` 가 흔하다(PR-4).
-SKIP_LIST="$(g ls-files -v 2>/dev/null | grep -E '^[Sh]' | awk '{ $1=""; sub(/^ /,""); print }')"
-SKIP_N="$(printf '%s' "$SKIP_LIST" | grep -c . || true)"
-SKIP_NOTE=""
-if [ "${SKIP_N:-0}" -gt 0 ]; then
-  SKIP_SHOWN="$(printf '%s' "$SKIP_LIST" | head -"$SKIP_CAP" | tr '\n' ' ')"
-  [ "$SKIP_N" -gt "$SKIP_CAP" ] && SKIP_SHOWN="${SKIP_SHOWN}… 외 $(( SKIP_N - SKIP_CAP ))건"
-  log "WARN skip-worktree/assume-unchanged ${SKIP_N}건 — 자동 백업이 건너뛴다: ${SKIP_SHOWN}"
-  SKIP_NOTE="
-주의: skip-worktree/assume-unchanged ${SKIP_N}건 감지 — 아래는 자동 백업에서 누락된다.
-      ${SKIP_SHOWN}
-      해제: git update-index --no-skip-worktree <경로>"
-fi
 
 # ── 커밋 ─────────────────────────────────────────────────────────────────────
 MOD_N="$(printf '%s' "$STAGED" | grep -c '^M' || true)"
