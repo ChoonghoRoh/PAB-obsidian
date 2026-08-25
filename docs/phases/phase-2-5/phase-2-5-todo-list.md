@@ -48,8 +48,8 @@
 
 ## T-5: [G-5 🟡] workspace.json git 추적 해제
 - [ ] `PAB-LLMDATA/.obsidian/workspace.json` `git rm --cached`
-- [ ] `.gitignore` 반영 확인
-- [ ] master-plan §7 R-2 (per-machine churn) 해소 확인
+- [x] `.gitignore` 규칙 **이미 존재** 확인(`:13 workspace*.json`) — 추적 중 파일엔 미적용이라 남아 있던 것. `.pyc`와 동일 상황
+- [ ] master-plan §7 R-2 해소 확인 — 근거: `c7efa04`가 **활성 탭 변경만으로 생긴 커밋**. 자동 커밋 2h 주기와 맞물리면 탭 이동마다 찍힌다
 
 ## T-6: [G-6 🟢] iPhone LiveSync 연동 검증
 - [ ] `chroh-iphone` Tailscale online 확인

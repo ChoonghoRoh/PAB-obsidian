@@ -20,7 +20,13 @@ execution_order: "2-1 직후 · 2-2 이전 (번호와 실행순서 불일치, ma
 gate_results:
   G0: SKIP       # research = false — 사전 분석(phase-2-5-pre-analysis.md, APPROVED)이 조사 대체
   G1: PASS       # plan.md Team Lead 검토 승인 (2026-08-25) — 결정사항·리스크·게이트 반영 확인
-  G2_infra: PARTIAL  # T-1 PASS(2026-08-25) + T-2 조건부 PASS(2026-08-26, cron 활성화만 BL-3로 잔여). T-3~T-7 미착수
+  G2_infra: PARTIAL  # 2026-08-26 갱신
+  #   T-1 PASS (2026-08-25) + volbackup 감시 연계 PASS (2026-08-26, eb1875b — 6분기 전수 시험)
+  #   T-2 조건부 PASS — 커밋·푸시 실체 충족(2efb00e). cron 활성화만 BL-3로 잔여
+  #   T-3 조건부 PASS — 복원 리허설 PASS(doc_count 3064=3064 / VDU 본문 194자 / _local 13=13).
+  #                     서버 cron 등록만 Observer OB2-C 판정 대기
+  #   T-7 §작업3 PASS — link-check status 정합(PASS/exit 0, --strict-broken 하위호환)
+  #   T-4·T-5·T-6 미착수 (T-5 진행 중)
   #   [T-1 검증 결과]
   #   ✓ Tailnet IP(100.109.251.86) 경유 — localhost 회피 확인
   #   ✓ printf %q 상태파일 규약 준수 (46일 침묵 사고 재발 방지)
