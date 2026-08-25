@@ -97,6 +97,20 @@ PROJECT_TAG="${PAB_PROJECT_TAG:-PAB-v3}"
 REPORT_SH="${PAB_REPORT_SCRIPT:-}"
 PREFIX="${VOLUME}"
 
+# ── UK Push (Observer #33 예정) — 리허설 "부재"를 잡는 1차 경로 ───────────────
+# 왜 Push 인가: 리허설 컨테이너는 주 1회 수십 초만 존재한다. 그걸 컨테이너 폴링
+# 감시(#31)에 넣으면 나머지 시간이 전부 down 이 된다. 반대로 **성공 시 heartbeat 를
+# 보내고 interval 을 주1회+여유로 잡으면, 리허설이 멈춘 것 자체가 heartbeat 부재로
+# 드러난다** — 감시자가 감시대상의 생존에 의존하지 않는 구조다(#32 와 같은 패턴).
+# URL 미발급 구간에는 T-1 의 LAST-VERIFY-TS>10일 판정이 로컬 폴백으로 덮는다.
+# ⚠️ URL 은 비밀이다 — 로그·상태파일·커밋 어디에도 값을 남기지 않는다.
+UK_ENV_FILE="${PAB_UK_ENV_FILE:-/home/oceanui/observer/.env}"
+UK_VERIFY_PUSH_URL="${UK_COUCHDB_VERIFY_PUSH_URL:-}"
+if [ -z "$UK_VERIFY_PUSH_URL" ] && [ -f "$UK_ENV_FILE" ]; then
+  UK_VERIFY_PUSH_URL="$(grep -m1 '^UK_COUCHDB_VERIFY_PUSH_URL=' "$UK_ENV_FILE" 2>/dev/null \
+    | cut -d= -f2- | tr -d "\"'" )"
+fi
+
 MODE=run
 case "${1:-}" in
   --dry-run|--check) MODE=dry ;;
@@ -146,6 +160,17 @@ PREV_KIND="$(st_get ALERT_KIND '')"
 
 gens_list() { ls -1t "$BACKUP_ROOT"/${PREFIX}-*.tar.gz 2>/dev/null; }
 
+# 미설정이면 조용히 건너뛴다 — T-1 로컬 폴백이 이미 덮고 있으므로 여기서 시끄러울
+# 이유가 없다. Push 실패도 백업·리허설의 성패를 바꾸지 않는다(관측이 본업을 막지 않는다).
+uk_push() {   # $1=up|down  $2=msg
+  [ "$MODE" = dry ] && { log "DRY-RUN UK Push 억제 (status=$1)"; return 0; }
+  [ -n "$UK_VERIFY_PUSH_URL" ] || { log "UK Push URL 미설정 — 생략(T-1 로컬 폴백이 감시)"; return 0; }
+  curl -fsS --max-time 15 -G "$UK_VERIFY_PUSH_URL" \
+    --data-urlencode "status=$1" --data-urlencode "msg=$2" \
+    --data-urlencode "ping=$(gens_list | wc -l | tr -d ' ')" >/dev/null 2>&1 \
+    && log "UK Push 전송 (status=$1)" || log "WARN UK Push 실패 — T-1 로컬 폴백 유지"
+}
+
 # 백업 실행분과 리허설분은 **서로의 기록을 지우지 않는다**. 상태파일은 T-1 헬스체크가
 # 읽는 단일 창구라, 리허설 한 번이 "마지막 백업이 언제 무엇이었는지"를 지워 버리면
 # 감시자가 백업 공백을 못 본다. 그래서 자기 담당 키 외에는 전부 이어 쓴다.
@@ -161,6 +186,8 @@ fi
 
 fail() {                                    # $1=kind $2=사유 $3=대응
   log "FAIL [$1] $2"
+  # 리허설 실패는 UK 로도 알린다 — "복구된다"의 보증이 깨진 순간이므로.
+  [ "$MODE" = verify ] && uk_push down "verify-FAIL-$1"
   if [ "$PREV_KIND" != "$1" ]; then
     notify "🚨 CouchDB 볼륨 백업 실패 — $1
 시각: ${iso_now}
@@ -274,6 +301,7 @@ if [ "$MODE" = verify ]; then
     fail "verify-mismatch" "복원본 doc_count(${RESTORED}) > 가동본(${LIVE}) — 대조 실패" ""
   fi
   log "✅ 복원 리허설 PASS — 덤프에서 실제로 DB 가 살아난다"
+  uk_push up "verify-ok-docs${RESTORED}-local${R_LOCAL:-0}-ddoc${DDOC_OK:-0}"
   st_set ALERT_KIND ""; st_set LAST_RUN_TS "$ts_now"
   st_set LAST_OK_TS "$(st_get LAST_OK_TS 0)"
   st_set LAST_VERIFY_TS "$ts_now"; st_set LAST_VERIFY_DOCS "${RESTORED}"
