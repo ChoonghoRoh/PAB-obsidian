@@ -30,7 +30,7 @@ allowed-tools: "Read, Grep"
 
 ### 2. 규칙 인덱스 파일 읽기
 
-- `SSOT/core/6-rules-index.md`를 대상으로 한다.
+- `docs/SSOT/core/6-rules-index.md`를 대상으로 한다.
 - 둘 다 없으면 오류를 반환한다.
 
 ### 3-A. 개요 모드 (인수 없음)

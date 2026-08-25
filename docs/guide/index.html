@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAB SSOT 가이드 — 스킬·훅·스크립트·인포창</title>
+<style>
+  :root {
+    --bg: #0d1117; --bg2: #161b22; --bg3: #1c2330;
+    --fg: #e6edf3; --fg-dim: #8b949e; --fg-dimmer: #6e7681;
+    --accent: #58a6ff; --accent2: #7ee787; --warn: #f0883e; --danger: #f85149;
+    --border: #30363d; --code-bg: #0a0e14;
+    --sidebar-w: 250px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: 'Segoe UI', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    font-size: 15px; line-height: 1.7;
+  }
+  code, pre, .mono { font-family: 'Cascadia Code', 'D2Coding', Consolas, monospace; }
+
+  /* ── 레이아웃 ─────────────────────────────── */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: var(--sidebar-w); flex-shrink: 0;
+    background: var(--bg2); border-right: 1px solid var(--border);
+    position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 20px 0;
+  }
+  .content { flex: 1; max-width: 980px; padding: 36px 48px 120px; min-width: 0; }
+
+  /* ── 사이드바 ─────────────────────────────── */
+  .brand { padding: 0 20px 16px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+  .brand h1 { font-size: 17px; color: var(--accent); }
+  .brand p { font-size: 12px; color: var(--fg-dim); margin-top: 2px; }
+  .nav-group { padding: 10px 12px 2px; font-size: 11px; letter-spacing: .08em; color: var(--fg-dimmer); text-transform: uppercase; }
+  .nav-item {
+    display: block; padding: 8px 20px; color: var(--fg-dim); text-decoration: none;
+    font-size: 14px; border-left: 3px solid transparent; cursor: pointer;
+  }
+  .nav-item:hover { background: var(--bg3); color: var(--fg); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--bg3); font-weight: 600; }
+
+  /* ── 콘텐츠 공통 ──────────────────────────── */
+  .section { display: none; }
+  .section.active { display: block; animation: fadein .25s ease; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  h2 { font-size: 26px; margin-bottom: 6px; }
+  h2 .em { color: var(--accent); }
+  .lead { color: var(--fg-dim); margin-bottom: 28px; font-size: 15px; }
+  h3 { font-size: 19px; margin: 34px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); color: var(--accent2); }
+  h4 { font-size: 15.5px; margin: 22px 0 8px; color: var(--fg); }
+  p { margin: 8px 0; }
+  ul, ol { margin: 8px 0 8px 22px; }
+  li { margin: 4px 0; }
+  a { color: var(--accent); }
+  strong { color: #fff; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 13.5px; display: block; overflow-x: auto; }
+  th, td { border: 1px solid var(--border); padding: 7px 11px; text-align: left; vertical-align: top; }
+  th { background: var(--bg3); color: var(--fg); white-space: nowrap; }
+  td { color: var(--fg-dim); }
+  td code, li code, p code {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px;
+    padding: 1px 6px; font-size: 12.5px; color: #ffa657;
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto; margin: 10px 0 18px; font-size: 13px; line-height: 1.55;
+  }
+  pre .c  { color: var(--fg-dimmer); }   /* 주석 */
+  pre .k  { color: #ff7b72; }            /* 키워드 */
+  pre .s  { color: #a5d6ff; }            /* 문자열 */
+  pre .g  { color: var(--accent2); }     /* 강조 */
+
+  .callout {
+    border-left: 4px solid var(--accent); background: var(--bg2);
+    padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 14px 0; font-size: 14px;
+  }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout.danger { border-left-color: var(--danger); }
+  .callout b:first-child { display: inline-block; margin-bottom: 2px; }
+
+  .badge {
+    display: inline-block; font-size: 11px; padding: 1px 9px; border-radius: 20px;
+    border: 1px solid var(--border); color: var(--fg-dim); margin-left: 8px; vertical-align: 2px; white-space: nowrap;
+  }
+  .badge.blue { color: var(--accent); border-color: var(--accent); }
+  .badge.green { color: var(--accent2); border-color: var(--accent2); }
+  .badge.orange { color: var(--warn); border-color: var(--warn); }
+  .badge.red { color: var(--danger); border-color: var(--danger); }
+
+  /* ── 아코디언 (details) ────────────────────── */
+  details {
+    border: 1px solid var(--border); border-radius: 8px; margin: 10px 0;
+    background: var(--bg2); overflow: hidden;
+  }
+  details[open] { border-color: #3d444d; }
+  summary {
+    cursor: pointer; padding: 12px 16px; font-weight: 600; font-size: 14.5px;
+    list-style: none; display: flex; align-items: center; gap: 8px; user-select: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: '▸'; color: var(--accent); transition: transform .15s; }
+  details[open] summary::before { transform: rotate(90deg); }
+  summary:hover { background: var(--bg3); }
+  .d-body { padding: 4px 18px 16px; border-top: 1px solid var(--border); font-size: 14px; }
+  .d-body table { font-size: 13px; }
+
+  /* ── 다이어그램 박스 ───────────────────────── */
+  .diagram {
+    background: var(--code-bg); border: 1px dashed var(--border); border-radius: 8px;
+    padding: 16px 20px; margin: 14px 0 20px; overflow-x: auto;
+    font-family: Consolas, monospace; font-size: 13px; line-height: 1.6; color: var(--fg-dim); white-space: pre;
+  }
+  .diagram .hl { color: var(--accent2); font-weight: bold; }
+  .diagram .hl2 { color: var(--accent); }
+
+  /* ── 스킬 필터 ─────────────────────────────── */
+  .filter-box {
+    width: 100%; padding: 10px 14px; margin: 6px 0 16px;
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--fg); font-size: 14px; outline: none;
+  }
+  .filter-box:focus { border-color: var(--accent); }
+
+  /* ── statusline 미리보기 ───────────────────── */
+  .term {
+    background: #000; border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; margin: 12px 0 18px; font-family: Consolas, monospace; font-size: 13px;
+  }
+  .term .t-dim { color: #555; }
+  .term .t-line { color: #ccc; margin-top: 8px; }
+  .term .t-input { color: #7ee787; }
+  .term .t-status { color: #8b949e; border-top: 1px dashed #333; margin-top: 10px; padding-top: 8px; }
+
+  .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #000;
+    font-size: 12.5px; font-weight: 700; margin-right: 8px; flex-shrink: 0;
+  }
+  .toplink { font-size: 12px; color: var(--fg-dimmer); margin-top: 40px; display: inline-block; }
+
+  @media (max-width: 860px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; display: flex; flex-wrap: wrap; padding: 8px; }
+    .brand { width: 100%; border-bottom: none; padding-bottom: 6px; }
+    .nav-group { display: none; }
+    .nav-item { border-left: none; border-radius: 6px; padding: 6px 12px; }
+    .content { padding: 24px 18px 80px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ══════════ 사이드바 메뉴 ══════════ -->
+  <nav class="sidebar">
+    <div class="brand">
+      <h1>PAB SSOT 가이드</h1>
+      <p>AutoCycle v1.1 · SSOT 6th (v8.2)</p>
+    </div>
+    <div class="nav-group">시작</div>
+    <a class="nav-item active" data-target="overview">🏠 개요</a>
+    <a class="nav-item" data-target="install">🚀 설치 · 시작하기</a>
+    <a class="nav-item" data-target="projectmd">📐 PROJECT.md 설정</a>
+    <div class="nav-group">체계</div>
+    <a class="nav-item" data-target="ssot">📚 SSOT 문서 체계</a>
+    <a class="nav-item" data-target="skills">🧩 스킬 (18종)</a>
+    <a class="nav-item" data-target="hooks">🪝 훅 (9종)</a>
+    <a class="nav-item" data-target="scripts">📜 스크립트</a>
+    <a class="nav-item" data-target="records">🗂 기록·알림 위치</a>
+    <div class="nav-group">터미널</div>
+    <a class="nav-item" data-target="statusline">🖥️ 하단 인포창 세팅</a>
+    <a class="nav-item" data-target="faq">❓ FAQ · 트러블슈팅</a>
+  </nav>
+
+  <!-- ══════════ 콘텐츠 ══════════ -->
+  <main class="content">
+
+  <!-- ════════ 1. 개요 ════════ -->
+  <section class="section active" id="overview">
+    <h2>🏠 <span class="em">PAB SSOT</span> — 무엇인가</h2>
+    <p class="lead">Claude Code 기반 <strong>AutoCycle(자동 개발 사이클) + SSOT(단일 진실 공급원)</strong> 운영 체계의 포터블 번들. 어떤 프로젝트에든 이식하여 동일한 팀 운영·품질 게이트 체계를 적용할 수 있다.</p>
+
+    <h3>핵심 개념</h3>
+    <table>
+      <tr><th>개념</th><th>설명</th></tr>
+      <tr><td><strong>SSOT</strong></td><td>모든 운영 규칙(104개)·역할·워크플로우의 단일 정본. <code>docs/SSOT/</code>에 위치하며 Phase 실행 중에는 수정이 잠긴다(LOCK-1).</td></tr>
+      <tr><td><strong>AutoCycle</strong></td><td>개발 요청 → 조사 → 계획 → 구현 → 검증 → 테스트 → 보고까지 <strong>14~15단계 자동 handoff</strong>. 사용자 주도 시 Step 0(Pre-draft)이 추가된다.</td></tr>
+      <tr><td><strong>Team Lead</strong></td><td>메인 Claude 세션의 역할. 코드를 직접 수정하지 않고(HR-1) 팀원을 스폰·조율·판정한다.</td></tr>
+      <tr><td><strong>팀원</strong></td><td>planner · backend-dev · frontend-dev · verifier · tester · research 3역할. 역할별 SUB-SSOT만 로딩해 토큰 60% 절감.</td></tr>
+      <tr><td><strong>품질 게이트</strong></td><td>G0(조사) → G1(계획) → G2(코드리뷰) → G3(테스트) → G4(최종). 게이트 통과 없이는 다음 단계로 못 간다.</td></tr>
+      <tr><td><strong>PROJECT.md</strong></td><td>프로젝트별 설정(이름·언어·빌드·코드영역·오버라이드)의 <strong>단일 설정 문서</strong>. 훅과 팀원이 이 문서를 기준으로 동작.</td></tr>
+    </table>
+
+    <h3>전체 아키텍처</h3>
+    <div class="diagram">┌──────────────────────────── 대상 프로젝트 ────────────────────────────┐
+│                                                                       │
+│  <span class="hl">PROJECT.md</span> (단일 설정)          <span class="hl">docs/SSOT/</span> (프레임워크, 104규칙)      │
+│      │ frontmatter                    │ 0→1→2→3 로딩 (FRESH-1)        │
+│      ▼ 자동 동기화                     ▼                               │
+│  <span class="hl2">.claude/hooks/hooks.env</span> ───▶ 훅 9종 (HR-1/HR-5/LOCK-1 가드…)       │
+│                                                                       │
+│  <span class="hl2">.claude/skills/</span> 18종  ──── /plan /phase-init /gate-check …          │
+│  <span class="hl2">scripts/</span> ── log-prompt·sync-project-config·statusline·zombiecheck   │
+│                                                                       │
+│  Team Lead (메인 세션) ──스폰──▶ planner/dev/verifier/tester           │
+│       └── 상태머신 20개 + 게이트 G0~G4 로 Phase 진행                    │
+└───────────────────────────────────────────────────────────────────────┘</div>
+
+    <h3>15단계 AutoCycle 요약</h3>
+    <table>
+      <tr><th>단계</th><th>내용</th><th>담당</th></tr>
+      <tr><td>Step 0</td><td>Pre-draft — 프롬프트 품질 5항목 점검 (<code>/plan</code>, 사용자 주도 시만)</td><td>Team Lead</td></tr>
+      <tr><td>Step 1~2</td><td>현행 코드 조사 + 외부 벤치마킹</td><td>research-analyst · research-architect</td></tr>
+      <tr><td>Step 3</td><td>PLAN + KPI 수치화 + 관점 2분법</td><td>planner</td></tr>
+      <tr><td>Step 4~6</td><td>Spike 테스트 → DRIFT 체크(planner+verifier) → 사전반복 종결(ITER-PRE 3회 + G-Pre 수렴)</td><td>dev · planner · verifier / 판정: Team Lead</td></tr>
+      <tr><td>Step 7</td><td><strong>본 개발 사이클</strong> (TeamCreate → Phase 실행 → DONE)</td><td>전원</td></tr>
+      <tr><td>Step 8~9</td><td>달성 검증(KPI 대조) → 재계획(ITER-POST, 2회 한도)</td><td>Team Lead</td></tr>
+      <tr><td>Step 10~11</td><td>KPI-driven Test Plan → 테스트 수행</td><td>tester</td></tr>
+      <tr><td>Step 12~14</td><td>Tech Debt 기록 → Final Report 6섹션 → 다음 프롬프트 제안 3안</td><td>Team Lead + verifier</td></tr>
+    </table>
+    <div class="callout"><b>💡 토큰 상한</b><br>ITERATION-BUDGET: 사이클당 500K 토큰(기본). 초과 시 사용자 에스컬레이션.</div>
+    <p>단계별 실행 주체·템플릿·전이 조건의 <strong>정본은 SSOT <code>3-workflow.md §3.0</code></strong> — 본 표는 요약이다.</p>
+  </section>
+
+  <!-- ════════ 2. 설치 ════════ -->
+  <section class="section" id="install">
+    <h2>🚀 설치 · <span class="em">시작하기</span></h2>
+    <p class="lead">번들을 새 프로젝트에 이식하는 절차. <strong>사전 준비를 마친 뒤</strong> <code>install.sh</code> 한 번 + <code>PROJECT.md</code> 편집이면 끝난다.</p>
+
+    <h3>Step 0 — 사전 준비 (설치 전 수집 체크리스트)</h3>
+    <p><code>install.sh</code>를 실행하기 <strong>전에</strong> 아래 도구·값·정보를 먼저 갖춰 둔다. 그러면 설치 → 설정 → 확인이 중간에 끊기지 않고 한 번에 진행된다.</p>
+    <table>
+      <tr><th>구분</th><th>항목</th><th>준비 내용</th></tr>
+      <tr><td rowspan="3">필수 도구</td><td>Claude Code CLI</td><td>설치 완료 (<code>claude</code> 명령 동작)</td></tr>
+      <tr><td>bash</td><td>훅·스크립트 실행용 (Windows는 WSL/Git Bash)</td></tr>
+      <tr><td>Git</td><td>대상 프로젝트가 git 저장소면 브랜치·체크포인트 기능 활성</td></tr>
+      <tr><td rowspan="3">수집할 값 (선택)</td><td>Telegram 봇 토큰 + Chat ID</td><td>NOTIFY-1(구 HR-8) 알림용 — <code>@BotFather</code>에서 <code>/newbot</code>으로 토큰 발급, <code>getUpdates</code>로 Chat ID 확인. 개인별 발급 절차 상세: <a class="jump" data-target="records">🗂 기록·알림 위치 §①</a></td></tr>
+      <tr><td>Obsidian vault 경로</td><td><code>/wiki</code> 지식 저장용 — <code>WIKI_VAULT_ROOT</code> 환경변수로 개인 vault 지정 (백지 vault여도 규격은 자동 부트스트랩). 상세: <a class="jump" data-target="records">🗂 기록·알림 위치 §⑤</a></td></tr>
+      <tr><td>인포창 방식 결정</td><td>ccstatusline(방법 ① — Node.js 필요) 또는 번들 스크립트(방법 ②) 중 선택. 상세: <a class="jump" data-target="statusline">🖥️ 하단 인포창 세팅</a></td></tr>
+      <tr><td>정리해 둘 정보</td><td>프로젝트 개요</td><td>이름 · 성격(서비스/도구/라이브러리) · 플랫폼 · 개발 언어 · 빌드/테스트 명령 · 코드 영역 경로 — 2단계 <code>/project-config init</code>의 대화형 질문에 그대로 답하게 된다</td></tr>
+    </table>
+    <div class="callout"><b>💡 진행 순서</b><br>Step 0 사전 준비(도구·토큰·프로젝트 정보 수집) → ① <code>install.sh</code> → ② PROJECT.md → ③ 준비해 둔 Telegram 값 등록 → ④ 인포창 배선 → ⑤ 동작 확인.</div>
+
+    <h3>신규 설치 5단계</h3>
+    <p><span class="step-num">1</span><strong>설치 스크립트 실행</strong> — <code>bash <em>&lt;번들경로&gt;</em>/install.sh <em>&lt;대상경로&gt;</em></code> 형태다. 딱 두 가지만 지키면 된다: <strong>① 번들경로는 zip을 <u>실제로 푼</u> 위치</strong>, <strong>② 대상경로는 번들과 다른 폴더</strong>(대상 ≠ 번들). 번들을 어디에 두느냐에 따라 두 방식이 있다:</p>
+
+    <p><b>방식 A — 번들을 대상 <em>바깥</em> 고정 위치에 두기 (권장, 재사용·upgrade 용이)</b></p>
+    <pre>unzip pab-ssot-bundle-*.zip -d ~/        <span class="c"># → ~/pab-ssot-bundle/ 에 풀림</span>
+bash ~/pab-ssot-bundle/install.sh /path/to/your-project
+<span class="c"># 기존 파일과 충돌하면 *.pab-new 로 저장됨 (수동 병합)</span></pre>
+
+    <p><b>방식 B — 대상 폴더 <em>안</em>에 번들을 풀고 그 폴더에 설치</b> (예: <code>work/test/</code>에 풀고 <code>work/test/</code>에 설치)</p>
+    <pre>cd /mnt/c/Users/chroh/work/test          <span class="c"># 대상 폴더로 이동</span>
+<span class="c"># 여기에 번들이 ./pab-ssot-bundle/ 로 풀려 있음</span>
+bash pab-ssot-bundle/install.sh .        <span class="c"># 번들=./pab-ssot-bundle, 대상=.(=work/test) → 서로 달라 OK</span>
+<span class="c"># 설치 후 번들 하위폴더 정리: rm -rf pab-ssot-bundle  (upgrade 재사용하려면 남겨둬도 됨)</span></pre>
+
+    <div class="callout warn"><b>⚠ <code>~/pab-ssot-bundle/</code>는 <u>예시</u> — 실제 푼 위치로 바꿔라</b><br><code>~/</code>는 리눅스 홈(<code>/home/&lt;계정&gt;/</code>)이다. 번들을 홈에 풀지 않았는데 <code>~/pab-ssot-bundle/…</code>로 넘겨짚으면 <code>No such file or directory</code>가 난다. 방식 B처럼 번들이 현재 폴더 하위에 있으면 <strong>상대경로 <code>pab-ssot-bundle/install.sh</code></strong>로 부른다. 헷갈리면 번들 폴더에서 <code>pwd</code>로 절대경로를 확인해 그대로 쓴다.</div>
+    <div class="callout warn"><b>⚠ 유일한 실패 조건: 대상 = 번들</b><br><code>.</code> 사용 자체는 문제없다 — <strong>현재 폴더가 번들 폴더 <u>자신</u>일 때만</strong> 소스=대상으로 막힌다. 즉 <code>cd pab-ssot-bundle</code> 후 <code>install.sh .</code>은 에러. 방식 B처럼 번들의 <em>상위</em> 폴더에서 <code>install.sh .</code>은 정상(대상=상위 ≠ 번들).</div>
+    <div class="callout"><b>💡 방식 A를 권장하는 이유</b><br>번들을 대상 바깥에 두면 여러 프로젝트 설치·추후 <code>--upgrade</code> 재배포를 같은 명령으로 반복할 수 있다. 방식 B는 번들이 대상 안에 남아(설치 후 정리 대상) 매 upgrade마다 다시 풀어야 하므로 일회성 설치·테스트에 적합하다.</div>
+    <div class="callout"><b>🧹 설치 후 정리 — 무엇을 지우고 무엇을 남기나</b><br><code>install.sh</code>는 <strong>소스(번들)를 자동 삭제하지 않는다</strong> — 재사용을 전제로 한 설계다. 대상별로:
+      <ul>
+        <li><b>배포 zip</b>(<code>pab-ssot-bundle-*.zip</code>) — 압축 해제 후엔 <strong>삭제해도 됨</strong>(다시 받으면 됨). <code>rm pab-ssot-bundle-*.zip</code></li>
+        <li><b>해제된 번들 폴더</b>(<code>~/pab-ssot-bundle/</code>) — <strong>남겨 둔다</strong>. 추후 <code>--upgrade</code> 재배포·다른 프로젝트 설치의 소스로 계속 쓰인다. 지우면 업그레이드 때 다시 받아야 한다.</li>
+        <li><b>프로젝트 폴더 <em>안</em>에 잘못 푼 번들</b> — 설치가 끝났으면 그 하위 번들 폴더는 지운다(위 「번들 위치는 고정」 참고).</li>
+      </ul>
+    </div>
+    <p><span class="step-num">2</span><strong>PROJECT.md 설정</strong> — 대상 프로젝트에서 Claude 세션을 열고:</p>
+    <pre><span class="g">/project-config init</span>   <span class="c"># 프로젝트 스캔 + 대화형 질문으로 자동 생성</span>
+<span class="c"># 또는 PROJECT.md를 직접 편집한 뒤:</span>
+<span class="g">/project-config sync</span></pre>
+    <p><span class="step-num">3</span><strong>Telegram 알림</strong> (선택) — <strong>Step 0 사전 준비에서 발급해 둔</strong> 봇 토큰·Chat ID를 등록한다. 토큰은 환경변수 또는 .env로만 (문서 기입 금지). 아직 발급 전이면: <a class="jump" data-target="records">🗂 기록·알림 위치 §①</a></p>
+    <pre>export PAB_TELEGRAM_BOT_TOKEN=<span class="s">"봇토큰"</span>
+export PAB_TELEGRAM_CHAT_ID=<span class="s">"챗ID"</span></pre>
+    <p><span class="step-num">4</span><strong>인포창(Statusline) 세팅 (선택)</strong> — 번들 기본은 미배선. <code>scripts/statusline.sh</code> 배선(PAB 정보 표시) 또는 ccstatusline 중 선택. 상세: <a class="jump" data-target="statusline">🖥️ 하단 인포창 세팅</a></p>
+    <p><span class="step-num">5</span><strong>동작 확인</strong>:</p>
+    <pre><span class="g">/menu</span>                  <span class="c"># 스킬 18종 카탈로그</span>
+<span class="g">/project-config check</span>  <span class="c"># 설정 정합성 6항목 검사</span>
+<span class="g">/ssot-reload</span>           <span class="c"># SSOT 로딩 (FRESH-1)</span></pre>
+
+    <h3>설치되는 것</h3>
+    <table>
+      <tr><th>경로</th><th>내용</th><th>충돌 정책</th></tr>
+      <tr><td><code>PROJECT.md</code></td><td>단일 설정 문서</td><td><span class="badge green">보존</span> 기존 있으면 건드리지 않음</td></tr>
+      <tr><td><code>.claude/</code></td><td>CLAUDE.md · settings.json · 훅 9종 · 스킬 18종</td><td>settings.json/CLAUDE.md 상이하면 <code>.pab-new</code></td></tr>
+      <tr><td><code>docs/SSOT/</code></td><td>SSOT 본체 (규칙·역할·템플릿)</td><td>기존 있으면 건너뜀 (<code>--upgrade</code>로 갱신)</td></tr>
+      <tr><td><code>scripts/</code></td><td>log-prompt · sync-project-config · statusline · pmAuto · <strong>zombiecheck</strong>(LIFECYCLE-5·6 — zombie_check.sh + zombie_watch.sh)</td><td>덮어씀 (프레임워크)</td></tr>
+      <tr><td><code>docs/phases·history·handoff·reports</code></td><td>산출물 디렉토리 (빈 폴더)</td><td>생성만</td></tr>
+      <tr><td><code>docs/guide/index.html</code></td><td>본 HTML 가이드</td><td>덮어씀 (항상 최신)</td></tr>
+    </table>
+
+    <h3>SSOT 업그레이드 (기존 이식 프로젝트)</h3>
+    <p>번들의 SSOT가 개정되면 <strong>프로젝트 설정을 보존하면서</strong> 프레임워크만 갱신한다:</p>
+    <pre>bash ~/pab-ssot-bundle/install.sh /path/to/your-project <span class="g">--upgrade</span></pre>
+    <ul>
+      <li><strong>덮어씀(프레임워크)</strong>: 0-entrypoint · 3-workflow · core/ · SUB-SSOT/ · ROLES/ · 훅 · 스킬 · 공용 스크립트</li>
+      <li><strong>보존(프로젝트)</strong>: PROJECT.md · hooks.env · 커스터마이징한 1-project.md/2-architecture.md/PERSONA/ · phases/ 산출물</li>
+      <li>커스터마이징 파일의 새 버전은 <code>*.pab-new</code>로 옆에 저장 → diff 후 수동 병합</li>
+    </ul>
+    <div class="callout warn"><b>⚠ 업그레이드 후 필수</b><br>① PROJECT.md의 <code>ssot_version</code> 갱신 → <code>/project-config sync</code> ② <code>docs/SSOT/VERSION.md</code> 이력 검토 ③ <code>/ssot-reload</code>. 전체 절차: <code>docs/SSOT/UPGRADE.md</code></div>
+  </section>
+
+  <!-- ════════ 3. PROJECT.md ════════ -->
+  <section class="section" id="projectmd">
+    <h2>📐 <span class="em">PROJECT.md</span> — 단일 설정 문서</h2>
+    <p class="lead">프로젝트명·성격·플랫폼·개발언어·빌드 명령·코드 영역·규칙/페르소나 오버라이드를 <strong>문서 하나</strong>에서 전부 설정한다.</p>
+
+    <h3>설정 전파 구조</h3>
+    <div class="diagram"><span class="hl">PROJECT.md</span> (단일 소스)
+  ├─ frontmatter ──/project-config sync──▶ <span class="hl2">.claude/hooks/hooks.env</span> ──▶ 훅 9종
+  │                 (세션 시작 시 변경 감지 → 자동 동기화)
+  └─ 프로즈 §1~§9 ─────────────────────────▶ Team Lead·팀원 스폰 시 로드
+                                             (§4 규칙 오버라이드 → verifier/dev)
+                                             (§6 페르소나 오버라이드 → 스폰 주입)</div>
+    <div class="callout danger"><b>🚫 hooks.env 직접 수정 금지</b><br><code>.claude/hooks/hooks.env</code>는 자동 생성 파생물이다. 항상 PROJECT.md frontmatter를 수정하고 sync한다.</div>
+
+    <h3>frontmatter 키 전체</h3>
+    <table>
+      <tr><th>키</th><th>의미</th><th>소비자</th></tr>
+      <tr><td><code>project_name</code></td><td>프로젝트 이름</td><td>인포창, SessionStart 요약</td></tr>
+      <tr><td><code>project_type</code></td><td>성격: web-app / api-server / fullstack / cli / library / mobile / data / ssot-bundle</td><td>Team Lead 판단 참고</td></tr>
+      <tr><td><code>platform</code></td><td>web / cross / windows / linux / docker …</td><td>—</td></tr>
+      <tr><td><code>primary_language</code></td><td>주 개발 언어 (py, ts, js …)</td><td>—</td></tr>
+      <tr><td><code>backend_stack</code> / <code>frontend_stack</code></td><td>기술 스택 요약</td><td>팀원 스폰 컨텍스트</td></tr>
+      <tr><td><code>build_cmd</code> <code>run_cmd</code> <code>test_cmd</code> <code>lint_cmd</code></td><td>표준 명령 (없으면 "none")</td><td>tester(G3), dev 팀원</td></tr>
+      <tr><td><code>code_dirs</code></td><td><strong>HR-1 가드 대상 코드 폴더</strong> (공백 구분)</td><td>hr1-guard 훅</td></tr>
+      <tr><td><code>code_exts</code></td><td>코드로 간주할 확장자</td><td>hr1-guard · line-count-monitor</td></tr>
+      <tr><td><code>line_warn</code> / <code>line_crit</code></td><td>HR-5 줄수 임계 (기본 500/700)</td><td>line-count-monitor · on-task-completed</td></tr>
+      <tr><td><code>coverage_target</code></td><td>G3 커버리지 목표 % (기본 80)</td><td>tester</td></tr>
+      <tr><td><code>notify_channel</code> / <code>notify_project_label</code></td><td>telegram|none / 알림 [라벨]</td><td>/notify-telegram</td></tr>
+      <tr><td><code>ssot_version</code> / <code>ssot_path</code></td><td>적용 SSOT 버전·경로</td><td>FRESH-2 검사, 인포창</td></tr>
+    </table>
+
+    <h3>프로즈 섹션 §1~§9</h3>
+    <table>
+      <tr><th>섹션</th><th>내용</th><th>누가 읽나</th></tr>
+      <tr><td>§1 개요</td><td>프로젝트 소개·목적</td><td>모든 역할</td></tr>
+      <tr><td>§2 스택</td><td>플랫폼·BE/FE·인프라·DB 표</td><td>dev, research-architect</td></tr>
+      <tr><td>§3 작업 폴더</td><td>폴더별 용도·편집 담당 역할</td><td>Team Lead (Task 배정)</td></tr>
+      <tr><td><strong>§4 규칙 오버라이드</strong></td><td>SSOT 기본 규칙 대비 <strong>추가(§4.1)·완화(§4.2)</strong>. 충돌 시 PROJECT.md 우선</td><td><strong>verifier · dev</strong> (스폰 시 필수 로드)</td></tr>
+      <tr><td>§5 게이트 튜닝</td><td>G2/G3 기준·HR-5 조정 내역</td><td>verifier, tester</td></tr>
+      <tr><td><strong>§6 페르소나 오버라이드</strong></td><td>역할별 프로젝트 추가 지시. SSOT PERSONA 원본은 불변 — 스폰 시 <strong>덧붙여</strong> 주입</td><td><strong>Team Lead</strong> (스폰 시)</td></tr>
+      <tr><td>§7 서버·포트</td><td>로컬 서버 표 + "실행 전 포트 확인" 규칙</td><td>dev, tester</td></tr>
+      <tr><td>§8 알림</td><td>채널·라벨. 토큰은 환경변수로만</td><td>/notify-telegram</td></tr>
+      <tr><td>§9 SSOT 연동</td><td>버전·업그레이드 시 보존 대상</td><td>관리자</td></tr>
+    </table>
+
+    <h3>/project-config 스킬</h3>
+    <pre><span class="g">/project-config</span>          <span class="c"># show — 현재 설정 요약</span>
+<span class="g">/project-config init</span>     <span class="c"># 프로젝트 스캔 + 대화형 생성 (package.json 등 자동 추론)</span>
+<span class="g">/project-config sync</span>     <span class="c"># frontmatter → hooks.env 재생성</span>
+<span class="g">/project-config check</span>    <span class="c"># 정합성 6항목 검사 (동기화·폴더 실존·명령·버전·페르소나·토큰)</span></pre>
+    <div class="callout"><b>💡 예시: 코드 영역 변경</b><br>PROJECT.md에서 <code>code_dirs: "src lib"</code>로 바꾸고 sync하면, 팀 운영 중 Team Lead가 <code>src/</code>·<code>lib/</code>의 코드 파일을 직접 수정하려 할 때 hr1-guard 훅이 차단한다.</div>
+  </section>
+
+  <!-- ════════ 4. SSOT ════════ -->
+  <section class="section" id="ssot">
+    <h2>📚 <span class="em">SSOT</span> 문서 체계</h2>
+    <p class="lead"><code>docs/SSOT/</code> — 104개 규칙·11역할·20상태·5게이트의 정본. 세션이 바뀌어도 이 문서들이 동일한 운영을 보장한다.</p>
+
+    <h3>폴더 구조</h3>
+    <div class="diagram">docs/SSOT/
+├── <span class="hl">0-entrypoint.md</span>      ★ 모든 세션의 진입점 (역할별 체크리스트·스폰 컨텍스트)
+├── 1-project.md          프로젝트 정의·팀 구성  <span class="hl2">(프로젝트별 — 업그레이드 시 보존)</span>
+├── 2-architecture.md     인프라·BE/FE 구조     <span class="hl2">(프로젝트별 — 업그레이드 시 보존)</span>
+├── 3-workflow.md         상태머신 20개 · G0~G4 게이트 · Phase Chain
+├── 4-event-protocol.md   JSONL 이벤트 · Heartbeat
+├── 5-automation.md       Artifact Persister · AutoReporter · DecisionEngine
+├── core/                 <span class="hl">6-rules-index.md(규칙 104개)</span> · 7-shared-definitions.md
+├── SUB-SSOT/             역할별 모듈형 로딩 (DEV·PLANNER·VERIFIER·TESTER·TEAM-LEAD·RESEARCH)
+├── ROLES/                역할 정의 정본 11종 (불변)
+├── PERSONA/              마인드셋 10종 <span class="hl2">(교체 가능 — 업그레이드 시 보존)</span>
+├── QUALITY/              11명 Verification Council
+├── TEMPLATES/            보고서·로그 양식 14종 (master-plan·phase-chain 포함)
+├── refactoring/ tests/ infra/ mcp-design/
+├── GUIDE.md · STRUCTURE.md · VERSION.md · <span class="hl">UPGRADE.md</span></div>
+
+    <h3>로딩 규칙 (언제 무엇을 읽나)</h3>
+    <table>
+      <tr><th>상황</th><th>규칙</th><th>행동</th></tr>
+      <tr><td>세션 시작</td><td>FRESH-1</td><td>단순 대화면 로드 불필요(Lazy). <strong>작업 지시 시</strong> <code>/ssot-reload</code> → 0→1→2→3 순서 로딩</td></tr>
+      <tr><td>팀원 스폰</td><td>FRESH-6/10/11</td><td>역할별 SUB-SSOT + <code>core/7-shared</code>만 로딩 (토큰 60% 절감)</td></tr>
+      <tr><td>컨텍스트 압축·복구</td><td>FRESH-7</td><td>SSOT 리로드 + status.md 확인 + 팀 재구성. <strong>팀 없이 코드 수정 금지</strong></td></tr>
+      <tr><td>Phase 진입</td><td>ENTRY-1~5</td><td>반드시 <code>phase-X-Y-status.md</code>부터 읽고 <code>current_state</code>로 분기</td></tr>
+    </table>
+
+    <h3>규칙 심각도(Severity) 등급</h3>
+    <p>규칙 인덱스(<code>core/6-rules-index.md</code>)는 전체 104개 규칙을 4단계 심각도로 분류한다 — <strong>CRITICAL 44 / HIGH 41 / MEDIUM 18 / LOW 1</strong>. 아래 아코디언 제목의 배지는 이 등급을 뜻한다:</p>
+    <table>
+      <tr><th>등급</th><th>의미</th><th>위반 시</th></tr>
+      <tr><td><span class="badge red">CRITICAL</span></td><td><strong>절대 위반 금지 — 모든 상황에 예외 없이 적용</strong></td><td>즉시 차단/중단. 일부는 훅이 물리적으로 차단 (HR-1→hr1-guard, LOCK-1→lock1-guard)</td></tr>
+      <tr><td><span class="badge orange">HIGH</span></td><td>강한 권고 — 위반 시 품질 리스크</td><td>경고 + 시정 요구 (예: LOCK-5 이력 기록)</td></tr>
+      <tr><td><span class="badge">MEDIUM</span></td><td>권장 사항</td><td>참고 수준 (예: FRESH-4 리로드 시각 기록)</td></tr>
+      <tr><td><span class="badge">LOW</span></td><td>선택적</td><td>—</td></tr>
+    </table>
+
+    <h3>규칙 카테고리 한눈에</h3>
+    <details>
+      <summary>HR-1 ~ HR-5 — Hard Rules (절대 위반 금지) <span class="badge red">전원 CRITICAL</span></summary>
+      <div class="d-body"><table>
+        <tr><th>ID</th><th>규칙</th><th>자동화</th></tr>
+        <tr><td>HR-1</td><td>Team Lead 코드 직접 수정 금지 (팀원 위임 전용)</td><td>hr1-guard 훅이 차단</td></tr>
+        <tr><td>HR-2</td><td>Phase 산출물 4종 생략 금지 (CHAIN-6)</td><td>/phase-init 이 생성</td></tr>
+        <tr><td>HR-3</td><td>컨텍스트 복구 시 SSOT 리로드 (=FRESH-7)</td><td>post-compact 훅이 안내</td></tr>
+        <tr><td>HR-4</td><td>Phase 문서 경로 규칙 (CHAIN-10)</td><td>/phase-init 검증</td></tr>
+        <tr><td>HR-5</td><td>리팩토링 규정 — 500줄 등록 / 700줄 Level 분류 / 1000줄 즉시 편성 (REFACTOR-1~3)</td><td>line-count-monitor 훅</td></tr>
+      </table>
+      <p><strong>구 HR-6~8은 정본 인덱스에서 독립 카테고리로 분리되었다</strong> (내용 동일, 구 표기가 일부 문서에 남아 있을 수 있음):</p>
+      <table>
+        <tr><th>구 표기</th><th>현행 카테고리</th><th>내용</th><th>심각도</th></tr>
+        <tr><td>HR-6</td><td><strong>ASSIGN-1~5</strong></td><td>Task 도메인-역할 매핑 ([BE]→backend-dev, [TEST]는 tester 전용, 할당 시 검증, TL 3단계 능동 감시)</td><td>전원 CRITICAL</td></tr>
+        <tr><td>HR-7</td><td><strong>LIFECYCLE-1~6</strong></td><td>에이전트 라이프사이클 (5분 무보고 점검 · 미사용 즉시 종료 · 종료 전 Task 확인 · 해산 시 전원 종료 · <strong>좀비 감지 + Respawn</strong> · <strong>체크 스케줄러</strong>)</td><td>CRITICAL 4 / HIGH 2</td></tr>
+        <tr><td>HR-8</td><td><strong>NOTIFY-1~3</strong></td><td>Phase DONE 시 Telegram 알림 필수(<strong>생략 시 DONE 전이 무효</strong>) · 메시지 형식 · Master 종합 알림</td><td>CRITICAL 1 / HIGH 2</td></tr>
+      </table></div>
+    </details>
+    <details>
+      <summary>LOCK-1 ~ LOCK-5 — SSOT 잠금 규칙</summary>
+      <div class="d-body"><ul>
+        <li><strong>LOCK-1</strong>: Phase 실행 중(IDLE/DONE 아님) SSOT 수정 금지 — <code>lock1-guard</code> 훅이 차단</li>
+        <li><strong>LOCK-2</strong>: 변경 불가피 시 BLOCKED 전이 후 수정</li>
+        <li><strong>LOCK-3</strong>: 변경 후 전 팀원에게 리로드 지시</li>
+        <li><strong>LOCK-4</strong>: 팀원은 SSOT 읽기 전용</li>
+        <li><strong>LOCK-5</strong>: 변경 시 VERSION.md 이력 필수 기록</li>
+      </ul></div>
+    </details>
+    <details>
+      <summary>FRESH-1 ~ FRESH-12 — 신선도 규칙</summary>
+      <div class="d-body"><p>세션·Phase·복구 시점의 SSOT 로딩 의무를 정의. 핵심: <strong>FRESH-1</strong>(세션 시작 0→1→2→3), <strong>FRESH-7</strong>(복구 시 리로드+팀 재구성), <strong>FRESH-10~12</strong>(SUB-SSOT 모듈 로딩 + 공통 레이어 필수). 전체는 <code>docs/SSOT/core/6-rules-index.md</code> — <code>/rules-lookup FRESH-7</code>로 조회.</p></div>
+    </details>
+    <details>
+      <summary>CHAIN · ENTRY · ITER · ASSIGN · LIFECYCLE · NOTIFY — 기타 카테고리</summary>
+      <div class="d-body"><ul>
+        <li><strong>CHAIN-1~13</strong>: Phase Chain 자동 순차 실행 (산출물 4종, /clear 토큰 초기화, Tech Debt 자동 로딩(12), 직전 3 Phase 기억(13))</li>
+        <li><strong>ENTRY-1~5</strong>: status.md 단일 진입점 · 상태 기반 분기 · Blocker 우선</li>
+        <li><strong>ITER-PRE/POST · ITERATION-BUDGET</strong>: 사전 3회 반복·재계획 2회 한도·토큰 상한 500K</li>
+        <li><strong>ASSIGN-1~5</strong> (구 HR-6): 도메인 태그([BE]/[FE]/[FS]/[DB]/[TEST]/[INFRA]) → 담당 역할 매핑</li>
+        <li><strong>LIFECYCLE-1~6</strong> (구 HR-7): 에이전트 스폰→작업→종료 관리 — team-sentinel 훅이 활성 상태 추적. <strong>LIFECYCLE-5</strong>(ver6-1 PoC): 좀비 감지(spawn 30초 1차 · 3분 정기) → suffix <code>_r1</code>~<code>_r5</code> respawn(상한 5회) → 초과 시 BLOCKED — <code>scripts/zombiecheck/zombie_check.sh</code>. <strong>LIFECYCLE-6</strong>(ver6-2 PoC, Phase 8-3): 체크 스케줄러 — TEAM_SETUP 완료 직후 워처 arm(BUILDING 진입 시 미arm이면 차단 — 2차 방어선), 3분 폴링으로 위 두 체크를 실제 실행 — <code>scripts/zombiecheck/zombie_watch.sh</code></li>
+        <li><strong>NOTIFY-1~3</strong> (구 HR-8): Phase DONE 시 알림 의무 — /notify-telegram이 수행</li>
+      </ul></div>
+    </details>
+
+    <h3>품질 게이트 G0~G4</h3>
+    <table>
+      <tr><th>게이트</th><th>시점</th><th>판정자</th><th>PASS 기준</th></tr>
+      <tr><td><strong>G0</strong> Research Review</td><td>조사 완료 후</td><td>Team Lead</td><td>아키텍처 대안 2개+ · 리스크 분석 포함</td></tr>
+      <tr><td><strong>G1</strong> Plan Review</td><td>계획 수립 후</td><td>Team Lead</td><td>완료 기준 명확 · Task 3~7개 · 도메인 분류</td></tr>
+      <tr><td><strong>G2</strong> Code Review</td><td>구현 후</td><td>verifier</td><td>Critical 0건 (PARTIAL이면 AUTO_FIX 최대 3회)</td></tr>
+      <tr><td><strong>G3</strong> Test Gate</td><td>테스트 후</td><td>tester</td><td>pytest PASS · 커버리지 ≥ 목표(PROJECT.md) · E2E PASS</td></tr>
+      <tr><td><strong>G4</strong> Final Gate</td><td>Phase 종료</td><td>Team Lead</td><td>G2+G3 PASS + Blocker 0건 → DONE + 알림</td></tr>
+    </table>
+
+    <h3>상태 머신 (20개 상태)</h3>
+    <div class="diagram">IDLE → TEAM_SETUP → RESEARCH → RESEARCH_REVIEW<span class="hl2">(G0)</span>
+  → PLANNING → PLAN_REVIEW<span class="hl2">(G1)</span> → DESIGN_REVIEW → TASK_SPEC
+  → BRANCH_CREATION → <span class="hl">BUILDING</span> → AUTO_FIX → VERIFYING<span class="hl2">(G2)</span>
+  → TESTING<span class="hl2">(G3)</span> → AB_COMPARISON → INTEGRATION → E2E → E2E_REPORT
+  → TEAM_SHUTDOWN → <span class="hl">DONE</span>          (실패: REWINDING / 차단: BLOCKED)</div>
+    <p><code>state-transition-guard</code> 훅이 status.md의 비정상 전이를 감시한다.</p>
+
+    <h3>역할 · 페르소나</h3>
+    <table>
+      <tr><th>역할</th><th>모델 권장</th><th>코드 편집</th><th>PERSONA</th></tr>
+      <tr><td>Team Lead (메인 세션)</td><td>—</td><td>❌ (HR-1)</td><td>LEADER.md</td></tr>
+      <tr><td>planner</td><td>Plan/opus 계열</td><td>❌</td><td>PLANNER.md</td></tr>
+      <tr><td>backend-dev / frontend-dev</td><td>general-purpose/sonnet 계열</td><td>✅ (code_dirs)</td><td>BACKEND.md / FRONTEND.md</td></tr>
+      <tr><td>verifier</td><td>Explore/opus 계열</td><td>❌ 읽기전용</td><td>QA.md</td></tr>
+      <tr><td>tester</td><td>Bash/sonnet 계열</td><td>❌</td><td>QA.md</td></tr>
+      <tr><td>research-lead/architect/analyst</td><td>Explore 계열</td><td>❌</td><td>RESEARCH_*.md</td></tr>
+    </table>
+    <div class="callout"><b>💡 페르소나 커스터마이징</b><br><code>ROLES/*.md</code>=불변 실행 가이드, <code>PERSONA/*.md</code>=교체 가능 마인드셋. 프로젝트별 추가 지시는 SSOT를 건드리지 말고 <strong>PROJECT.md §6</strong>에 기입 — Team Lead가 스폰 시 덧붙여 주입한다.</div>
+  </section>
+
+  <!-- ════════ 5. 스킬 ════════ -->
+  <section class="section" id="skills">
+    <h2>🧩 스킬 <span class="em">18종</span></h2>
+    <p class="lead"><code>.claude/skills/</code> 단일 소스. 세션에서 <code>/스킬명</code>으로 호출하며 <code>/menu</code>가 라이브 카탈로그다. 모든 스킬은 <code>--help</code>를 지원한다.</p>
+    <input class="filter-box" id="skillFilter" type="text" placeholder="🔍 스킬 검색 (이름·설명으로 필터)…">
+
+    <h3>⓪ 프로젝트 설정</h3>
+    <details class="skill-item" data-key="project-config 설정 단일 init sync show check hooks.env">
+      <summary>/project-config <span class="badge blue">설정</span></summary>
+      <div class="d-body">
+        <p>PROJECT.md 단일 설정 문서 관리. frontmatter → hooks.env 동기화의 진입점.</p>
+        <table><tr><th>모드</th><th>동작</th></tr>
+          <tr><td><code>init</code></td><td>프로젝트 스캔(package.json·pyproject 등) + 대화형 질문 → PROJECT.md 생성 → sync</td></tr>
+          <tr><td><code>sync</code></td><td>frontmatter → <code>.claude/hooks/hooks.env</code> 재생성</td></tr>
+          <tr><td><code>show</code></td><td>현재 설정 요약 + 신선도 + 오버라이드 항목</td></tr>
+          <tr><td><code>check</code></td><td>정합성 6항목 (동기화·code_dirs 실존·명령 실행 가능·SSOT 버전 일치·페르소나 파일·알림 토큰)</td></tr></table>
+        <pre>/project-config init
+/project-config check</pre>
+      </div>
+    </details>
+
+    <h3>Ⓐ SSOT 워크플로우 (10종)</h3>
+    <details class="skill-item" data-key="ssot-reload FRESH-1 로딩 리로드 버전">
+      <summary>/ssot-reload <span class="badge green">필수</span></summary>
+      <div class="d-body">
+        <p>FRESH-1 절차 자동 실행 — SSOT 0→1→2→3 순서 읽기 + VERSION 확인 + 현재 상태 요약. <strong>작업 착수 전·컨텍스트 복구 후 필수.</strong></p>
+        <pre>/ssot-reload</pre>
+        <p>연계: <code>/context-handoff resume</code>이 내부적으로 이 스킬을 호출한다.</p>
+      </div>
+    </details>
+    <details class="skill-item" data-key="plan pre-draft step0 마스터플랜 프롬프트 품질">
+      <summary>/plan <span class="badge green">사이클 진입</span></summary>
+      <div class="d-body">
+        <p>사용자 주도 개발 요청의 <strong>Step 0 Pre-draft</strong> 진입. 토픽 레벨 논의로 프롬프트 품질 5항목(PROMPT-QUALITY)을 점검하고, PASS 시 마스터 플랜 작성으로 넘어간다. AI handoff 사이클에서는 자동 생략.</p>
+        <pre>/plan   <span class="c"># → 토픽 논의 → pre-draft-topics.md §5 판정 → PASS 시 착수</span></pre>
+        <p>산출물: <code>docs/phases/pre/phase-{N}-pre-draft.md</code></p>
+      </div>
+    </details>
+    <details class="skill-item" data-key="phase-init 산출물 생성 CHAIN-6 CHAIN-10 status plan todo tasks">
+      <summary>/phase-init <span class="badge">산출물</span></summary>
+      <div class="d-body">
+        <p>Phase 디렉토리 + 필수 산출물 4종(status/plan/todo-list/tasks) 자동 생성. CHAIN-6(생략 금지)·CHAIN-10(경로 규칙) 검증 포함.</p>
+        <table><tr><th>옵션</th><th>설명</th></tr>
+          <tr><td><code>--dry</code></td><td>생성 없이 미리보기</td></tr>
+          <tr><td><code>--force</code></td><td>기존 파일 있어도 재생성</td></tr>
+          <tr><td><code>--no-tasks</code></td><td>tasks/ 생략</td></tr></table>
+        <pre>/phase-init 4-6
+/phase-init 4-6 --dry</pre>
+      </div>
+    </details>
+    <details class="skill-item" data-key="gate-check 게이트 G0 G1 G2 G3 G4 판정">
+      <summary>/gate-check <span class="badge">게이트</span></summary>
+      <div class="d-body">
+        <p>G0~G4 게이트 기준을 표시하고 <strong>현재 Phase 상태 대비 판정</strong>. 다음 상태로 넘어가도 되는지 즉시 확인할 때 사용.</p>
+        <pre>/gate-check</pre>
+      </div>
+    </details>
+    <details class="skill-item" data-key="rules-lookup 규칙 조회 HR LOCK FRESH CHAIN">
+      <summary>/rules-lookup <span class="badge">조회</span></summary>
+      <div class="d-body">
+        <p><code>docs/SSOT/core/6-rules-index.md</code>(104개 규칙)에서 규칙 ID를 빠르게 조회.</p>
+        <pre>/rules-lookup HR-1
+/rules-lookup FRESH-7</pre>
+      </div>
+    </details>
+    <details class="skill-item" data-key="verify-implementation 검증 오케스트레이터 G2 도메인">
+      <summary>/verify-implementation <span class="badge orange">G2</span></summary>
+      <div class="d-body">
+        <p>Task 구현 검증 <strong>오케스트레이터</strong>. 변경 파일의 도메인([BE]/[FE]/[FS])을 판별해 verify-backend / verify-frontend를 호출하고 G2 통합 리포트를 생성.</p>
+        <pre>/verify-implementation</pre>
+      </div>
+    </details>
+    <details class="skill-item" data-key="verify-backend verify-frontend 백엔드 프론트 리뷰 ORM Pydantic CDN XSS">
+      <summary>/verify-backend · /verify-frontend <span class="badge orange">G2</span></summary>
+      <div class="d-body">
+        <p>도메인별 심층 코드 리뷰 (SSOT ROLES/verifier.md §2.1·§2.2 기준). <strong>검증 전 PROJECT.md §4 오버라이드를 먼저 적용</strong>한다.</p>
+        <table><tr><th>도메인</th><th>Critical 검사(1건이라도 있으면 FAIL)</th></tr>
+          <tr><td>BE</td><td>구문 오류 · raw SQL(ORM 위반) · Pydantic 검증 부재 · FK 정합성 · 기존 테스트 깨짐</td></tr>
+          <tr><td>FE</td><td>외부 CDN 참조 · innerHTML without esc() · ESM 패턴 위반 · 콘솔 에러 · 기존 동작 깨짐</td></tr></table>
+        <pre>/verify-backend backend/api/routes.py
+/verify-frontend            <span class="c"># 인수 없으면 git diff에서 자동 수집</span></pre>
+      </div>
+    </details>
+    <details class="skill-item" data-key="refactor-scan 리팩토링 500 700 줄수 HR-5">
+      <summary>/refactor-scan <span class="badge">HR-5</span></summary>
+      <div class="d-body">
+        <p>500/700줄 초과 파일 탐지 + Level 분류(WATCH/WARN/DANGER). 결과는 <code>docs/SSOT/refactoring/</code> 레지스트리와 연동.</p>
+        <pre>/refactor-scan
+/refactor-scan backend/ --threshold=300
+/refactor-scan --json</pre>
+      </div>
+    </details>
+    <details class="skill-item" data-key="notify-telegram 알림 텔레그램 HR-8 NOTIFY">
+      <summary>/notify-telegram <span class="badge orange">NOTIFY-1</span></summary>
+      <div class="d-body">
+        <p>Phase 완료/이슈 알림을 Telegram으로 전송 (NOTIFY-1, 구 HR-8 — 생략 시 DONE 전이 무효). 프로젝트 라벨은 PROJECT.md <code>notify_project_label</code>, <code>notify_channel: none</code>이면 발송 생략.</p>
+        <pre>/notify-telegram --phase=4-5 --status=done --summary="구현 완료"
+/notify-telegram --phase=4 --status=master-done --type=master-summary
+/notify-telegram --phase=3-1 --status=blocked --type=alert --summary="토큰 대기"</pre>
+        <p>선행 조건: <code>PAB_TELEGRAM_BOT_TOKEN</code>·<code>PAB_TELEGRAM_CHAT_ID</code> 환경변수.</p>
+      </div>
+    </details>
+    <details class="skill-item" data-key="abort 중단 stop 정지 사이클 chain aborted 재개">
+      <summary>/abort <span class="badge orange">중단</span></summary>
+      <div class="d-body">
+        <p>진행 중인 AutoCycle/Phase/Chain을 <strong>안전하게 중단</strong> (3-workflow.md §8.5 사용자 중단 요청의 표준 진입점). 팀원 shutdown → status.md <code>BLOCKED</code> + <code>USER_ABORT</code> 기록 → Chain <code>aborted</code>(범위 선택) → 재개 방법 안내까지 일괄 수행. 산출물·브랜치는 삭제하지 않으며, 반복·재시도 카운터도 리셋하지 않는다.</p>
+        <pre>/abort
+/abort 요구사항 변경으로 재계획 필요</pre>
+      </div>
+    </details>
+
+    <h3>Ⓑ 세션·기록 유틸리티 (7종)</h3>
+    <details class="skill-item" data-key="context-handoff 인계 세션 컨텍스트 prepare resume">
+      <summary>/context-handoff <span class="badge blue">세션</span></summary>
+      <div class="d-body">
+        <p>컨텍스트 한계 도달 시 현재 세션을 새 세션으로 <strong>무손실 인계</strong>.</p>
+        <table><tr><th>모드</th><th>동작</th></tr>
+          <tr><td><code>prepare</code></td><td>진행 상태·미완료 Task·결정 사항을 <code>docs/handoff/{시각}-handoff.md</code>로 저장</td></tr>
+          <tr><td><code>resume</code></td><td>새 세션에서 최근 handoff 문서 로드 + <code>/ssot-reload</code> 자동 실행</td></tr></table>
+        <pre>/context-handoff prepare --phase=4-5 --summary="menu 스킬 신설 완료"
+/context-handoff resume</pre>
+      </div>
+    </details>
+    <details class="skill-item" data-key="worklog 작업 기록 로그 history log-prompt">
+      <summary>/worklog <span class="badge blue">기록</span></summary>
+      <div class="d-body">
+        <p>work-log에 작업 기록 추가. 실제 파일 조작은 <code>scripts/log-prompt.sh</code>에 위임 — SessionStart 훅의 자동 init과 같은 파일(<code>docs/history/{YYMMDD}-work-log.md</code>)을 공유.</p>
+        <pre>/worklog log --prompt="Task 4-5-2 구현" --result="menu 스킬 신설 완료"
+/worklog check
+/worklog init</pre>
+      </div>
+    </details>
+    <details class="skill-item" data-key="report 보고서 저장 md 파일">
+      <summary>/report <span class="badge blue">저장</span></summary>
+      <div class="d-body">
+        <p>직전 대화에서 생성된 분석/보고서 출력을 .md 파일로 저장.</p>
+        <pre>/report --path=docs/phases/phase-4-5/reports/my-report.md
+/report --append --section="비교 분석"</pre>
+      </div>
+    </details>
+    <details class="skill-item" data-key="wiki 옵시디언 노트 지식 SOURCE">
+      <summary>/wiki <span class="badge blue">지식</span></summary>
+      <div class="d-body">
+        <p>자연어/URL 입력으로 옵시디언 규격 wiki 노트 자동 생성 — 원본 immutable 보존(SOURCE) + LLM 요약본 두 파일 동시 생성. 개인별 vault 연결(<code>WIKI_VAULT_ROOT</code>)·초기 자동 부트스트랩: <a class="jump" data-target="records">🗂 기록·알림 위치 §⑤</a></p>
+        <pre>/wiki https://example.com/article 내용 정리해줘
+/wiki 위에서 논의한 RAG 패턴 정리 --type=CONCEPT</pre>
+      </div>
+    </details>
+    <details class="skill-item" data-key="worktree git 워크트리 병렬 격리 compare">
+      <summary>/worktree <span class="badge blue">git</span></summary>
+      <div class="d-body">
+        <p>Git worktree 신설/정리/감사/옵션비교. 병렬 BUILDING 격리(A/B 분기)에 사용. 어떤 git 저장소에서도 동작.</p>
+        <pre>/worktree setup feature-x
+/worktree setup feature-x --gh-pr
+/worktree cleanup feature-x
+/worktree audit
+/worktree compare A B --criteria=lines,test-pass,readability</pre>
+      </div>
+    </details>
+    <details class="skill-item" data-key="menu 카탈로그 목록 스킬">
+      <summary>/menu <span class="badge blue">카탈로그</span></summary>
+      <div class="d-body">
+        <p>활성 스킬 18종의 라이브 카탈로그를 세션 안에서 출력. 신규 사용자의 첫 진입점.</p>
+        <pre>/menu</pre>
+      </div>
+    </details>
+    <div class="callout"><b>💡 스킬 공통 규약</b><br>① 모든 스킬은 <code>--help</code> 지원 ② 인수는 <code>--key=value</code> 형식 ③ 상호배타 옵션 동시 지정 시 즉시 오류 ④ 스킬 추가 시 <code>/menu</code> 카탈로그 수동 동기화.</div>
+  </section>
+
+  <!-- ════════ 6. 훅 ════════ -->
+  <section class="section" id="hooks">
+    <h2>🪝 훅 <span class="em">9종</span></h2>
+    <p class="lead"><code>.claude/hooks/</code> — Claude Code 이벤트에 연결되어 규칙을 <strong>자동 집행</strong>한다. 배선은 <code>.claude/settings.json</code>, 프로젝트별 튜닝 값은 <code>hooks.env</code>(PROJECT.md에서 자동 생성).</p>
+
+    <h3>이벤트 → 훅 매핑</h3>
+    <table>
+      <tr><th>Claude Code 이벤트</th><th>훅</th><th>집행 규칙</th></tr>
+      <tr><td>SessionStart</td><td>ssot-freshness-check.sh<br>log-prompt.sh init</td><td>PROJECT.md 자동 동기화 + SSOT/Phase 요약 · work-log 초기화</td></tr>
+      <tr><td>PreToolUse (Edit|Write)</td><td>hr1-guard.sh<br>lock1-guard.sh</td><td>HR-1 · LOCK-1 <span class="badge red">차단 가능</span></td></tr>
+      <tr><td>PostToolUse (Edit|Write)</td><td>line-count-monitor.sh<br>state-transition-guard.sh</td><td>HR-5 경고 · 상태 전이 검증</td></tr>
+      <tr><td>TaskCompleted</td><td>on-task-completed.sh</td><td>CDN/HR-5 품질 검사 <span class="badge red">차단 가능</span></td></tr>
+      <tr><td>SubagentStart / Stop</td><td>team-sentinel.sh</td><td>팀 활성 센티넬 (HR-1 판단 근거)</td></tr>
+      <tr><td>Stop</td><td>stop-worklog-reminder.sh</td><td>work-log 기록 리마인더</td></tr>
+      <tr><td>PostCompact</td><td>post-compact-reminder.sh</td><td>FRESH-7 복구 정보 주입</td></tr>
+    </table>
+
+    <h3>훅 상세</h3>
+    <details>
+      <summary>ssot-freshness-check.sh — SessionStart <span class="badge green">자동 동기화</span></summary>
+      <div class="d-body">
+        <p>세션 시작 시: ① PROJECT.md가 hooks.env보다 새로우면 <code>sync-project-config.sh</code> 자동 실행 ② "Project: 이름 (성격)" 1줄 ③ SSOT 버전 1줄 ④ 최근 Phase 상태 1줄 ⑤ Lazy Load 지시(단순 대화엔 SSOT 로드 불필요) 출력.</p>
+      </div>
+    </details>
+    <details>
+      <summary>hr1-guard.sh — PreToolUse <span class="badge red">차단</span></summary>
+      <div class="d-body">
+        <p><strong>팀 운영 중</strong>(센티넬 <code>/tmp/agent-teams-active</code> 존재) Team Lead가 코드 영역(<code>PAB_CODE_DIRS</code> × <code>PAB_CODE_EXTS</code>)을 Edit/Write하면 exit 2로 차단하고 팀원 위임을 안내. 단독 운영 시엔 경고만.</p>
+        <pre><span class="c"># 수동 테스트</span>
+echo '{"tool_input":{"file_path":"src/main.ts"}}' | .claude/hooks/hr1-guard.sh</pre>
+      </div>
+    </details>
+    <details>
+      <summary>lock1-guard.sh — PreToolUse <span class="badge red">차단</span></summary>
+      <div class="d-body"><p>활성 Phase의 <code>current_state</code>가 IDLE/DONE이 아닐 때 <code>docs/SSOT/</code> 파일 수정 시도를 차단 (LOCK-1). Phase가 없으면 통과.</p></div>
+    </details>
+    <details>
+      <summary>line-count-monitor.sh — PostToolUse</summary>
+      <div class="d-body"><p>수정된 <strong>코드 파일</strong>(PAB_CODE_EXTS)의 줄수를 검사해 <code>line_warn</code>(기본 500) 초과 시 WARNING(레지스트리 등록 대상), <code>line_crit</code>(기본 700) 초과 시 CRITICAL(리팩토링 필요) 경고. 문서(.md)는 대상 아님.</p></div>
+    </details>
+    <details>
+      <summary>state-transition-guard.sh — PostToolUse</summary>
+      <div class="d-body"><p>status.md의 <code>current_state</code> 변경이 3-workflow.md §상태 머신의 유효 전이인지 검증. BLOCKED/REWINDING은 모든 상태에서 진입 허용.</p></div>
+    </details>
+    <details>
+      <summary>on-task-completed.sh — TaskCompleted <span class="badge red">차단</span></summary>
+      <div class="d-body"><p>Task 완료 시 변경 파일(git diff)에 대해 ① 외부 CDN 참조(jsdelivr/cdnjs/unpkg…) ② HR-5 줄수 초과를 검사. Critical 발견 시 exit 2로 <strong>Task 완료를 차단</strong>.</p></div>
+    </details>
+    <details>
+      <summary>team-sentinel.sh — SubagentStart/Stop</summary>
+      <div class="d-body"><p>팀원 스폰 시 <code>/tmp/agent-teams-active</code> 카운터 증가, 종료 시 감소(0이면 삭제). hr1-guard가 이 파일로 "팀 운영 중" 여부를 판단.</p></div>
+    </details>
+    <details>
+      <summary>stop-worklog-reminder.sh — Stop</summary>
+      <div class="d-body"><p>응답 종료 시 오늘자 work-log(<code>docs/history/</code>)에 기록이 없거나, 파일 변경은 있는데 기록이 없으면 <code>log-prompt.sh log</code> 실행을 리마인드.</p></div>
+    </details>
+    <details>
+      <summary>post-compact-reminder.sh — PostCompact</summary>
+      <div class="d-body"><p>컨텍스트 압축 발생 시 SSOT 버전·활성 Phase·핵심 규칙(HR-1/LOCK-1/ENTRY-1/FRESH-7)을 <code>additionalContext</code>로 재주입 — 압축으로 유실된 운영 규칙을 복구.</p></div>
+    </details>
+
+    <h3>hooks.env — 튜닝 값 (자동 생성)</h3>
+    <pre><span class="c"># PROJECT.md frontmatter → sync-project-config.sh 가 생성. 직접 수정 금지.</span>
+PAB_PROJECT_NAME=<span class="s">"my-app"</span>
+PAB_CODE_DIRS=<span class="s">"src lib"</span>          <span class="c"># hr1-guard 대상</span>
+PAB_CODE_EXTS=<span class="s">"py js ts tsx"</span>
+PAB_LINE_WARN=<span class="g">500</span>                 <span class="c"># HR-5</span>
+PAB_LINE_CRIT=<span class="g">700</span>
+PAB_COVERAGE_TARGET=<span class="g">80</span>            <span class="c"># G3</span>
+PAB_NOTIFY_CHANNEL=<span class="s">"telegram"</span>
+PAB_BUILD_CMD=<span class="s">"npm run build"</span> ...</pre>
+
+    <h3>새 훅 추가하는 법</h3>
+    <ol>
+      <li><code>.claude/hooks/my-hook.sh</code> 작성 — stdin으로 JSON 수신, exit 0(통과)/2(차단)</li>
+      <li><code>.claude/settings.json</code>의 <code>hooks</code>에 이벤트·matcher 배선</li>
+      <li><code>bash -n</code> 문법 검사 + 샘플 JSON으로 수동 테스트</li>
+      <li>프로젝트별 값이 필요하면 PROJECT.md frontmatter에 키 추가 → <code>sync-project-config.sh</code>에 매핑 추가</li>
+    </ol>
+  </section>
+
+  <!-- ════════ 7. 스크립트 ════════ -->
+  <section class="section" id="scripts">
+    <h2>📜 <span class="em">스크립트</span></h2>
+    <p class="lead"><code>scripts/</code> — 훅·스킬이 공유하는 공용 CLI. 터미널에서 직접 실행할 수도 있다.</p>
+
+    <details open>
+      <summary>sync-project-config.sh — 설정 동기화 <span class="badge green">핵심</span></summary>
+      <div class="d-body">
+        <p>PROJECT.md frontmatter를 파싱해 <code>.claude/hooks/hooks.env</code>를 생성. jq 없이 순수 bash로 동작.</p>
+        <pre>./scripts/sync-project-config.sh          <span class="c"># 동기화 실행</span>
+./scripts/sync-project-config.sh check    <span class="c"># 신선도 검사 (exit 0=최신, 3=재동기화 필요)</span></pre>
+        <p>호출 주체: <code>/project-config sync</code> 스킬 · SessionStart 훅(자동) · <code>install.sh</code>(설치 직후).</p>
+      </div>
+    </details>
+    <details open>
+      <summary>log-prompt.sh — work-log 기록 CLI</summary>
+      <div class="d-body">
+        <p>일자별 작업 기록(<code>docs/history/{YYMMDD}-work-log.md</code>)을 관리. 순번·시각·프롬프트·결과를 표로 축적하고, 상세 내용은 <code>docs/history/output/</code>에 별도 파일로 저장.</p>
+        <pre>./scripts/log-prompt.sh init                          <span class="c"># 오늘자 파일 생성 (idempotent)</span>
+./scripts/log-prompt.sh log "프롬프트" "결과요약" "상세"  <span class="c"># 1건 기록</span>
+./scripts/log-prompt.sh check                         <span class="c"># 오늘자 상태 확인</span></pre>
+        <p>호출 주체: SessionStart 훅(init) · Stop 훅(누락 리마인드) · <code>/worklog</code> 스킬(위임).</p>
+      </div>
+    </details>
+    <details open>
+      <summary>statusline.sh — 터미널 인포창 <span class="badge blue">신규</span></summary>
+      <div class="d-body">
+        <p>Claude Code 하단 상태줄에 <strong>모델·폴더·브랜치·프로젝트·SSOT 버전·Phase 상태</strong>를 표시. 세팅 방법은 <a class="jump" data-target="statusline">🖥️ 하단 인포창 세팅</a> 참조.</p>
+        <pre>echo '{}' | ./scripts/statusline.sh   <span class="c"># 단독 테스트</span></pre>
+      </div>
+    </details>
+    <details>
+      <summary>pmAuto/report_to_telegram.sh — Telegram 발송</summary>
+      <div class="d-body">
+        <p>NOTIFY-1(구 HR-8) 알림의 실제 발송기. <code>/notify-telegram</code> 스킬이 호출한다.</p>
+        <pre>bash scripts/pmAuto/report_to_telegram.sh "라벨" "메시지"</pre>
+        <p>토큰: <code>PAB_TELEGRAM_BOT_TOKEN</code> / <code>PAB_TELEGRAM_CHAT_ID</code> 환경변수 (또는 .env).</p>
+      </div>
+    </details>
+    <details>
+      <summary>migrations/ — SQL 마이그레이션 (참조용 예시)</summary>
+      <div class="d-body">
+        <p>PostgreSQL 스키마 마이그레이션 예시 4종 (GIN 인덱스 · 접근 로그 · 시스템 설정 · users 테이블). 원본 프로젝트의 참조 샘플이며 새 프로젝트에서는 필요 시 양식으로만 활용.</p>
+      </div>
+    </details>
+
+    <h3>스크립트 ↔ 스킬 ↔ 훅 관계도</h3>
+    <div class="diagram">              ┌── SessionStart 훅 ──▶ <span class="hl">sync-project-config.sh</span> ◀── /project-config
+PROJECT.md ──┤                              │
+              └──────────────────────▶ hooks.env ──▶ 훅 9종 · <span class="hl">statusline.sh</span>
+
+/worklog ────▶ <span class="hl">log-prompt.sh</span> ◀── SessionStart(init) · Stop(리마인드) 훅
+/notify-telegram ────▶ <span class="hl">pmAuto/report_to_telegram.sh</span> ──▶ Telegram API</div>
+  </section>
+
+  <!-- ════════ 7.5 기록·알림 위치 ════════ -->
+  <section class="section" id="records">
+    <h2>🗂 기록·알림 <span class="em">위치 정의</span></h2>
+    <p class="lead">Telegram·Obsidian vault 세팅 절차와 work-log · report · handoff(prepare/resume) · wiki 산출물의 <strong>표준 저장 위치</strong> 정의. 모든 기록은 아래 위치 외에 흩뿌리지 않는 것이 원칙이다.</p>
+
+    <h3>산출물 위치 맵 (전체)</h3>
+    <table>
+      <tr><th>산출물</th><th>표준 위치</th><th>파일명 규격</th><th>생성 주체</th></tr>
+      <tr><td><strong>work-log</strong> (일자별 작업 기록)</td><td><code>docs/history/</code></td><td><code>{YYMMDD}-work-log.md</code></td><td>SessionStart 훅(자동 init) + <code>/worklog</code>·<code>log-prompt.sh</code></td></tr>
+      <tr><td>work-log 상세본</td><td><code>docs/history/output/</code></td><td><code>{YYMMDD}-{순번}-{요약}.md</code></td><td><code>log-prompt.sh log</code> 3번째 인자</td></tr>
+      <tr><td><strong>report</strong> (분석·보고서, Phase 밖)</td><td><code>docs/reports/</code></td><td><code>{YYMMDD}-{제목-kebab}.md</code></td><td><code>/report</code></td></tr>
+      <tr><td>report (Phase 활성 중)</td><td><code>docs/phases/phase-X-Y/reports/</code></td><td><code>{YYMMDD}-{제목-kebab}.md</code> 또는 <code>report-{역할}.md</code></td><td><code>/report</code>, 팀원 보고</td></tr>
+      <tr><td><strong>handoff</strong> (세션 인계 문서)</td><td><code>docs/handoff/</code></td><td><code>{YYMMDD-HHMM}-handoff.md</code></td><td><code>/context-handoff prepare</code></td></tr>
+      <tr><td>Phase 산출물 4종</td><td><code>docs/phases/phase-X-Y/</code></td><td><code>phase-X-Y-{status|plan|todo-list}.md</code> + <code>tasks/</code></td><td><code>/phase-init</code> (CHAIN-6/10)</td></tr>
+      <tr><td>Pre-draft (Step 0)</td><td><code>docs/phases/pre/</code></td><td><code>phase-{N}-pre-draft.md</code></td><td><code>/plan</code></td></tr>
+      <tr><td>게이트 리포트</td><td><code>docs/phases/phase-X-Y/</code></td><td><code>gate-{G}-report.md</code> (재판정 시 <code>-retry-N</code>)</td><td>verifier/tester</td></tr>
+      <tr><td>Telegram 토큰</td><td>환경변수 또는 루트 <code>.env</code></td><td><code>PAB_TELEGRAM_BOT_TOKEN</code> / <code>PAB_TELEGRAM_CHAT_ID</code></td><td>사용자 (문서·스크립트 기입 금지)</td></tr>
+      <tr><td><strong>wiki 노트</strong> (지식 저장)</td><td><code>${WIKI_VAULT_ROOT}/10_Notes</code> · <code>15_Sources</code> (개인 Obsidian vault)</td><td><code>YYYY-MM-DD_{slug}.md</code> / <code>_{slug}_source.md</code></td><td><code>/wiki</code> (백지 vault면 규격 자동 부트스트랩)</td></tr>
+    </table>
+    <div class="callout"><b>💡 원칙</b><br>① 날짜 프리픽스는 <code>YYMMDD</code>(예: 260706) ② 디렉토리가 없으면 자동 생성 ③ Phase 관련 문서는 HR-4/CHAIN-10 경로 규칙을 따름 ④ 루트나 임의 위치에 기록 파일을 만들지 않는다.</div>
+
+    <h3>① Telegram 세팅 (NOTIFY-1, 구 HR-8)</h3>
+    <p>알림을 받으려면 <strong>봇 토큰(API key)</strong>과 <strong>Chat ID</strong>(수신처 번호) 두 값이 필요하다. 두 값 모두 <strong>개인별 설정</strong>이다 — 저장소에는 어떤 형태로도 커밋하지 않고, 팀원 각자 자신의 셸 환경(또는 로컬 <code>.env</code>)에 등록한다. 아래 1)~2)는 Telegram 쪽 발급 절차, 3)~5)는 PAB 번들 쪽 등록·확인 절차다.</p>
+
+    <h4>1) 봇 생성 — API key(봇 토큰) 발급</h4>
+    <p><span class="step-num">1</span>Telegram 앱(모바일·데스크톱 무관)에서 <code>@BotFather</code>를 검색해 대화를 연다. <strong>파란 인증 체크가 붙은 공식 계정</strong>인지 확인한다 (사칭 봇에 토큰을 입력하지 말 것).</p>
+    <p><span class="step-num">2</span><code>/newbot</code> 입력 → 봇 <strong>표시 이름</strong> 입력 → 봇 <strong>username</strong> 입력. username은 Telegram 전체에서 유일해야 하고 <strong>반드시 <code>bot</code>으로 끝나야</strong> 한다:</p>
+    <pre><span class="c"># BotFather 대화 흐름</span>
+/newbot
+<span class="c">→ Alright, a new bot. How are we going to call it?</span>
+PAB 알림                              <span class="c"># ① 표시 이름 (자유)</span>
+<span class="c">→ Good. Now let's choose a username for your bot.</span>
+pab_notify_bot                        <span class="c"># ② username (유일 + bot으로 끝남)</span>
+<span class="c">→ Done! ... Use this token to access the HTTP API:</span>
+<span class="s">123456789:AAH9xQ...j2k</span>               <span class="c"># ③ 이것이 봇 토큰(API key)</span></pre>
+    <p><span class="step-num">3</span>발급된 토큰(<code>숫자:영숫자</code> 형태)을 복사한다. 나중에 다시 보려면 BotFather에서 <code>/mybots</code> → 봇 선택 → <strong>API Token</strong>. 유출됐다면 같은 메뉴의 <strong>Revoke current token</strong>(<code>/revoke</code>)으로 즉시 재발급한다 (기존 토큰은 무효화됨).</p>
+
+    <h4>2) Chat ID 확인</h4>
+    <p>Chat ID는 봇이 <strong>어디로 보낼지</strong>를 지정하는 번호다. 개인 수신(팀원 각자 자기 개인 채팅)과 그룹 수신(팀 공용 방) 두 방식이 있다.</p>
+    <p><span class="step-num">1</span><strong>개인 수신</strong>: Telegram에서 방금 만든 봇(예: <code>@pab_notify_bot</code>)을 검색 → <strong>시작(Start)</strong>을 누르고 아무 메시지나 1건 보낸다. 봇은 먼저 말을 걸 수 없으므로 <strong>이 단계가 필수</strong>다.</p>
+    <p><span class="step-num">2</span>터미널에서 <code>getUpdates</code> API를 호출해 ID를 읽는다:</p>
+    <pre>curl -s "https://api.telegram.org/bot<span class="s">{봇토큰}</span>/getUpdates" | grep -o '"chat":{"id":[0-9-]*'
+<span class="c"># → "chat":{"id":1234567890   ← 이 숫자가 내 Chat ID</span>
+
+<span class="c"># jq가 설치돼 있으면 더 깔끔하게:</span>
+curl -s "https://api.telegram.org/bot<span class="s">{봇토큰}</span>/getUpdates" | jq '.result[].message.chat.id'</pre>
+    <p><span class="step-num">3</span><strong>그룹 수신</strong>(팀 공용 방으로 받을 때): 봇을 그룹에 초대 → 그룹에서 아무 메시지 1건 발송 → 위와 같은 <code>getUpdates</code> 호출. 그룹 Chat ID는 <strong>음수</strong>(<code>-100...</code>)로 나온다.</p>
+    <div class="callout"><b>💡 결과가 빈 배열(<code>{"ok":true,"result":[]}</code>)로 나오면</b><br>① 봇에게 메시지를 아직 보내지 않았거나 ② 보낸 지 24시간이 지나 업데이트가 만료된 것 — 메시지를 다시 1건 보내고 재호출한다. 개인 Chat ID는 <code>@userinfobot</code>에게 아무 메시지를 보내 확인할 수도 있다 (개인 Chat ID = 본인 user ID와 동일).</div>
+
+    <h4>3) 개인별 토큰 등록</h4>
+    <p>발급받은 두 값을 <strong>팀원 각자 자신의 환경에</strong> 등록한다 — 두 방법 중 하나 (스크립트·문서에 직접 기입 금지):</p>
+    <pre><span class="c"># 방법 A: 환경변수 (셸 프로필에 영구 등록 — ~/.bashrc 또는 ~/.zshrc)</span>
+export PAB_TELEGRAM_BOT_TOKEN=<span class="s">"123456789:AA..."</span>
+export PAB_TELEGRAM_CHAT_ID=<span class="s">"1234567890"</span>
+
+<span class="c"># 방법 B: 프로젝트 루트 .env 파일 (git 커밋 금지 — .gitignore에 추가)</span>
+echo 'PAB_TELEGRAM_BOT_TOKEN="123456789:AA..."' &gt;&gt; .env
+echo 'PAB_TELEGRAM_CHAT_ID="1234567890"'        &gt;&gt; .env</pre>
+    <p>팀 운용 방식은 두 가지 중 선택한다 — 어느 쪽이든 등록 값은 개인 환경에만 둔다:</p>
+    <table>
+      <tr><th>운용 방식</th><th>봇 토큰</th><th>Chat ID</th><th>특징</th></tr>
+      <tr><td>공용 봇 + 개인 수신</td><td>팀 공용 봇 1개 공유</td><td>각자 자기 개인 Chat ID</td><td>봇 관리 일원화, 알림은 각자 개인 채팅으로</td></tr>
+      <tr><td>공용 봇 + 그룹 수신</td><td>팀 공용 봇 1개 공유</td><td>그룹 Chat ID(음수) 공통</td><td>팀 전체가 한 방에서 알림 공유</td></tr>
+    </table>
+
+    <h4>4) PROJECT.md 설정 확인</h4>
+    <p>frontmatter <code>notify_channel: "telegram"</code> · <code>notify_project_label: "프로젝트명"</code> 확인 → <code>/project-config sync</code>. (<code>notify_channel: none</code>이면 발송 자체를 건너뛴다.)</p>
+
+    <h4>5) 발송 테스트</h4>
+    <pre>bash scripts/pmAuto/report_to_telegram.sh <span class="s">"테스트"</span> <span class="s">"세팅 확인 메시지"</span>
+<span class="c"># → ✅ Telegram 알림 발송 완료 [테스트]</span></pre>
+    <p>이후 Phase DONE 시 <code>/notify-telegram --phase=X-Y --status=done --summary="..."</code>이 이 스크립트를 호출한다. 토큰 미설정이면 스크립트가 설정 절차를 안내하고 종료한다.</p>
+    <div class="callout danger"><b>🚫 보안 규칙</b><br>토큰은 <strong>환경변수 또는 .env로만</strong> 관리한다. PROJECT.md·SKILL.md·스크립트 본문에 기입 금지. 토큰이 파일로 노출된 적이 있다면 BotFather의 <code>/revoke</code>로 즉시 재발급할 것.</div>
+
+    <h3>② work-log — 작업 기록</h3>
+    <table>
+      <tr><th>구분</th><th>내용</th></tr>
+      <tr><td>위치</td><td><code>docs/history/{YYMMDD}-work-log.md</code> — 순번·시각·프롬프트·결과 표 누적</td></tr>
+      <tr><td>상세본</td><td><code>docs/history/output/{YYMMDD}-{순번}-{요약}.md</code> — 긴 채팅 출력 원문 보존, 본 표에서 링크</td></tr>
+      <tr><td>자동 기록</td><td>SessionStart 훅이 오늘자 파일 init · Stop 훅이 기록 누락 시 리마인드</td></tr>
+      <tr><td>수동 기록</td><td>아래 두 방법 동일 결과</td></tr>
+    </table>
+    <pre><span class="c"># 방법 A: 스킬 (세션 안에서)</span>
+<span class="g">/worklog log</span> --prompt=<span class="s">"Phase 3-1 구현"</span> --result=<span class="s">"task-3-1-1 완료"</span>
+<span class="g">/worklog check</span>                        <span class="c"># 오늘자 상태 조회</span>
+
+<span class="c"># 방법 B: CLI (터미널에서 — 상세 기록 포함 3인자)</span>
+./scripts/log-prompt.sh log <span class="s">"프롬프트 원문"</span> <span class="s">"결과 요약(파일명용)"</span> <span class="s">"상세 기록 내용"</span>
+./scripts/log-prompt.sh check</pre>
+    <p>기록 시점: <strong>응답(작업) 1건 완료 직후</strong>. 3번째 인자를 주면 상세본이 output/에 저장되고 본 표에 링크가 걸린다.</p>
+
+    <h3>③ report — 분석·보고서 저장</h3>
+    <p><code>/report</code>는 직전 대화의 분석/보고 출력을 .md로 저장한다. <strong>기본 저장 위치가 표준으로 정의되어 있다</strong>:</p>
+    <table>
+      <tr><th>상황</th><th>저장 위치</th></tr>
+      <tr><td>활성 Phase 있음 (status ≠ DONE)</td><td><code>docs/phases/phase-X-Y/reports/{YYMMDD}-{제목}.md</code></td></tr>
+      <tr><td>활성 Phase 없음</td><td><code>docs/reports/{YYMMDD}-{제목}.md</code></td></tr>
+      <tr><td><code>--path=</code> 명시</td><td>지정 경로 그대로</td></tr>
+    </table>
+    <pre><span class="g">/report</span>                                          <span class="c"># 표준 위치에 자동 파일명으로</span>
+<span class="g">/report</span> --path=docs/phases/phase-4-5/reports/final.md
+<span class="g">/report</span> --append --section=<span class="s">"비교 분석"</span>            <span class="c"># 기존 파일에 섹션만 이어쓰기</span></pre>
+
+    <h3>④ handoff — prepare / resume (세션 인계)</h3>
+    <p>컨텍스트 한계가 가까워지면 현재 세션 상태를 문서로 저장(<strong>prepare</strong>)하고, 새 세션에서 이어받는다(<strong>resume</strong>).</p>
+    <div class="diagram">[세션 A — 컨텍스트 임박]                       [새 세션 B]
+<span class="g">/context-handoff prepare</span> --phase=4-5          <span class="g">/context-handoff resume</span>
+   │                                              │
+   ▼ 저장                                          ▼ 로드
+<span class="hl">docs/handoff/{YYMMDD-HHMM}-handoff.md</span> ──────▶ 가장 최근 파일 자동 선택
+   (진행 상태·미완료 Task·결정 사항)               + /ssot-reload 자동 실행 (FRESH-1)</div>
+    <table>
+      <tr><th>구분</th><th>내용</th></tr>
+      <tr><td>위치·파일명</td><td><code>docs/handoff/{YYMMDD-HHMM}-handoff.md</code> (예: <code>260706-1130-handoff.md</code>)</td></tr>
+      <tr><td>prepare 기록 내용</td><td>현재 Phase·상태, 미완료 Task, 핵심 결정 사항, 다음 행동 — <code>--summary=</code>로 한 줄 요약 추가</td></tr>
+      <tr><td>resume 선택 규칙</td><td>경로 미지정 시 파일명 타임스탬프 기준 <strong>가장 최근</strong> 자동 선택. 특정 파일은 <code>resume docs/handoff/260706-1130-handoff.md</code></td></tr>
+      <tr><td>resume 후속 동작</td><td>SSOT 리로드(FRESH-1/7) → status.md 확인 → 팀 재구성 안내</td></tr>
+    </table>
+    <pre><span class="g">/context-handoff prepare</span> --phase=4-5 --summary=<span class="s">"G2 PASS, G3 대기"</span>
+<span class="c"># → ✅ 핸드오프 작성 완료: docs/handoff/260706-1130-handoff.md
+#   새 세션에서: /context-handoff resume</span></pre>
+    <div class="callout warn"><b>⚠ 컨텍스트 압축과의 차이</b><br>압축(PostCompact)은 자동 발생하며 post-compact 훅이 핵심 규칙만 재주입한다. <strong>계획적으로 세션을 넘길 때는 prepare/resume이 확실</strong> — 압축 요약보다 손실이 적다.</div>
+
+    <h3>⑤ wiki — Obsidian vault 세팅 (개인별)</h3>
+    <p><code>/wiki "000에 대해 조사하고 정리해서 저장해줘"</code>라고 명령하면 조사 결과가 <strong>개인 Obsidian vault</strong>에 문서규격(frontmatter 11필드 · Karpathy 3계층: 원본 SOURCE + 요약본)대로 저장된다. vault 연결 지점은 <strong>사용자마다 다르므로</strong> 아래 개인별 설정 1가지만 해두면 된다 — 나머지 규격 세팅은 전부 자동이다.</p>
+
+    <p><span class="step-num">1</span><strong>vault 경로 지정</strong> — <code>WIKI_VAULT_ROOT</code> 환경변수를 셸 프로필에 영구 등록 (사용자마다 경로가 다른 유일한 지점):</p>
+    <pre><span class="c"># ~/.bashrc 또는 ~/.zshrc</span>
+export WIKI_VAULT_ROOT=<span class="s">"$HOME/Obsidian/MyVault"</span>
+<span class="c"># Windows(WSL) 예: export WIKI_VAULT_ROOT="/mnt/c/Users/&lt;계정&gt;/work/PAB-Obsidian/PAB-LLMDATA"</span></pre>
+    <p>미설정이어도 동작은 한다 — 형제 경로에서 정본 vault를 자동 탐지(경고 후 사용)하고, 그마저 없으면 <strong>사용자 확인 후에만</strong> 프로젝트 로컬 <code>./wiki/</code>를 만든다 (무단 생성 금지 — 노트 분산 방지).</p>
+
+    <p><span class="step-num">2</span><strong>초기 규격 세팅은 자동 (부트스트랩)</strong> — vault가 백지 상태라도 첫 <code>/wiki</code> 호출 때 스킬 동봉 시드(<code>.claude/skills/wiki/vault-seed/</code>)가 폴더 구조와 문서규격을 자동 생성한다. <strong>기존 파일은 절대 덮어쓰지 않는다</strong> (누락분만 채움):</p>
+    <table>
+      <tr><th>자동 생성 항목</th><th>내용</th></tr>
+      <tr><td>폴더 9종</td><td><code>00_MOC/{TYPES,DOMAINS,TOPICS}</code> · <code>10_Notes</code> · <code>15_Sources</code> · <code>20_Lessons</code> · <code>30_Constraints</code> · <code>40_Templates</code> · <code>99_Inbox</code></td></tr>
+      <tr><td>규격 문서 4종</td><td><code>30_Constraints/</code> frontmatter-spec · naming-convention · linking-policy · toc-recommendation — <strong>keywords·topics·index·tags 규칙 정의</strong></td></tr>
+      <tr><td>템플릿 8종</td><td><code>40_Templates/</code> 7 TYPE 템플릿 + <code>_schema.json</code></td></tr>
+      <tr><td>MOC 골격</td><td>TYPES 7종 · DOMAINS 6종 · <code>TOPICS/_README.md</code> · 루트 <code>_INDEX.md</code> (3중 인덱스 진입점)</td></tr>
+    </table>
+
+    <p><span class="step-num">3</span><strong>사용</strong> — 저장 시 frontmatter 11필드(<code>keywords</code>·<code>topics</code>·<code>index</code>(DOMAIN)·<code>tags</code> 등)는 스킬이 자동 결정한다:</p>
+    <pre><span class="g">/wiki</span> https://example.com/article 조사하고 정리해서 저장해줘
+<span class="c"># → 원본: ${WIKI_VAULT_ROOT}/15_Sources/YYYY-MM-DD_&lt;slug&gt;_source.md (immutable)
+# → 요약: ${WIKI_VAULT_ROOT}/10_Notes/YYYY-MM-DD_&lt;slug&gt;.md (TOC 링크 + wikilink 자동)
+# → 동일 TOPIC 노트 3건 누적 시 00_MOC/TOPICS/&lt;TOPIC&gt;.md 자동 승격</span></pre>
+    <div class="callout"><b>💡 Obsidian 앱에서 열기</b><br>Obsidian에서 <strong>"Open folder as vault"</strong>로 <code>$WIKI_VAULT_ROOT</code> 경로를 지정하면 바로 사용 가능. <strong>dataview</strong> 커뮤니티 플러그인을 설치하면 MOC 자동 수집이 활성화된다 (미설치여도 폴백 정적 링크로 동작). 공통 vault 모드(권장)에서는 여러 프로젝트의 <code>/wiki</code> 결과가 한 vault에 누적된다.</div>
+  </section>
+
+  <!-- ════════ 8. Statusline ════════ -->
+  <section class="section" id="statusline">
+    <h2>🖥️ 터미널 하단 <span class="em">인포창(Status Line)</span> 세팅</h2>
+    <p class="lead">CMD/터미널에서 Claude Code를 쓸 때 입력창 <strong>바로 아래</strong>에 상시 표시되는 정보줄. 모델·폴더·git 브랜치에 더해 <strong>PAB 프로젝트명·SSOT 버전·Phase 상태</strong>까지 한 줄로 보여준다.</p>
+
+    <h3>완성 모습</h3>
+    <div class="term">
+      <div class="t-dim">╭──────────────────────────────────────────────╮</div>
+      <div class="t-line">│ <span class="t-input">&gt;</span> 다음 Phase 진행해줘_                        │</div>
+      <div class="t-dim">╰──────────────────────────────────────────────╯</div>
+      <div class="t-status">🧠 Fable 5 | 📁 my-app | 🌿 main | 📌 my-app | SSOT v8.2-renewal-6th | ⚙ phase-4-5:BUILDING</div>
+    </div>
+    <table>
+      <tr><th>항목</th><th>출처</th></tr>
+      <tr><td>🧠 모델명</td><td>Claude Code가 stdin으로 주는 세션 JSON (<code>model.display_name</code>)</td></tr>
+      <tr><td>📁 현재 폴더</td><td>세션 JSON (<code>workspace.current_dir</code>)</td></tr>
+      <tr><td>🌿 git 브랜치</td><td><code>git branch --show-current</code></td></tr>
+      <tr><td>📌 프로젝트명 · SSOT 버전</td><td><code>hooks.env</code> (← PROJECT.md)</td></tr>
+      <tr><td>⚙ Phase 상태</td><td>가장 최근 <code>docs/phases/**/*status.md</code>의 <code>current_state</code></td></tr>
+    </table>
+
+    <h3>동작 원리</h3>
+    <div class="diagram">Claude Code ──(대화 갱신 시마다)──▶ statusLine.command 실행
+                                        │  stdin: 세션 JSON {model, workspace, ...}
+                                        ▼
+                              <span class="hl">scripts/statusline.sh</span>
+                                        │  stdout 첫 줄
+                                        ▼
+                              터미널 하단 인포창에 표시 (ANSI 색상 지원)</div>
+
+    <h3>세팅 방법 ① — ccstatusline (서드파티 위젯 인포창)</h3>
+    <p><a href="https://github.com/sirmalloc/ccstatusline" target="_blank">ccstatusline</a>은 Claude Code 전용 오픈소스 인포창 도구다. <strong>인터랙티브 TUI 설정 화면</strong>에서 위젯(모델·컨텍스트 사용량 <code>Ctx</code>·메모리 <code>Mem</code>·컨텍스트 바·세션 %·누적 비용 <code>Total $</code>·Skill·Git 등)을 <strong>실시간 미리보기로 확인하며</strong> 추가/제거/재배치할 수 있다. 스크립트를 직접 짤 필요가 없어 가장 쉽다.</p>
+    <p><span class="step-num">1</span>설치 없이 바로 실행 (Node.js 필요):</p>
+    <pre>npx -y ccstatusline@latest
+<span class="c"># Bun 사용 시: bunx -y ccstatusline@latest</span></pre>
+    <p><span class="step-num">2</span>열리는 TUI 화면에서 조정한다:</p>
+    <table>
+      <tr><th>메뉴</th><th>할 수 있는 것</th></tr>
+      <tr><td>위젯 편집</td><td>여러 개의 상태 라인 구성, 위젯 추가/삭제/순서 변경</td></tr>
+      <tr><td>색상·테마</td><td>위젯별 색상 커스터마이징, powerline 구분선·테마 설정</td></tr>
+      <tr><td>Install/Uninstall</td><td>Claude Code <code>settings.json</code>의 <code>statusLine</code> 항목에 자동 기록/제거</td></tr>
+    </table>
+    <p><span class="step-num">3</span>TUI에서 <strong>Install</strong>을 선택하면 아래 설정이 자동 기록된다 (수동 편집 불필요):</p>
+    <pre>{
+  <span class="k">"statusLine"</span>: {
+    <span class="k">"type"</span>: <span class="s">"command"</span>,
+    <span class="k">"command"</span>: <span class="s">"npx -y ccstatusline@latest"</span>,
+    <span class="k">"padding"</span>: <span class="g">0</span>
+  }
+}</pre>
+    <p><span class="step-num">4</span>새 <code>claude</code> 세션을 열어 확인. 위젯 구성을 다시 바꾸려면 언제든 <code>npx -y ccstatusline@latest</code>를 재실행하면 된다. 위젯 설정 저장 위치: <code>~/.config/ccstatusline/settings.json</code></p>
+    <div class="callout warn"><b>⚠ PAB 인포창과의 관계</b><br>statusLine은 <strong>하나의 command만 적용</strong>되며 우선순위는 <code>settings.local.json &gt; 프로젝트 settings.json &gt; 개인 전역 ~/.claude/settings.json</code>. ccstatusline을 개인 전역에 Install해도 <strong>프로젝트에 방법 ② 블록이 배선돼 있으면 그쪽이 우선</strong>한다 — ccstatusline을 쓰려면 프로젝트 <code>.claude/settings.json</code>의 <code>statusLine</code> 블록을 제거한다. 반대로 PAB 정보로 되돌리려면 방법 ② 블록을 다시 추가하면 된다.</div>
+    <details>
+      <summary>💡 병행 팁 — ccstatusline 위젯 + PAB Phase 정보 함께 쓰기</summary>
+      <div class="d-body">
+        <p>ccstatusline의 <strong>Custom Command 위젯</strong>에 본 번들 스크립트를 연결하면 두 가지를 한 인포창에서 쓸 수 있다:</p>
+        <pre><span class="c"># TUI → 위젯 추가 → Custom Command → 명령에 입력:</span>
+bash "$CLAUDE_PROJECT_DIR/scripts/statusline.sh"</pre>
+        <p>이러면 Ctx/비용 위젯 옆에 <code>📌 프로젝트 | SSOT 버전 | ⚙ Phase 상태</code>가 함께 표시된다. 또는 ccstatusline의 <strong>여러 줄 구성</strong>으로 1행은 위젯, 2행은 PAB 라인으로 분리해도 된다.</p>
+      </div>
+    </details>
+    <details>
+      <summary>ccstatusline 제거 (원복)</summary>
+      <div class="d-body"><p><code>npx -y ccstatusline@latest</code> 재실행 → <strong>Uninstall</strong> 선택. 또는 <code>~/.claude/settings.json</code>에서 <code>statusLine</code> 블록을 직접 삭제한다. 프로젝트의 방법 ② 설정이 남아 있으면 자동으로 PAB 인포창으로 돌아온다.</p></div>
+    </details>
+
+    <h3>세팅 방법 ② — 번들 스크립트 배선 (PAB 정보 표시)</h3>
+    <p>번들에 <code>scripts/statusline.sh</code>가 포함되어 있다. <strong>기본은 미배선</strong>(개인 전역 인포창 설정을 존중) — PAB 인포창을 쓰려면 프로젝트 <code>.claude/settings.json</code>에 아래 블록을 추가한다:</p>
+    <pre><span class="c">// .claude/settings.json (프로젝트 설정 — 팀 공유)</span>
+{
+  <span class="k">"statusLine"</span>: {
+    <span class="k">"type"</span>: <span class="s">"command"</span>,
+    <span class="k">"command"</span>: <span class="s">"\"$CLAUDE_PROJECT_DIR/scripts/statusline.sh\""</span>,
+    <span class="k">"padding"</span>: <span class="g">0</span>
+  }
+}</pre>
+    <p>확인: 새 <code>claude</code> 세션을 열고 아무 대화나 한 턴 진행하면 하단에 표시된다.</p>
+
+    <h3>세팅 방법 ③ — /statusline 명령으로 Claude에게 맡기기</h3>
+    <p>Claude Code 내장 명령으로, 원하는 모양을 말로 설명하면 Claude가 스크립트를 만들어 설정까지 해준다:</p>
+    <pre><span class="g">/statusline</span> 모델명과 현재 폴더, git 브랜치를 보여줘
+<span class="g">/statusline</span> 지금 셸 PS1 프롬프트를 그대로 재현해줘</pre>
+    <div class="callout warn"><b>⚠ 주의</b><br>/statusline은 보통 <strong>개인 설정</strong>(<code>~/.claude/settings.json</code>)에 기록한다. 우선순위는 프로젝트 설정이 개인 전역보다 높으므로, 프로젝트에 방법 ② 블록이 배선돼 있으면 /statusline으로 만든 개인 설정은 해당 프로젝트에서 보이지 않는다 — 팀 공통 인포창은 방법 ②(프로젝트 settings.json)로, 개인 취향 인포창은 프로젝트 블록 제거 후 개인 설정으로 운용한다.</div>
+
+    <h3>세팅 방법 ④ — 수동 (다른 프로젝트·개인 전역)</h3>
+    <p><span class="step-num">1</span>스크립트 준비 — 본 번들 것을 복사하거나 직접 작성:</p>
+    <pre>cp scripts/statusline.sh ~/.claude/statusline.sh
+chmod +x ~/.claude/statusline.sh</pre>
+    <p><span class="step-num">2</span><code>~/.claude/settings.json</code>(개인 전역) 또는 프로젝트 <code>.claude/settings.json</code>에 추가:</p>
+    <pre>{
+  <span class="k">"statusLine"</span>: {
+    <span class="k">"type"</span>: <span class="s">"command"</span>,
+    <span class="k">"command"</span>: <span class="s">"~/.claude/statusline.sh"</span>
+  }
+}</pre>
+    <p><span class="step-num">3</span>새 세션에서 확인. 갱신은 대화가 진행될 때마다 이뤄진다.</p>
+
+    <h3>스크립트가 받는 입력 (stdin JSON)</h3>
+    <p>Claude Code가 실행 시 세션 정보를 JSON으로 전달한다. 주요 필드:</p>
+    <table>
+      <tr><th>필드</th><th>내용</th></tr>
+      <tr><td><code>model.display_name</code> / <code>model.id</code></td><td>현재 모델 (예: "Fable 5")</td></tr>
+      <tr><td><code>workspace.current_dir</code></td><td>현재 작업 디렉토리</td></tr>
+      <tr><td><code>workspace.project_dir</code></td><td>프로젝트 루트</td></tr>
+      <tr><td><code>session_id</code>, <code>version</code> 등</td><td>세션 식별·CLI 버전 (버전에 따라 필드 상이)</td></tr>
+    </table>
+    <p>정확한 스키마는 버전마다 다를 수 있으므로, 실제 입력을 덤프해서 확인하는 것이 가장 확실하다:</p>
+    <pre><span class="c"># statusline 스크립트 맨 위에 임시 추가</span>
+INPUT=$(cat); echo <span class="s">"$INPUT"</span> &gt; /tmp/statusline-input.json
+<span class="c"># 한 턴 대화 후: cat /tmp/statusline-input.json | jq .</span></pre>
+
+    <h3>커스터마이징 예시</h3>
+    <details>
+      <summary>표시 항목 바꾸기 (번들 스크립트 수정)</summary>
+      <div class="d-body">
+        <p><code>scripts/statusline.sh</code>의 §5 조립부에서 원하는 항목을 빼거나 추가한다. 예: 브랜치 제거, 시각 추가 →</p>
+        <pre>LINE=<span class="s">"🧠 ${MODEL} ${SEP} 📁 ${DIR_NAME} ${SEP} 🕐 $(date +%H:%M)"</span></pre>
+      </div>
+    </details>
+    <details>
+      <summary>색상 넣기 (ANSI 이스케이프)</summary>
+      <div class="d-body">
+        <p>인포창은 ANSI 색상을 지원한다:</p>
+        <pre>GREEN=$(printf <span class="s">'\033[32m'</span>); DIM=$(printf <span class="s">'\033[2m'</span>); RESET=$(printf <span class="s">'\033[0m'</span>)
+echo <span class="s">"${GREEN}${MODEL}${RESET} ${DIM}|${RESET} ${DIR_NAME}"</span></pre>
+      </div>
+    </details>
+    <details>
+      <summary>Windows CMD/PowerShell 환경</summary>
+      <div class="d-body">
+        <p>statusLine <code>command</code>는 셸 스크립트를 실행하므로 <strong>WSL 또는 Git Bash 환경의 Claude Code에서 그대로 동작</strong>한다. 순수 PowerShell로 쓰려면 <code>"command": "powershell -File statusline.ps1"</code> 형태로 동일한 stdin JSON 파싱 스크립트를 작성하면 된다. 본 번들은 bash 기준.</p>
+      </div>
+    </details>
+    <details>
+      <summary>인포창 끄기</summary>
+      <div class="d-body"><p>적용 중인 설정 파일에서 <code>statusLine</code> 블록을 삭제하면 된다. 프로젝트 설정은 그대로 두고 나만 다르게 쓰려면 <code>.claude/settings.local.json</code>(프로젝트 설정보다 우선, git 미공유)에서 <code>statusLine</code>을 재정의한다. 개인 전역(<code>~/.claude/settings.json</code>)은 프로젝트 설정보다 우선순위가 낮아 프로젝트 블록이 있는 한 무시된다.</p></div>
+    </details>
+
+    <h3>문제 해결</h3>
+    <table>
+      <tr><th>증상</th><th>원인 · 해결</th></tr>
+      <tr><td>인포창이 안 보임</td><td>새 세션인지 확인(설정은 세션 시작 시 로드) · <code>bash scripts/statusline.sh &lt;&lt;&lt; '{}'</code>로 스크립트 단독 실행 확인 · 실행 권한(<code>chmod +x</code>)</td></tr>
+      <tr><td>모델명이 "Claude"로만 나옴</td><td>stdin JSON 미수신(단독 실행) 또는 필드명 상이 — /tmp 덤프로 실제 필드 확인</td></tr>
+      <tr><td>Phase가 항상 none</td><td><code>docs/phases/</code>에 <code>*status.md</code>가 아직 없음 — <code>/phase-init</code> 후 표시됨</td></tr>
+      <tr><td>프로젝트명이 안 나옴</td><td><code>hooks.env</code> 미생성 — <code>/project-config sync</code> 실행</td></tr>
+      <tr><td>느려짐</td><td>스크립트가 매 갱신마다 실행됨 — 무거운 명령(네트워크 등) 넣지 말 것</td></tr>
+      <tr><td>ccstatusline 설치 후 PAB 정보(SSOT·Phase)가 사라짐</td><td>statusLine이 ccstatusline으로 교체된 것 — 방법 ①의 <strong>병행 팁</strong>(Custom Command 위젯)으로 합치거나, 개인 설정의 statusLine 블록 삭제로 원복</td></tr>
+      <tr><td>ccstatusline이 안 뜸 / 첫 실행이 느림</td><td><code>npx</code>는 최초 1회 네트워크에서 패키지를 받는다 — Node.js 설치 여부 확인(<code>node -v</code>), 폐쇄망에서는 사전 설치(<code>npm i -g ccstatusline</code>) 후 <code>command</code>를 <code>ccstatusline</code>으로 지정</td></tr>
+    </table>
+  </section>
+
+  <!-- ════════ 9. FAQ ════════ -->
+  <section class="section" id="faq">
+    <h2>❓ FAQ · <span class="em">트러블슈팅</span></h2>
+    <p class="lead">자주 겪는 문제와 해법.</p>
+
+    <details><summary>스킬(/plan 등)이 인식되지 않는다</summary>
+      <div class="d-body"><p><code>.claude/skills/{이름}/SKILL.md</code> 경로 확인. 스킬은 <strong>새 세션 시작 시</strong> 로드되므로 설치 직후라면 세션을 재시작한다. <code>/menu</code>로 인식 목록 확인.</p></div></details>
+    <details><summary>hooks.env를 수정했는데 자꾸 되돌아간다</summary>
+      <div class="d-body"><p>정상이다 — hooks.env는 PROJECT.md에서 자동 생성되는 파생물. <strong>PROJECT.md frontmatter를 수정</strong>하고 <code>/project-config sync</code> 하라.</p></div></details>
+    <details><summary>Team Lead가 코드 수정을 거부한다 (HR-1 차단)</summary>
+      <div class="d-body"><p>팀 운영 중엔 의도된 동작. backend-dev/frontend-dev에게 위임하는 게 정석. 팀이 없는데도 차단되면 센티넬 잔재 확인: <code>rm /tmp/agent-teams-active</code>. 애초에 가드 범위가 잘못됐다면 PROJECT.md <code>code_dirs</code> 조정.</p></div></details>
+    <details><summary>SSOT 문서를 수정하려는데 LOCK-1에 걸린다</summary>
+      <div class="d-body"><p>활성 Phase의 <code>current_state</code>가 IDLE/DONE이 아니면 SSOT 수정이 차단된다. Phase를 완료(DONE)하거나 status.md를 BLOCKED로 전이(LOCK-2)한 뒤 수정하고, 수정 후 VERSION.md 기록(LOCK-5) + 팀원 리로드(LOCK-3).</p></div></details>
+    <details><summary>Telegram 알림이 실패한다</summary>
+      <div class="d-body"><p>① <code>PAB_TELEGRAM_BOT_TOKEN</code>/<code>PAB_TELEGRAM_CHAT_ID</code> 환경변수 확인 ② PROJECT.md <code>notify_channel</code>이 <code>none</code>이면 발송 자체를 건너뜀 ③ <code>bash scripts/pmAuto/report_to_telegram.sh "test" "hello"</code>로 단독 테스트. 봇 생성부터의 세팅 절차: <a class="jump" data-target="records">🗂 기록·알림 위치 §①</a></p></div></details>
+    <details><summary>컨텍스트 압축 후 이상하게 동작한다</summary>
+      <div class="d-body"><p>FRESH-7 절차: <code>/ssot-reload</code> → 활성 Phase status.md 확인 → 팀 재구성. post-compact 훅이 핵심 규칙을 자동 재주입하지만, 작업 재개 전 리로드는 수동으로 해야 한다. 긴 작업 전엔 <code>/context-handoff prepare</code>로 인계 문서를 미리 만들어두면 안전.</p></div></details>
+    <details><summary>업그레이드 후 *.pab-new 파일이 생겼다</summary>
+      <div class="d-body"><p>대상 프로젝트가 커스터마이징한 파일의 <strong>새 프레임워크 버전</strong>이다. <code>diff 원본 원본.pab-new</code>로 비교해 필요한 변경만 수동 병합하고 .pab-new를 삭제한다.</p></div></details>
+    <details><summary>새 프로젝트인데 어떤 스킬부터 쓰나</summary>
+      <div class="d-body"><p>순서: <code>/project-config init</code>(설정) → <code>/ssot-reload</code>(로딩) → <code>/plan</code>(개발 요청 시작) → 이후 사이클은 Team Lead가 자동 진행. 중간 점검은 <code>/gate-check</code>, 기록은 <code>/worklog</code>.</p></div></details>
+    <details><summary>이 가이드 문서는 어디에 있나</summary>
+      <div class="d-body"><p><code>docs/guide/index.html</code> — 브라우저로 직접 열거나 로컬 서버로 서빙. 번들 업그레이드 시 최신 가이드로 함께 갱신된다.</p></div></details>
+
+    <h3>참조 문서 맵</h3>
+    <table>
+      <tr><th>궁금한 것</th><th>문서</th></tr>
+      <tr><td>규칙 ID 상세 (HR-1, FRESH-7 …)</td><td><code>docs/SSOT/core/6-rules-index.md</code> (또는 <code>/rules-lookup</code>)</td></tr>
+      <tr><td>워크플로우·상태머신·게이트</td><td><code>docs/SSOT/3-workflow.md</code></td></tr>
+      <tr><td>역할별 스폰 로딩 세트</td><td><code>docs/SSOT/0-entrypoint.md</code> §역할별 스폰 컨텍스트</td></tr>
+      <tr><td>SSOT 업그레이드 절차</td><td><code>docs/SSOT/UPGRADE.md</code></td></tr>
+      <tr><td>이식 체크리스트</td><td><code>.claude/README.md</code></td></tr>
+      <tr><td>프로젝트 설정</td><td><code>PROJECT.md</code> (루트)</td></tr>
+    </table>
+  </section>
+
+  <a class="toplink" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">↑ 맨 위로</a>
+  </main>
+</div>
+
+<script>
+(function () {
+  var items = document.querySelectorAll('.nav-item, .jump');
+  var sections = document.querySelectorAll('.section');
+
+  function show(id) {
+    sections.forEach(function (s) { s.classList.toggle('active', s.id === id); });
+    document.querySelectorAll('.nav-item').forEach(function (n) {
+      n.classList.toggle('active', n.getAttribute('data-target') === id);
+    });
+    window.scrollTo({ top: 0 });
+    if (history.replaceState) history.replaceState(null, '', '#' + id);
+  }
+
+  items.forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      show(el.getAttribute('data-target'));
+    });
+  });
+
+  // 해시 직접 진입 지원 (#skills 등)
+  var hash = location.hash.replace('#', '');
+  if (hash && document.getElementById(hash)) show(hash);
+
+  // 스킬 검색 필터
+  var filter = document.getElementById('skillFilter');
+  if (filter) {
+    filter.addEventListener('input', function () {
+      var q = filter.value.trim().toLowerCase();
+      document.querySelectorAll('.skill-item').forEach(function (d) {
+        var key = (d.getAttribute('data-key') || '') + ' ' + d.textContent;
+        var hit = !q || key.toLowerCase().indexOf(q) !== -1;
+        d.style.display = hit ? '' : 'none';
+        if (q && hit) d.open = true;
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>

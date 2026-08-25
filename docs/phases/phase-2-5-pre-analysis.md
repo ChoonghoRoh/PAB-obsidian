@@ -1,7 +1,7 @@
 ---
 phase: "2-5"
 title: "운영 안정화 + 백업 무결성 — 사전 분석"
-ssot_version: 8.3-renewal-6th
+ssot_version: v8.2-renewal-6th   # ver6-2 라인 이행 (2026-08-25). v8.3 policy/model-assignment.md는 이식 보존
 created: 2026-08-24
 updated: 2026-08-24
 status: APPROVED

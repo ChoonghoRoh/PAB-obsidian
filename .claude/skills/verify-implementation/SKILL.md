@@ -103,6 +103,6 @@ Task 구현 결과를 검증하는 오케스트레이터. 변경 파일의 도�
 
 ## 참조
 
-- `SSOT/ROLES/verifier.md` — G2 판정 기준 상세
-- `SSOT/2-architecture.md` §8 — 검증 기준 체크리스트
-- `SSOT/1-project.md` §4 — 품질 게이트 정의
+- `docs/SSOT/ROLES/verifier.md` — G2 판정 기준 상세
+- `docs/SSOT/2-architecture.md` §8 — 검증 기준 체크리스트
+- `docs/SSOT/1-project.md` §4 — 품질 게이트 정의

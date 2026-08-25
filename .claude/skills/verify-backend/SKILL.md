@@ -11,13 +11,22 @@ allowed-tools: "Read, Glob, Grep"
 
 ## 역할
 
-`SSOT/ROLES/verifier.md` §2.1 백엔드 검증 기준에 따라 변경 파일을 검토하고 G2_be 판정을 반환한다.
+`docs/SSOT/ROLES/verifier.md` §2.1 백엔드 검증 기준에 따라 변경 파일을 검토하고 G2_be 판정을 반환한다.
 
 ## 입력
 
 `$ARGUMENTS` — 검증 대상 파일 경로 목록 (공백 구분) 또는 디렉토리 경로
 
-파일 목록이 비어있으면 `git diff --name-only HEAD`에서 `backend/` 하위 파일을 자동 수집한다.
+파일 목록이 비어있으면 `git diff --name-only HEAD`에서 해당 도메인 코드 폴더(`backend/` 기본, `.claude/hooks/hooks.env`의 `PAB_CODE_DIRS` 참조) 하위 파일을 자동 수집한다.
+
+
+## 프로젝트 오버라이드 (검증 전 필수 확인)
+
+프로젝트 루트에 `PROJECT.md`가 있으면 **§4 개발 규칙 오버라이드**를 먼저 읽는다.
+
+- §4.1 추가 규칙 → 아래 기준에 **추가**하여 검사
+- §4.2 완화·제외 규칙 → 해당 항목은 명시된 범위에서 **검사 제외** (판정 리포트에 "§4.2 완화 적용" 표기)
+- 충돌 시 PROJECT.md가 SSOT 기본 기준에 우선한다.
 
 ## 검증 기준
 

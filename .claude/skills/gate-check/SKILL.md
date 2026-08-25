@@ -31,7 +31,7 @@ allowed-tools: "Read, Glob, Grep"
 
 ### 2. 게이트 기준 추출
 
-- `SSOT/3-workflow.md`를 읽는다.
+- `docs/SSOT/3-workflow.md`를 읽는다.
 - Grep으로 해당 게이트 섹션을 찾아 기준 항목을 추출한다.
 
 ### 3. 현재 Phase 상태 읽기

@@ -46,7 +46,7 @@ PAB-LLMDATA/wiki/15_Sources/ (SOURCE 원본)
 TELEGRAM_BOT_TOKEN=123456789:AAAA...
 # 리스너 전용 봇(@BotFather로 별도 생성) — 알림용과 공유하면 409 충돌
 WIKI_TELEGRAM_BOT_TOKEN=987654321:BBBB...
-TELEGRAM_CHAT_ID=987654321
+TELEGRAM_CHAT_ID=123456789
 # 선택사항 — 서버에서 vault 위치가 다를 경우
 # 주의: mirror 경로(/home/oceanui/pab-vault-mirror/...)를 지정하면 R-1 위반.
 #       반드시 vault 정본(클론 경로/PAB-LLMDATA)을 사용할 것.

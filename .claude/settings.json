@@ -25,30 +25,44 @@
       "Skill(ssot-reload:*)",
       "Skill(gate-check:*)",
       "Skill(refactor-scan:*)",
-      "Skill(rules-lookup:*)"
+      "Skill(rules-lookup:*)",
+      "Bash(node:*)",
+      "Bash(bash scripts/log-prompt.sh:*)",
+      "Bash(./scripts/log-prompt.sh:*)",
+      "Skill(project-config:*)",
+      "Skill(plan:*)",
+      "Skill(verify-implementation:*)",
+      "Skill(verify-backend:*)",
+      "Skill(verify-frontend:*)",
+      "Skill(context-handoff:*)",
+      "Skill(worklog:*)",
+      "Skill(report:*)",
+      "Skill(menu:*)",
+      "Skill(notify-telegram:*)",
+      "Skill(wiki:*)",
+      "Skill(worktree:*)",
+      "Skill(abort:*)"
     ]
   },
   "hooks": {
-    "TaskCompleted": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/on-task-completed.sh",
-            "timeout": 30,
-            "statusMessage": "Task 완료 품질 검사 실행 중..."
-          }
-        ]
-      }
-    ],
     "SessionStart": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/ssot-freshness-check.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/ssot-freshness-check.sh\"",
             "timeout": 10,
             "statusMessage": "SSOT 진입점 확인 중..."
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/scripts/log-prompt.sh\" init && \"$CLAUDE_PROJECT_DIR/scripts/log-prompt.sh\" check",
+            "timeout": 10,
+            "statusMessage": "오늘자 work-log 초기화 중..."
           }
         ]
       }
@@ -59,9 +73,20 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/hr1-guard.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/hr1-guard.sh\"",
             "timeout": 5,
             "statusMessage": "HR-1 코드 수정 규칙 확인 중..."
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/lock1-guard.sh\"",
+            "timeout": 5,
+            "statusMessage": "LOCK-1 SSOT 수정 권한 확인 중..."
           }
         ]
       }
@@ -72,9 +97,80 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/line-count-monitor.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/line-count-monitor.sh\"",
             "timeout": 10,
             "statusMessage": "HR-5 줄수 모니터링 중..."
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/state-transition-guard.sh\"",
+            "timeout": 5,
+            "statusMessage": "상태 전이 유효성 검증 중..."
+          }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/on-task-completed.sh\"",
+            "timeout": 30,
+            "statusMessage": "Task 완료 품질 검사 실행 중..."
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/team-sentinel.sh\" start",
+            "timeout": 5,
+            "statusMessage": "팀원 스폰 감지 — 팀 활성 센티넬 등록 중..."
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/team-sentinel.sh\" stop",
+            "timeout": 5,
+            "statusMessage": "팀원 종료 감지 — 팀 활성 센티넬 갱신 중..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-worklog-reminder.sh\"",
+            "timeout": 5,
+            "statusMessage": "work-log 기록 확인 중..."
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/post-compact-reminder.sh\"",
+            "timeout": 10,
+            "statusMessage": "FRESH-7 컨텍스트 복구 정보 수집 중..."
           }
         ]
       }

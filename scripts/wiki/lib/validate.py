@@ -1,0 +1,201 @@
+"""schema strict + broken [[wikilink]] + orphan 검출 유틸 (T-3)."""
+from __future__ import annotations
+
+import json
+import re
+import subprocess
+from pathlib import Path
+from typing import Any
+
+import frontmatter as fm_lib
+import jsonschema
+
+WIKILINK_RE = re.compile(r"\[\[([^\]\|#]+)(?:\|[^\]]+)?(?:#[^\]]+)?\]\]")
+INLINE_CODE_RE = re.compile(r"`[^`]+`")  # 인라인 코드 스팬 제거 (FIX-2)
+
+# 가상 앵커 화이트리스트 — broken 판정 제외 (FIX-1: TOC 추가)
+WIKILINK_WHITELIST = {"ROOT", "MOC", "CONSTRAINTS", "TYPES", "DOMAINS", "TOPICS", "TOC"}
+
+
+def collect_notes(vault: Path) -> list[Path]:
+    """vault 전체 .md 수집 (_attachments·40_Templates 제외)."""
+    return [
+        p for p in vault.rglob("*.md")
+        if "_attachments" not in p.parts and "40_Templates" not in p.parts
+    ]
+
+
+def collect_mocs(vault: Path) -> list[Path]:
+    """{vault}/00_MOC/ 전체 .md 수집."""
+    moc_dir = vault / "00_MOC"
+    return list(moc_dir.rglob("*.md")) if moc_dir.exists() else []
+
+
+def is_moc_stem(stem: str) -> bool:
+    upper = stem.upper()
+    return upper in {
+        "RESEARCH_NOTE", "CONCEPT", "LESSON", "PROJECT", "DAILY", "REFERENCE",
+        "AI", "HARNESS", "ENGINEERING", "PRODUCT", "KNOWLEDGE_MGMT", "MISC",
+        "_README", "_INDEX",
+    } or upper.startswith("_")
+
+
+def validate_frontmatter_strict(notes: list[Path], schema_path: Path) -> list[dict[str, Any]]:
+    """schema v1.1 Draft202012Validator 적용. 위반 노트별 에러 목록 반환."""
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    validator = jsonschema.Draft202012Validator(schema)
+    violations: list[dict[str, Any]] = []
+    for note in notes:
+        try:
+            post = fm_lib.load(str(note))
+        except Exception as exc:
+            violations.append({"path": str(note), "errors": [{"path": [], "msg": f"파싱 오류: {exc}"}]})
+            continue
+        errors = list(validator.iter_errors(post.metadata))
+        if errors:
+            violations.append({
+                "path": str(note),
+                "errors": [{"path": list(e.absolute_path), "msg": e.message} for e in errors],
+            })
+    return violations
+
+
+def _extract_wikilink_targets(text: str) -> set[str]:
+    """frontmatter + fenced code block + 인라인 코드 제외 후 wikilink 타겟 추출 (FIX-2)."""
+    targets: set[str] = set()
+    lines = text.splitlines()
+    in_frontmatter = in_code_block = False
+    for i, line in enumerate(lines):
+        if i == 0 and line.strip() == "---":
+            in_frontmatter = True; continue
+        if in_frontmatter:
+            if line.strip() == "---":
+                in_frontmatter = False
+            continue
+        if line.lstrip().startswith("```"):
+            in_code_block = not in_code_block; continue
+        if in_code_block:
+            continue
+        for m in WIKILINK_RE.finditer(INLINE_CODE_RE.sub("", line)):
+            if t := m.group(1).strip():
+                targets.add(t)
+    return targets
+
+
+def find_unresolved_links_obsidian(
+    vault: Path, wiki_notes: list[Path] | None = None
+) -> list[str] | None:
+    """obsidian unresolved 호출. wiki/ 범위 교차 필터 + 화이트리스트 제외."""
+    try:
+        result = subprocess.run(
+            ["obsidian", "unresolved"], capture_output=True, text=True,
+            timeout=15, cwd=str(vault),
+        )
+        if result.returncode != 0:
+            return None
+        obs = {l.strip() for l in result.stdout.splitlines() if l.strip()}
+        if wiki_notes:
+            wiki_targets: set[str] = set()
+            for note in wiki_notes:
+                try:
+                    wiki_targets |= _extract_wikilink_targets(note.read_text(encoding="utf-8"))
+                except OSError:
+                    pass
+            filtered = obs & wiki_targets
+        else:
+            filtered = obs
+        return sorted(filtered - WIKILINK_WHITELIST)
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return None
+
+
+def find_unresolved_links_fallback(notes: list[Path]) -> list[str]:
+    """정규식 폴백 — frontmatter + fenced/inline code 제외 후 stem 교차 검증.
+
+    path-style wikilink([[00_MOC/TYPES/FOO]])는 basename으로 비교 (FIX-4).
+    """
+    all_targets: set[str] = set()
+    all_stems: set[str] = {n.stem for n in notes}
+    for note in notes:
+        try:
+            all_targets |= _extract_wikilink_targets(note.read_text(encoding="utf-8"))
+        except OSError:
+            pass
+    broken: list[str] = []
+    for target in sorted(all_targets):
+        if target in WIKILINK_WHITELIST:
+            continue
+        basename = target.split("/")[-1].split("|")[0].split("#")[0].strip()
+        if basename not in all_stems and basename not in WIKILINK_WHITELIST:
+            broken.append(target)
+    return broken
+
+
+def find_orphan_notes(notes: list[Path], moc_paths: list[Path]) -> list[str]:
+    """어떤 노트·MOC에서도 [[stem]] 미참조 노트 목록. MOC 자체는 제외."""
+    referenced: set[str] = set()
+    for source in notes + moc_paths:
+        try:
+            for m in WIKILINK_RE.finditer(source.read_text(encoding="utf-8")):
+                referenced.add(m.group(1).strip())
+        except OSError:
+            pass
+    return sorted(n.stem for n in notes if n.stem not in referenced and not is_moc_stem(n.stem))
+
+
+def format_text_report(report: dict[str, Any]) -> str:
+    c = report["counts"]
+    lines = [
+        f"{report['status']} (notes={c['notes']}, violations={c['violations']}, "
+        f"broken={c['broken']}, orphans={c['orphans']})"
+    ]
+    for v in report.get("schema_violations", []):
+        lines.append(f"  [SCHEMA] {v['path']}")
+        for e in v["errors"]:
+            lines.append(f"    - {'.'.join(str(x) for x in e['path'])}: {e['msg']}")
+    for b in report.get("broken_links", []):
+        lines.append(f"  [BROKEN] [[{b}]]")
+    if report.get("orphans"):
+        lines.append(f"  [ORPHAN] {', '.join(report['orphans'])}")
+    return "\n".join(lines)
+
+
+def run_link_check(args: Any) -> int:
+    vault: Path = args.vault
+    _empty = {"schema_violations": [], "broken_links": [], "orphans": [],
+               "counts": {"notes": 0, "violations": 0, "broken": 0, "orphans": 0}}
+
+    if not vault.exists():
+        _print(args, {"status": "PASS", "reason": "no vault directory", **_empty}, "PASS (no vault)")
+        return 0
+    notes = collect_notes(vault)
+    if not notes:
+        _print(args, {"status": "PASS", "reason": "empty vault", **_empty}, "PASS (empty vault)")
+        return 0
+
+    schema_path = vault / "40_Templates/_schema.json"
+    violations = validate_frontmatter_strict(notes, schema_path) if schema_path.exists() else []
+    broken = find_unresolved_links_obsidian(vault, wiki_notes=notes)
+    if broken is None:
+        broken = find_unresolved_links_fallback(notes)
+    orphans = find_orphan_notes(notes, collect_mocs(vault))
+
+    critical = len(violations) + len(broken)
+    grade = "FAIL" if critical else ("PARTIAL" if orphans else "PASS")
+    report = {
+        "status": grade,
+        "schema_violations": violations,
+        "broken_links": broken,
+        "orphans": orphans,
+        "counts": {"notes": len(notes), "violations": len(violations),
+                   "broken": len(broken), "orphans": len(orphans)},
+    }
+    _print(args, report, format_text_report(report))
+    return 1 if critical else 0
+
+
+def _print(args: Any, json_data: dict, text: str) -> None:
+    if getattr(args, "json_output", False):
+        print(json.dumps(json_data, indent=2, ensure_ascii=False))
+    else:
+        print(text)

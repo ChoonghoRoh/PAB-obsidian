@@ -1,6 +1,7 @@
 ---
 name: plan
 description: 사용자 주도 마스터 플랜 진입 전 프롬프트 품질 토픽 논의 및 자료 수집(AutoCycle Step 0 Pre-draft). Team Lead 단독 운영, 코드 조사·리뷰 필요 시에만 BE/FE/tester 온디맨드 호출. AI handoff 시 자동 제외.
+argument-hint: "[--help]"
 user-invocable: true
 context: inherit
 agent: main
@@ -12,6 +13,49 @@ allowed-tools: "Read, Glob, Grep, Bash, Write, Edit, EnterPlanMode, ExitPlanMode
 ## 역할
 
 `PROMPT-QUALITY` 규칙(`6-rules-index.md §1.20`)에 따라 사용자 주도 마스터 플랜 진입 전 프롬프트 품질을 점검하고, 마스터 플랜 등록에 필요한 자료를 수집·정리한다. Claude Code 내장 **Plan Mode**와 유사하게 동작하며, **Team Lead 단독**으로 운영된다.
+
+## 입력
+
+`$ARGUMENTS` — 본 스킬은 위치 인수·키-값 옵션을 사용하지 않음. 공통 `--help` 만 지원.
+
+### 옵션
+
+| 옵션 | 종류 | 기본값 | 설명 |
+|------|------|--------|------|
+| `--help` | flag | false | **공통** — 본 작업 미실행, 설명·옵션 표만 출력 후 종료 |
+
+### 상호배타
+
+- 해당 없음 (옵션 단일).
+
+## 입력 파싱
+
+`$ARGUMENTS`를 공백 단위로 토큰화하여 다음 규칙에 따라 분류:
+
+| 패턴 | 종류 | 예시 |
+|------|------|------|
+| `--key=value` | 키-값 옵션 | (사용 안 함) |
+| `--key="value with spaces"` | 키-값 옵션 (인용) | (사용 안 함) |
+| `--flag` | 불린 플래그 (값 없음) | `--help` |
+| 그 외 | 위치 인수 | (사용 안 함) |
+
+### 파싱 절차
+
+1. `$ARGUMENTS`를 공백 기준 토큰화 (`"..."` 또는 `'...'` 안의 공백은 보존)
+2. `--`로 시작하는 토큰을 옵션으로 분리
+3. 나머지 토큰을 위치 인수로 수집
+4. 알 수 없는 옵션은 경고 출력 (실행 계속)
+5. **상호배타 옵션이 동시 지정되면 즉시 오류 종료** (결정 #4)
+6. **`--help` 우선 처리**: `options.help === true`이면 §0 헬프 출력 후 즉시 종료
+
+## 실행 절차
+
+### 0. --help 처리 (PAB 공통)
+
+§입력 파싱에서 `options.help === true`로 판별되면:
+
+1. 표준 헬프 포맷으로 본 스킬 설명 출력 (description, argument-hint, 옵션 표, 예시)
+2. 즉시 종료 (이후 단계 미실행)
 
 ## 진입 조건 (§1)
 
@@ -61,7 +105,7 @@ allowed-tools: "Read, Glob, Grep, Bash, Write, Edit, EnterPlanMode, ExitPlanMode
 
 **파일 경로**: `docs/phases/pre/phase-{N}-pre-draft.md`
 
-**템플릿**: `SSOT/TEMPLATES/pre-draft-topics.md` (§1~§8 구조 준수)
+**템플릿**: `docs/SSOT/TEMPLATES/pre-draft-topics.md` (§1~§8 구조 준수)
 
 | 섹션 | 내용 |
 |------|------|
@@ -126,9 +170,16 @@ allowed-tools: "Read, Glob, Grep, Bash, Write, Edit, EnterPlanMode, ExitPlanMode
 - [ ] 범위 분할 필요: {제안}
 ```
 
+## 예시
+
+```
+/plan          # AutoCycle Step 0 Pre-draft 진입
+/plan --help   # 도움말
+```
+
 ## 참고
 
-- 규칙: `SSOT/core/6-rules-index.md §1.20 PROMPT-QUALITY` (HIGH)
-- 템플릿: `SSOT/TEMPLATES/pre-draft-topics.md`
+- 규칙: `docs/SSOT/core/6-rules-index.md §1.20 PROMPT-QUALITY` (HIGH)
+- 템플릿: `docs/SSOT/TEMPLATES/pre-draft-topics.md`
 - 규정 근거: Phase-I I-2 (AutoCycle Pre-draft Gate)
-- 제외 분기 로직: `SSOT/SUB-SSOT/TEAM-LEAD/1-orchestration-procedure.md §Step-0 Branch` (Phase-I I-4 산출물)
+- 제외 분기 로직: `SUB-SSOT/TEAM-LEAD/1-orchestration-procedure.md §Step-0 Branch` (Phase-I I-4 산출물)
