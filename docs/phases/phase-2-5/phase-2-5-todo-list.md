@@ -17,12 +17,14 @@
 - [ ] 3800X crontab 등록 (DP-2-5-1)
 - [ ] 맥북발 주 1회 역방향 확인 보조 장치 등록 (서버 침묵 감지)
 
-## T-2: [G-2 🔴] GitHub 오프사이트 백업 정상화
-- [ ] 미커밋 잔여 해소 (노트 8종 + `_INDEX.md` 수정 + `무제.canvas` 삭제)
-- [ ] 자동 커밋·푸시 스크립트 작성 (**커밋·푸시만, 병합 금지** — PR-3)
-- [ ] DP-1 데스크톱 git-authority 정책 무변경 확인
-- [ ] 맥북 로컬 cron 등록 (DP-2-5-2)
-- [ ] 커밋 공백 ≤ 24h KPI 달성 확인
+## T-2: [G-2 🔴] GitHub 오프사이트 백업 정상화 — ◐ cron만 잔여
+- [x] 미커밋 잔여 해소 (2026-08-25 `03fb4e2` + 2026-08-26 `2efb00e` → 미커밋 0 / 미푸시 0)
+- [x] 자동 커밋·푸시 스크립트 작성 — `scripts/monitoring/pab_git_autocommit_local.sh` (350줄, 안전장치 8종)
+- [x] **PR-3 병합 금지 증명** — 쓰기는 `add`/`commit`/`push`만, `merge`/`pull`/`rebase`/`reset`/`checkout` 0건, force 경로 없음 (Team Lead 독립 검증)
+- [x] dry-run 안전성 실증 — `.git/index` SHA·HEAD·작업트리 무변경 (임시 인덱스 사본)
+- [x] DP-1 데스크톱 git-authority 정책 무변경 확인
+- [ ] ⚠️ **맥북 로컬 cron 등록 (DP-2-5-2) — BL-3로 차단.** 사용자 터미널에서 `bash scripts/monitoring/deploy_monitoring.sh --local-only` 1회 필요
+- [x] 커밋 공백 리셋 확인 (KPI 달성은 cron 활성화 후 성립)
 
 ## T-3: [G-3 🟡] CouchDB 볼륨 덤프 백업
 - [ ] `pab_couchdb_data` 덤프 스크립트 작성

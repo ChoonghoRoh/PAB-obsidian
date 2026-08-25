@@ -107,6 +107,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="frontmatter strict (schema v1.1) + broken [[wikilink]] + orphan 검출",
     )
     p_lc.add_argument("--full", action="store_true", help="전체 상세 출력 (향후 확장용)")
+    p_lc.add_argument(
+        "--strict-broken",
+        action="store_true",
+        help="broken [[wikilink]] 을 critical 로 합산 — 구 동작 복원 (기본: 정보 지표)",
+    )
     p_lc.set_defaults(func=cmd_link_check)
 
     # wiki moc-build

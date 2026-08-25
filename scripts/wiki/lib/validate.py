@@ -149,6 +149,10 @@ def format_text_report(report: dict[str, Any]) -> str:
         f"{report['status']} (notes={c['notes']}, violations={c['violations']}, "
         f"broken={c['broken']}, orphans={c['orphans']})"
     ]
+    if c["broken"] and not report.get("strict_broken"):
+        lines.append(
+            f"  ※ broken {c['broken']}건은 정보 지표 — 미래 노트 unresolved 는 정상(판정 제외)"
+        )
     for v in report.get("schema_violations", []):
         lines.append(f"  [SCHEMA] {v['path']}")
         for e in v["errors"]:
@@ -180,7 +184,23 @@ def run_link_check(args: Any) -> int:
         broken = find_unresolved_links_fallback(notes)
     orphans = find_orphan_notes(notes, collect_mocs(vault))
 
-    critical = len(violations) + len(broken)
+    # ── status 산정 규격 (Task 2-5-7 §작업 3 / PO2 §4.2 R-1) ───────────────────
+    # broken 은 결함이 아니라 **정상 동작**이다. Karpathy 방식 wiki 는 아직 쓰지
+    # 않은 노트를 미리 [[wikilink]] 로 가리키고, 산문 속 대괄호 표현도 broken 으로
+    # 잡힌다. `/wiki` 스킬 자신이 이를 정상으로 규정한다 — SKILL.md Step 9:
+    #   "broken=N → 미래 노트 unresolved (WARN, 정상) / schema_violations만 critical"
+    # 그런데 구 로직은 broken 을 critical 에 합산해, 규격상 정상인 vault 를 FAIL 로
+    # 판정했다(정본 실측: violations=0 · orphans=0 인데 broken 때문에 FAIL).
+    # 따라서 판정은 violations·orphans 로만 하고 broken 은 정보 지표로 분리한다.
+    #
+    # 양측 계약: PAB-Prove FC-14 커밋 게이트가 이 `status` 를 읽는다(PO1 §4.1).
+    # PO2 §4.2 R-1 에서 "판정 근거를 counts.violations==0 && counts.orphans==0 으로
+    # 통일하자"고 요청했고, 본 변경이 우리 쪽 이행분이다.
+    #
+    # --strict-broken: broken 을 critical 로 합산하던 **구 동작을 그대로 복원**한다.
+    #   exit code 하위호환이 필요한 호출부를 위한 탈출구이며, 기본값은 신규 규격이다.
+    strict_broken = getattr(args, "strict_broken", False)
+    critical = len(violations) + (len(broken) if strict_broken else 0)
     grade = "FAIL" if critical else ("PARTIAL" if orphans else "PASS")
     report = {
         "status": grade,
@@ -189,6 +209,7 @@ def run_link_check(args: Any) -> int:
         "orphans": orphans,
         "counts": {"notes": len(notes), "violations": len(violations),
                    "broken": len(broken), "orphans": len(orphans)},
+        "strict_broken": strict_broken,
     }
     _print(args, report, format_text_report(report))
     return 1 if critical else 0

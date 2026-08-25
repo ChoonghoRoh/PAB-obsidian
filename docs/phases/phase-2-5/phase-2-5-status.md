@@ -20,7 +20,7 @@ execution_order: "2-1 직후 · 2-2 이전 (번호와 실행순서 불일치, ma
 gate_results:
   G0: SKIP       # research = false — 사전 분석(phase-2-5-pre-analysis.md, APPROVED)이 조사 대체
   G1: PASS       # plan.md Team Lead 검토 승인 (2026-08-25) — 결정사항·리스크·게이트 반영 확인
-  G2_infra: PARTIAL  # T-1 한정 PASS (Team Lead 독립 검증 2026-08-25). T-2~T-6 미착수
+  G2_infra: PARTIAL  # T-1 PASS(2026-08-25) + T-2 조건부 PASS(2026-08-26, cron 활성화만 BL-3로 잔여). T-3~T-7 미착수
   #   [T-1 검증 결과]
   #   ✓ Tailnet IP(100.109.251.86) 경유 — localhost 회피 확인
   #   ✓ printf %q 상태파일 규약 준수 (46일 침묵 사고 재발 방지)
@@ -39,14 +39,22 @@ blockers:
     task: "2-5-1"
     desc: "UK_PAB_VAULT_PUSH_URL 미발급 — Observer 측 회신 대기. 미설정 시 Push 생략 동작으로 선배포는 가능(진행 차단 아님)"
     owner: "Observer 측 (사용자 전달)"
+  - id: BL-3
+    task: "2-5-2"
+    desc: "맥북 crontab **쓰기** 차단 — 읽기(crontab -l)는 정상이나 쓰기(crontab <file>)가 무한 대기. Claude Code 세션 환경의 macOS TCC(전체 디스크 접근) 제약으로 추정. Team Lead 재현 확인(2026-08-26, 내용 무변경 왕복 테스트도 10초 초과). backend-dev가 04:25에는 성공한 이력이 있어 간헐적. **crontab 무결성은 보존됨**(기존 2종 그대로, 백업본과 diff 일치)"
+    owner: "사용자 (본인 터미널에서 실행 — `! bash scripts/monitoring/deploy_monitoring.sh --local-only`)"
   - id: BL-2
     task: "2-5-1"
     desc: "기존 UK CouchDB 모니터 알림 미도달 원인 미규명 — UK는 15초 주기로 /_up 감시 중이었으나 3일 장애가 사람에게 도달하지 않음. 규명 없이는 신규 모니터도 동일 침묵 위험"
     owner: "Observer 측 (사용자 전달)"
+  - id: BL-3
+    task: "2-5-2"
+    desc: "맥북 crontab **쓰기** 차단 — 읽기(crontab -l)는 정상이나 쓰기(crontab <file>)가 무한 대기. Claude Code 세션 환경의 macOS TCC(전체 디스크 접근) 제약으로 추정. Team Lead 재현 확인(2026-08-26, 내용 무변경 왕복 테스트도 10초 초과). backend-dev가 04:25에는 성공한 이력이 있어 간헐적. **crontab 무결성은 보존됨**(기존 2종 그대로, 백업본과 diff 일치)"
+    owner: "사용자 (본인 터미널에서 실행 — `! bash scripts/monitoring/deploy_monitoring.sh --local-only`)"
 domain_tags_in_use: [INFRA]
 roles:
   team_lead: main
-  backend_dev: spawning      # 2026-08-26 T-2 착수 위해 재스폰 (직전 인스턴스는 T-1 후 HR-7 종료)
+  backend_dev: active        # 2026-08-26 재스폰. T-2 구현·검증 완료 → T-7(validate.py) 진행 중
   verifier: not_spawned
   tester: not_spawned        # G3_smoke 장애 주입 (HR-6 독립성)
   frontend_dev: not_spawned  # 미사용
@@ -97,7 +105,7 @@ deferred:
 
 1. ~~`phase-2-5-plan.md` 확정 → G1 PASS~~ ✅ (2026-08-25)
 2. ~~T-1 모니터링~~ ✅ G2_infra 조건부 PASS (2026-08-25)
-3. **backend-dev 재스폰 → T-2(자동 커밋 cron) 최우선 착수** ← 현재. 편입이 T-4에 물리고 T-4는 PR-1로 T-2가 선행
+3. ~~T-2 자동 커밋·푸시~~ ◐ **구현·검증 완료** (커밋 `2efb00e`, 미커밋 0 / 미푸시 0). **cron 활성화만 BL-3로 잔여 — 사용자 터미널 1회 실행 필요**
 4. T-3(CouchDB 볼륨 백업) → T-4(자격증명 회전 + `pabprove` 발급 + 편입 실행)
 5. T-5 · T-6 · T-7
 6. tester 스폰 → G3_smoke 장애 주입 E2E (HR-6: 구현자 셀프체크 금지, **사용자 승인 필요** — 가동 서비스 중단 수반)
