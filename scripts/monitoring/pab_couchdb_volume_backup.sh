@@ -23,6 +23,20 @@
 #      그래서 `--verify-restore` 가 이 스크립트의 핵심 산출물이다.
 #      검증되지 않은 백업은 백업이 아니다.
 #
+# 정합성 방식 선정 근거 (T-3 판단 요구사항 — 실측 기반):
+#   ⒜ _ensure_full_commit 선행  → **채택 안 함**. CouchDB 3.x 는 delayed_commits 가
+#      제거돼 모든 쓰기가 이미 즉시 durable 이다. 이 API 는 하위호환용으로 남아
+#      {"ok":true} 만 돌려줄 뿐 실제 flush 효과가 없다 — 실익 0, 네트워크 의존만 는다.
+#   ⒝ 컨테이너 정지 후 복사   → **채택 안 함**. 확실하지만 대가가 크다. LiveSync
+#      클라이언트의 복제가 중간에 끊기고, 45시간 무중단 가동 중인 서비스를 매일
+#      멈추게 된다. append-only 로 이미 성립하는 보장을 위해 치를 값이 아니다.
+#   ⒞ 파일시스템(LVM) 스냅샷  → **불가**. 실측 결과 `ubuntu-vg` 의 **VG 여유가 0** 이라
+#      스냅샷 LV 를 만들 공간 자체가 없다. (볼륨 4MB 에 LVM 스냅샷은 과잉이기도 하다)
+#   ⒟ 무정지 tar + 다층 검증  → **채택**. 매 회차 아카이브 무결성 게이트(구성요소
+#      존재 확인) + 주 1회 실제 복원 리허설로 "복구된다"를 지속 증명한다.
+#      compaction 은 별도 `.compact` 파일에 쓰고 원자적 rename 이라 원본 `.couch`
+#      는 항상 유효하다 — compaction 중 복사가 오히려 안전한 쪽이다.
+#
 # [중요] 저장 뿌리를 Observer 와 **분리**한다:
 #   backup-datastores.sh 는 `/home/oceanui/backups` 안에서 `20*-*` 패턴 디렉토리를
 #   `rm -rf` 로 회전시킨다. 같은 뿌리에 세대를 쌓으면 **서로의 백업을 지운다**.
@@ -33,8 +47,13 @@
 # 무소음 원칙: 정상이면 로그만 남기고 알림 없음. 실패 시에만 발송(상태 전이 1회).
 #   장기 방치는 상태파일을 T-1 헬스체크가 읽어 별도로 잡는다(감시자 독립).
 #
-# cron (서버, 매일 03:47 — Observer 백업 03:17 과 30분 어긋나게):
-#   47 3 * * * /home/oceanui/pab-vault-monitor/pab_couchdb_volume_backup.sh >> /tmp/pab-couchdb-volbackup.log 2>&1  # PAB-COUCHDB-VOLBACKUP
+# cron (서버):
+#   17 4 * * * /home/oceanui/pab-vault-monitor/pab_couchdb_volume_backup.sh >> /tmp/pab-couchdb-volbackup.log 2>&1  # PAB-COUCHDB-VOLBACKUP
+#   42 4 * * 0 /home/oceanui/pab-vault-monitor/pab_couchdb_volume_backup.sh --verify-restore >> /tmp/pab-couchdb-volbackup.log 2>&1  # PAB-COUCHDB-VOLVERIFY
+#   · 04:17 — Observer backup-datastores.sh(03:17)와 1시간 분리. 같은 CouchDB 를
+#     동시에 읽지 않게 하고, 장애 시 로그 시각으로 어느 쪽인지 즉시 갈린다.
+#   · 주 1회 복원 리허설을 **cron 에 넣는다** — "백업했다"가 아니라 "복구된다"를
+#     계속 증명해야 하기 때문이다. 한 번 성공한 복원은 다음 주의 보증이 아니다.
 #
 # 사용: pab_couchdb_volume_backup.sh [--dry-run|--verify-restore|--status|--help]
 #   --dry-run        : 실제 덤프·회전·상태기록 없이 판정만
@@ -207,15 +226,34 @@ if [ "$MODE" = verify ]; then
   [ "$UP" -eq 1 ] || fail "verify-noboot" "복원본 CouchDB 가 60초 내에 기동하지 않았다" \
     "대응: docker logs ${TMP_CT}"
 
-  RESTORED="$(curl -fsS -u "verifyadmin:${PW}" --max-time 15 \
-    "http://127.0.0.1:${PORT}/${MAIN_DB}" 2>/dev/null \
+  R_URL="http://127.0.0.1:${PORT}"
+  RESTORED="$(curl -fsS -u "verifyadmin:${PW}" --max-time 15 "${R_URL}/${MAIN_DB}" 2>/dev/null \
     | python3 -c 'import sys,json;print(json.load(sys.stdin).get("doc_count",""))' 2>/dev/null)"
-  DBS="$(curl -fsS -u "verifyadmin:${PW}" --max-time 15 \
-    "http://127.0.0.1:${PORT}/_all_dbs" 2>/dev/null)"
+  DBS="$(curl -fsS -u "verifyadmin:${PW}" --max-time 15 "${R_URL}/_all_dbs" 2>/dev/null)"
   LIVE="$(live_doc_count)"
+
+  # ⑵ bridge RO 설계문서 — 이게 없으면 데이터가 살아나도 **bridge 가 붙지 못한다**.
+  #    존재만이 아니라 validate_doc_update 함수 본문까지 확인한다(껍데기 복원 방지).
+  DDOC_OK="$(curl -fsS -u "verifyadmin:${PW}" --max-time 15 \
+    "${R_URL}/${MAIN_DB}/_design/zz_bridge_readonly" 2>/dev/null \
+    | python3 -c 'import sys,json;d=json.load(sys.stdin);f=d.get("validate_doc_update","");print(len(f) if d.get("_id") else 0)' 2>/dev/null)"
+  # ⑶ _local 복제 체크포인트 — 이 백업 방식의 존재 이유 그 자체다.
+  R_LOCAL="$(curl -fsS -u "verifyadmin:${PW}" --max-time 15 "${R_URL}/${MAIN_DB}/_local_docs" 2>/dev/null \
+    | python3 -c 'import sys,json;print(len(json.load(sys.stdin).get("rows",[])))' 2>/dev/null)"
+  L_LOCAL="$(curl -fsS --netrc-file "$NETRC" --max-time 15 "${LIVE_URL}/${MAIN_DB}/_local_docs" 2>/dev/null \
+    | python3 -c 'import sys,json;print(len(json.load(sys.stdin).get("rows",[])))' 2>/dev/null)"
 
   log "복원본 ${MAIN_DB} doc_count=${RESTORED:-?} / 가동본=${LIVE:-?}"
   log "복원본 DB 목록: ${DBS:-?}"
+  log "복원본 _design/zz_bridge_readonly: validate-doc-update ${DDOC_OK:-0}자"
+  log "복원본 _local 체크포인트=${R_LOCAL:-?} / 가동본=${L_LOCAL:-?}"
+
+  [ "${DDOC_OK:-0}" -gt 0 ] || fail "verify-nodesign" \
+    "복원본에 _design/zz_bridge_readonly 의 validate-doc-update 가 없다 — bridge 가 붙지 못한다" \
+    "대응: 다른 세대로 재시도. 계속 실패면 덤프 방식 재검토"
+  [ "${R_LOCAL:-0}" -gt 0 ] || fail "verify-nolocal" \
+    "복원본에 _local 복제 체크포인트가 없다 — 이 백업 방식의 존재 이유가 무너진다" \
+    "대응: 볼륨 마운트 경로·아카이브 구성 확인"
   [ -n "$RESTORED" ] || fail "verify-nodocs" "복원본에서 ${MAIN_DB} 를 읽지 못했다" \
     "대응: 덤프 시점의 append-only tail 손상 가능성 — 다른 세대로 재시도"
   # 가동본은 덤프 이후에도 계속 늘어난다. 복원본이 더 적은 것은 정상,
@@ -227,6 +265,7 @@ if [ "$MODE" = verify ]; then
   st_set ALERT_KIND ""; st_set LAST_RUN_TS "$ts_now"
   st_set LAST_OK_TS "$(st_get LAST_OK_TS 0)"
   st_set LAST_VERIFY_TS "$ts_now"; st_set LAST_VERIFY_DOCS "${RESTORED}"
+  st_set LAST_VERIFY_LOCAL "${R_LOCAL:-0}"; st_set LAST_VERIFY_DDOC "${DDOC_OK:-0}"
   st_set LAST_VERIFY_FILE "$(basename "$LATEST")"
   st_set GENERATIONS "$(gens_list | wc -l | tr -d ' ')"
   carry LAST_STATUS LAST_FILE LAST_SIZE TOTAL_SIZE
