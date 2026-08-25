@@ -26,11 +26,18 @@
 - [ ] ⚠️ **맥북 로컬 cron 등록 (DP-2-5-2) — BL-3로 차단.** 사용자 터미널에서 `bash scripts/monitoring/deploy_monitoring.sh --local-only` 1회 필요
 - [x] 커밋 공백 리셋 확인 (KPI 달성은 cron 활성화 후 성립)
 
-## T-3: [G-3 🟡] CouchDB 볼륨 덤프 백업
-- [ ] `pab_couchdb_data` 덤프 스크립트 작성
-- [ ] 세대 보존 정책 구현 — 일 1회 × 7세대 (DP-2-5-3)
-- [ ] 서버 crontab 등록
-- [ ] **복원 리허설** — 덤프에서 실제 복구 가능 확인 (G2_infra 필수)
+## T-3: [G-3 🟡] CouchDB **물리** 볼륨 덤프 백업 — ◐ cron 등록만 잔여
+- [x] 범위 확정 — **물리** 덤프(논리는 Observer `#32`가 이미 수행). 고유 가치: 리비전 트리·뷰 인덱스·볼륨 일관 복구
+- [x] `pab_couchdb_data` 덤프 스크립트 (`pab_couchdb_volume_backup.sh`, 358줄)
+- [x] 정합성 ⒟ 무정지 확정 — ⒞는 VG 여유 0으로 **불가**, compaction은 `.compact` 원자적 rename이라 원본 늘 유효
+- [x] 세대 보존 일 1회 × 7세대 (DP-2-5-3) — 격리 루트에서 9→7 회전 실증
+- [x] **복원 리허설 PASS** — `doc_count` 3064=3064 / VDU 본문 194자 / `_local` 13=13 / 잔재 0 / 가동본 무접촉
+- [x] 아카이브 무결성 Team Lead 독립 검증 — 양 shard(q=2) 포함 확인
+- [x] **T-1 헬스체크 연계** (`eb1875b`) — 백업 정지 36h · 리허설 만료 10일 · `auto`가 crontab 마커를 읽어 위양성 차단
+- [x] Observer 사전 통지 + 보충 통지(주간 리허설 컨테이너) 발신
+- [ ] ⏸ **서버 crontab 2줄 등록 — Observer OB2-C 정식 판정 대기**
+- [ ] ⏸ `UK_COUCHDB_VERIFY_PUSH_URL` 반영 (OB2-C에서 발급 예정, 2계층 감시)
+- [ ] ⏸ `deploy_monitoring.sh` 통합 — 신호 후 등록과 한 번에 (지금 통합하면 게이트 우회 가능)
 
 ## T-4: [G-4 🟡] 자격증명 회전  ← T-1·T-2 완료 후 착수 (PR-1)
 - [ ] 회전 절차서 + 롤백 절차 문서화 (선행)
