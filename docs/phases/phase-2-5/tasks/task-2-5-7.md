@@ -142,3 +142,36 @@ PASS (notes=146, violations=0, broken=185, orphans=0)
 - `violations > 0`이면 Step 9 게이트가 **중단·보고**하는가
 
 > 이 항목이 남아 있는 한 T-7은 `completed`가 아니다. **구현했다는 사실과 동작한다는 사실은 다르다** — 오늘 T-3에서 "백업했다 ≠ 복구된다"로 정리한 것과 같은 구분이다.
+
+---
+
+## ⭐ 후속 발견 (2026-08-26, PAB-Prove PO3 제보) — **T-7 자동화가 절반만 돈다**
+
+`run_moc_build`가 **TYPES·DOMAINS만 갱신하고 기존 TOPIC MOC을 누락**한다.
+
+```python
+# scripts/wiki/lib/moc.py — run_moc_build
+for name in MOC_TYPE_NAMES:   _process_moc(vault / f"00_MOC/TYPES/{name}.md", ...)
+for name in MOC_DOMAIN_NAMES: _process_moc(vault / f"00_MOC/DOMAINS/{name}.md", ...)
+# TOPICS/ 는 promote_topic() 으로 신규 생성만 — 기존 갱신 루프가 없다
+```
+
+**정본에 기존 TOPIC MOC 22건**(`_README.md` 제외)이 있고 **전부 생성 시점에 얼어붙어 있다.** 같은 TOPIC의 노트가 추가돼도 링크가 붙지 않는다. `moc-build --dry-run`에 기존 TOPIC 갱신 항목 **0건**으로 실증됨.
+
+### 왜 T-7 항목인가
+
+본 Task가 신설한 **Step 9.5(MOC 필수 실행)** 는 orphan 재발 차단이 목적이었다. 그런데 그 실행이 TOPIC은 갱신하지 않는다 — **자동화를 켰는데 절반만 돈다.**
+
+> **"자동화를 넣었다"가 "자동화가 다 돈다"는 아니다.** `orphans=0`이 초록 불로 보이지만 그 지표는 TYPES·DOMAINS 등재만 보고 TOPIC 정체는 보지 않는다. **초록 불이 켜진 지표가 문제를 가리고 있었다** — 어제 여섯 번 마주친 그 형태다.
+
+⇒ **우리 지표로는 영원히 안 보였을 결함**이며, PAB-Prove가 자기 fork에서 고치고(`4067440`, 2026-08-15) 알려주지 않았으면 몰랐다.
+
+### 후속 작업 (다음 세션, backend-dev 위임 — `scripts/` = `code_dirs`)
+
+1. **기존 TOPIC MOC 갱신 루프 추가** — Prove `4067440` 수정분 **표적 이식**. ⚠️ 단순 복사 불가: 저쪽은 `lib/paths.py` 상수 참조로 리팩터돼 **228줄 차이**
+2. `TOPICS/_README.md` 제외 유지 (우리 FIX-3 — placeholder 명세 노트라 폴백 링크 섹션 없음)
+3. **22건 일괄 갱신 후 재측정**
+4. **판정 모집단 변경과 함께** 처리 — `collect_notes()`를 화이트리스트(`10_Notes`+`15_Sources`)로. 현행은 `00_MOC` 38건을 `notes`로 세는데, **생성물에 노트 규격을 요구하는 범주 오류**다 (PO4 §3.2 결정)
+5. Prove `4067440`이 함께 담은 **TOPIC 임계 계수 정정**(`15_Sources` 중복 계상 제거) 판단 — R-9로 상세 요청 중
+
+> ⚠️ **미해결 이상 관측**: `link-check` 측정 중 **단 1회** `broken: 0`이 출력됐고 이후 **13회 재실행에서 전부 185**로 재현되지 않았다. 오독 가능성이 높으나 확정하지 못했다. **FC-14가 `status`를 읽는 이상 비결정성은 계약 문제**이므로 모집단 변경 작업 시 결정성을 함께 확인한다 (PO4 R-8로 Prove에도 관측 요청).
