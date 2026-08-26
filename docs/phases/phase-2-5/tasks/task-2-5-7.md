@@ -201,3 +201,81 @@ PAB-Prove가 **실제로 밟고 나서 고친** 함정들이다. 각각은 옳�
 - `_` 접두 제외 근거: `10_Notes/_old/2026-05-02_karpathy_llm_wiki_v1_backup.md` 1건. **제외하지 않으면 영구 orphan으로 상주해 `orphans==0` 게이트를 영구히 막는다** — 백업 파일은 MOC에 등재할 수도 없고 삭제할 이유도 없다
 - 규칙을 `_` 접두 일반화로 바꾸면 기존 `_attachments` 특수 케이스도 흡수된다
 - 이 값으로 **PAB-Prove 판정값(101)과 완전 일치**하고, Observer `#26` 화이트리스트와도 정렬된다
+
+### 🔴 이식 지침 보강 — PO7 누락 7건 (N-1~N-7)
+
+PAB-Prove가 R-10으로 지침 6종을 검토해 **누락 7건**을 짚었다. **N-1·N-2·N-3은 반영 없이 착수하면 각각 즉시 실패 / 정본 오염 / 헛통과**다. Team Lead 실측으로 전건 확인했다.
+
+#### 🔴 N-1 — 그대로 옮기면 `ImportError`로 즉시 터진다
+
+Prove 판본의 write 경로가 우리와 다르다:
+
+```python
+# PAB-Prove/scripts/wiki/lib/moc.py:190, 221
+from scripts.wiki.lib.vault import safe_write_moc      # ← 우리에겐 vault.py가 없다
+...:209  safe_write_moc(vault, moc_path, new_text)
+...:245  return safe_write_moc(vault, moc_path, fm_lib.dumps(post))
+```
+```python
+# 우리 scripts/wiki/lib/moc.py:95, 120
+moc_path.write_text(new_text, encoding="utf-8")
+```
+
+⇒ **write 호출을 우리 경로로 치환**한다. `vault.py` 부재는 PO2 §5.1에서 우리가 직접 확정한 사실이다(가드 4겹은 Prove 전용 코드 — 우회가 아니라 미보유).
+- 부수: Prove의 `update_moc_fallback_links()`에 `vault` 인자가 추가돼 있다 — 게이트를 안 쓰면 불필요
+
+#### 🔴 N-2 — **"마커 부재 skip"이 수동 MOC를 지키는 유일한 가드다**
+
+우리 `update_moc_fallback_links()` (`moc.py:88-93`):
+```python
+if SECTION_RE.search(text):              new_text = SECTION_RE.sub(block, text)
+elif "## 폴백 정적 링크" in text:          new_text = text.replace(...)
+else:                                     return False      # ← ★ 이 한 줄
+```
+
+A가 갱신 모수를 **"디스크의 `TOPICS/*.md` 전부"**로 넓히므로, **사람이 손으로 만든 MOC를 지켜주는 게 이 skip 하나뿐**이다.
+
+> ⚠️ 이식 중 *"헤더가 없으면 만들어 주자"* 는 개선이 자연스러워 보인다. **그게 정확히 이 가드를 무력화한다.** 그리고 그 write는 **LiveSync로 즉시 정본→CouchDB→미러→v4까지 전파**돼 롤백이 파일 하나로 끝나지 않는다.
+
+⇒ **이 skip은 우리 C-1·C-3(충돌 정책)의 코드 측 실현체다.** 건드리지 않는다.
+
+#### 🟠 N-3 — 지침 6번(2회 연속 `no changes`)은 **그대로면 헛통과한다**
+
+실행 순서가 **TOPICS 갱신 루프 → 승격**이라 W-2 결함은 이렇게만 드러난다:
+> 1회차 승격이 (멤버 축소된) MOC를 만든다 → 2회차 갱신 루프가 전 노트로 다시 채워 **변경 발생**
+
+⇒ **1회차에 승격이 실제로 일어나야만** 탐지된다.
+
+| 픽스처 조건 | 결과 |
+|---|---|
+| 승격 0건 | 2회차 자동으로 깨끗 = **헛통과** 🔴 |
+| 승격 발생, 멤버에 `15_Sources` 없음 | B가 뺄 게 없어 **헛통과** 🟠 |
+| **승격 발생 + 그 topic 멤버에 `15_Sources` 최소 1건** | ✅ **드러난다** |
+
+⚠️ **Team Lead 실측 확인**: 현 정본에서 `moc-build --dry-run` → **승격 예정 0건**. 정본으로 그냥 돌리면 **헛통과가 확정적**이다. ⇒ **별도 픽스처를 만들어 시험한다.**
+
+> *"합쳐야 깨진다"* 고 적었으나 정확히는 **"합친 시험도 조건이 맞아야 깨진다"** 이다.
+
+#### N-4 — 지침 5번을 파일명이 아니라 **`_` 접두 규칙**으로
+
+`_README.md` 파일명 하드코딩 대신 **`_` 접두 stem 제외**로. 나중에 `_draft.md`가 생기면 갱신 대상에 들어간다. **vault 전역 단일 관례**다 — `is_moc_stem`·`collect_scope_notes`·본 루프가 같은 규칙을 쓴다. R-7의 `_` 접두 디렉터리 제외와도 한 축이다.
+
+#### N-5 — 갱신 모수는 **디스크 glob**이어야 한다
+
+TYPES·DOMAINS를 흉내 내 `MOC_TOPIC_NAMES` 상수 목록을 만들면 **결함이 그대로 재발**한다 — 승격할 때마다 손으로 넣어야 하고, 안 넣으면 다시 얼어붙고, **`exit 0`으로 조용히 지나간다.**
+
+> TYPES·DOMAINS가 상수인 것은 **고정 분류 체계**라서다. TOPIC은 승격으로 **자라는** 집합이라 성질이 다르다.
+
+#### N-6 — `is_safe_topic_stem` 이중 가드 + `[SKIP]` 출력
+
+⚠️ **이식 직후 승격 0건이 나와도 결함이 아닐 수 있다.** Prove catch-up 실측이 *"31 MOC 인식·27건 갱신·승격 0(비정규 이름 차단)"* 이었다. **모르면 "이식 실패"로 오판하기 쉽다** — 차단 사유를 `[SKIP]`으로 출력해 구분 가능하게 한다.
+
+#### N-7 (운영) — 첫 실행은 **catch-up이라 22건이 한 회차에 정본으로 나간다**
+
+| 절차 | 이유 |
+|---|---|
+| ⑴ 사람이 `00_MOC/`를 **열어두지 않은 때** 실행 | C-3 conflict 회피 |
+| ⑵ **선 `--dry-run`** 으로 22건 맞는지·수동 MOC 안 섞였는지 확인 | N-2 가드 실효 검증 |
+| ⑶ **B는 회수하지 않는다** | `promote_topic()`은 `exists()`면 `None`이고 삭제 로직이 없다 — 허수 승격분 MOC는 남고 A의 루프가 계속 갱신한다(**의도된 동작**) |
+
+> ⑶을 모르면 "B를 넣었는데 왜 기존 MOC가 안 사라지지?"에서 삭제 로직을 추가하려 든다. **지식 자산을 지우는 코드를 새로 만드는 셈**이다.
