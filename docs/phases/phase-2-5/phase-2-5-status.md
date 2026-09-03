@@ -35,12 +35,13 @@ gate_results:
   #     · 가동본 pab-couchdb `Up 10 days (healthy)` 무접촉 / restoretest 잔재 0·0
   #     · 롤백: state/crontab.bak-20260903-100515 (600, 819B)
   #     · 미측정(명시): 세대 회전 — 4세대 < KEEP=7이라 아직 발동한 적 없음
-  #   T-7 조건부 PASS (2026-09-03, 361327d) — TOPIC 갱신 루프 이식 완료
+  #   T-7 조건부 PASS (2026-09-03, bf40027) — TOPIC 갱신 루프 이식 완료
   #     · 이식 지침 13항목(6종 + N-1~N-7) 전건 이행. 시험 17개 + **돌연변이 7종 주입 검증**
   #     · TOPICS 인식 0건 → **22건** + _README [SKIP]. link-check 5회 반복 전부
   #       PASS (notes=101, violations=0, broken=185, orphans=0) — 모집단 101 확정값 일치
-  #     · §5 비결정성 원인 확정 — obsidian unresolved가 10회 중 1회 1줄을 rc=0으로 반환
-  #       (인덱싱 미완인데 종료코드는 0). 가드 정정 후 결정성 확보
+  #     · §5 비결정성 — 도구 결함은 **재현**(obsidian unresolved가 10회 중 1회 1줄을 rc=0으로).
+  #       단 그것이 과거 broken:0 관측의 원인이라는 **연결은 추론이며 관측 못 함**(backend-dev
+  #       자기 정정). §5는 관측 항목 유지. 가드는 방어적으로 옳아 유지 — 정본 10회 동일
   #     · 부수 보고 1건(TYPES 2종 누락)은 **Team Lead 검증으로 반려** — 6종 전부 존재
   #     ⚠️ 잔여: 22건 일괄 갱신 미실행(정본 쓰기·사용자 승인 대기) / G2_infra E2E 미수행
   #   T-7 §작업3 PASS — link-check status 정합(PASS/exit 0, --strict-broken 하위호환)
