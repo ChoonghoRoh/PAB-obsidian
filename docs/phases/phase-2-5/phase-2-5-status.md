@@ -4,7 +4,7 @@ title: "운영 안정화 + 백업 무결성"
 team_name: "phase-2-5"
 ssot_version: v8.2-renewal-6th   # ver6-2 라인 이행 (2026-08-25). v8.3 policy/model-assignment.md는 이식 보존
 created: 2026-08-25
-updated: 2026-08-26
+updated: 2026-09-03
 current_state: IN_PROGRESS
 exceptions: [E-1, E-2, E-3, E-4]
 exceptions_ref: docs/phases/phase-2-exceptions.md
@@ -23,8 +23,14 @@ gate_results:
   G2_infra: PARTIAL  # 2026-08-26 갱신
   #   T-1 PASS (2026-08-25) + volbackup 감시 연계 PASS (2026-08-26, eb1875b — 6분기 전수 시험)
   #   T-2 조건부 PASS — 커밋·푸시 실체 충족(2efb00e). cron 활성화만 BL-3로 잔여
-  #   T-3 조건부 PASS — 복원 리허설 PASS(doc_count 3064=3064 / VDU 본문 194자 / _local 13=13).
-  #                     서버 cron 등록만 Observer OB2-C 판정 대기
+  #   T-3 PASS (2026-09-03) — 서버 cron 2줄 등록 완료. Observer OB2-C §8.4 정식 수용 후 실행
+  #     · crontab 8줄 → 10줄, 기존 8줄 전건 무변경 (Observer #32 17:03 → 우리 17:04, 1시간 분리 확인)
+  #     · 프라이밍 선행: 백업 1회 + 복원 리허설 1회 → LAST_OK_TS/LAST_VERIFY_TS 09-03 10:05로 갱신
+  #     · ⭐ 목적 달성 확인 — T-1 check_couchdb_volbackup 판정이 실제로 OK
+  #       (경과 0h, 세대 4/7, 리허설 0일 전). 마커 grep 여부가 아니라 판정값을 확인함
+  #     · 가동본 pab-couchdb `Up 10 days (healthy)` 무접촉 / restoretest 잔재 0·0
+  #     · 롤백: state/crontab.bak-20260903-100515 (600, 819B)
+  #     · 미측정(명시): 세대 회전 — 4세대 < KEEP=7이라 아직 발동한 적 없음
   #   T-7 §작업3 PASS — link-check status 정합(PASS/exit 0, --strict-broken 하위호환)
   #   T-4·T-5·T-6 미착수 (T-5 진행 중)
   #   [T-1 검증 결과]
