@@ -4,7 +4,9 @@ title: "/wiki 스킬 MOC 자동화 + link-check 게이트 강제"
 domain: "[INFRA]"
 gap: "G-7 (🟡)"
 assignee: "Team Lead (SKILL.md) + backend-dev (wiki.py)"
-status: running    # 구현 완료(SKILL.md 2판본 + validate.py). ⚠️ G2_infra E2E(/wiki 신규 노트→MOC 자동갱신) 미수행
+status: running    # TOPIC 갱신 루프 이식 완료(361327d, 2026-09-03) — 지침 13항목 이행, 시험 17개 + 돌연변이 7종 검증.
+                   # ⚠️ 잔여 ⑴ 22건 일괄 갱신 미실행(정본 쓰기 — 사용자 승인 대기, N-7 catch-up)
+                   #        ⑵ G2_infra E2E(/wiki 신규 노트→MOC 자동갱신) 미수행
 depends_on: []
 ---
 
@@ -296,6 +298,67 @@ TYPES·DOMAINS를 흉내 내 `MOC_TOPIC_NAMES` 상수 목록을 만들면 **결�
 #### N-6 — `is_safe_topic_stem` 이중 가드 + `[SKIP]` 출력
 
 ⚠️ **이식 직후 승격 0건이 나와도 결함이 아닐 수 있다.** Prove catch-up 실측이 *"31 MOC 인식·27건 갱신·승격 0(비정규 이름 차단)"* 이었다. **모르면 "이식 실패"로 오판하기 쉽다** — 차단 사유를 `[SKIP]`으로 출력해 구분 가능하게 한다.
+
+## ✅ 이식 완료 (2026-09-03, backend-dev `361327d` / Team Lead 독립 검증)
+
+`scripts/wiki/lib/moc.py` +75 · `lib/validate.py` +69 · `tests/test_moc_topics.py` 신규 318줄(시험 17).
+
+### 13항목 이행 — Team Lead 독립 재현분
+
+| 검증 | 명령 | 결과 |
+|---|---|---|
+| 시험 | `pytest tests/test_moc_topics.py -q` | **17 passed** |
+| **N-2 두 분기 생존** | `grep -nE 'return False\|if new_text != text' moc.py` | `:130 else: return False` · `:131 if new_text != text:` — 지침 인용문과 **바이트 일치** |
+| 지침 3 | `git diff 677b8d5..361327d` | `collect_notes_with_meta` 변경 라인 **0건** |
+| N-7 | `grep unlink\|rmtree\|os.remove` | **0건** |
+| N-1 | `grep safe_write_moc\|vault` | **0건** |
+| TOPICS 인식 | `moc-build --dry-run` | **22건** + `_README` `[SKIP]` 1건 (이식 전 **0건**) |
+| `link-check` | 5회 반복 | **전부** `PASS (notes=101, violations=0, broken=185, orphans=0)` |
+| 정본 무변경 | `git status` | dry-run 실행 후에도 **0건** |
+
+`notes=101`이 PO6 확정 모집단과 일치하고 **`orphans=0`이라 지침 4(참조원 전 vault 유지)가 실효**했음이 확인된다.
+
+### ⭐ "17개 통과"를 증거로 쓰지 않았다 — 돌연변이 7종
+
+backend-dev가 **위반을 일부러 주입해 대응 시험이 실제로 깨지는지** 확인했다. 지침1(A에 threshold) · 지침2(멤버에서 SOURCE 제거) · N-2("헤더 없으면 만들자") · 지침4(참조원 축소) · N-5(상수 목록) · 결정성 가드 제거 · 결정성 가드 결함판 — **7종 전부 대응 시험이 붙잡았다.**
+
+- **지침2 위반이 정확히 idempotency 시험에서 깨졌다** — *"합쳐야 깨진다"* 는 예측대로였다
+- ⭐ **N-3 헛통과를 실측으로 재현했다.** 같은 지침2 위반인데 픽스처에서 SOURCE 멤버만 빼면 idempotency 시험이 **통과해 버린다.** 문서상 경고가 아니라 실측이 됐다 — **정본으로 그냥 돌렸으면 헛통과가 확정적이었다**
+
+### ⭐ §5 비결정성 — 원인 확정
+
+`obsidian unresolved`를 정본에서 10회 돌려 **1회가 281줄 대신 1줄을 `rc=0`으로** 반환하는 것을 재현했다. `broken: 0`이 단 1회 나오고 13회 재현되지 않았던 것의 정체다 — **인덱싱이 덜 끝나도 종료코드는 0이다.**
+
+> ⚠️ **최초 가드가 헛돌았다.** 원시 출력(`obs`)이 비었는지만 봤는데, 관측된 이상은 **1줄을 반환**하고 그 1줄이 교차 필터에서 떨어져 0이 된다 — 원시 출력만 보면 *"비어 있지 않다"* 로 통과한다. **필터 후 결과(`found`)에 걸도록** 정정했고, 결함 판본을 돌연변이로 만들어 시험이 잡는 것을 확인했다. backend-dev 자체 검증 중 발견·정정.
+>
+> 기록 경계: **실패 재현은 backend-dev가 했고, Team Lead는 정정 후 안정성(5회 동일)만 확인했다.**
+
+### 🔴 부수 보고 1건은 **오류였다** — Team Lead 검증으로 반려
+
+backend-dev가 *"`00_MOC/TYPES/`에 `RESEARCH_NOTE.md`·`CONCEPT.md`가 없다(존재하는 건 4종). `_process_moc`이 `exists()` 아니면 조용히 건너뛰어 드러나지 않았다 — TOPIC과 같은 형태의 조용한 누락"* 이라고 보고했으나 **사실이 아니다.**
+
+```
+$ ls -1 PAB-LLMDATA/00_MOC/TYPES/
+CONCEPT.md  DAILY.md  LESSON.md  PROJECT.md  REFERENCE.md  RESEARCH_NOTE.md  SOURCE.md   # 7개
+
+$ wiki.py moc-build --dry-run | grep 'TYPES/'
+[dry-run] TYPES/RESEARCH_NOTE.md → 42건 갱신 예정
+[dry-run] TYPES/CONCEPT.md       → 3건 갱신 예정
+... 6종 전부 처리됨
+```
+
+`MOC_TYPE_NAMES`(`moc.py:16`)에도 6종 전부 있다. **누락은 없다.**
+
+> ⚠️ **`broken 206`과 정확히 같은 구조다.** 존재하지 않는 것을 보고하면서 *"`exists()` 아니면 조용히 건너뛴다"* 는 **그럴듯한 설명이 함께 붙었다.** 설명 자체는 코드상 사실이라 더 잘 넘어간다. 검증 없이 넘겼다면 Task 기록에 남았을 것이다.
+
+**실측된 불일치는 따로 있다** — `TYPES/`에 `SOURCE.md`가 있는데 `MOC_TYPE_NAMES`(6종)에는 없다. 파일 **7** 대 상수 **6**. R-4(SOURCE 불변) 정책상 의도적 제외로 보이나 **확인하지 않았다.** T-7 범위 밖.
+
+### 잔여
+
+- **22건 일괄 갱신 미실행** — 정본 쓰기라 사용자 승인 대기. N-7 절차대로: ⑴ `00_MOC/` 미개방 시각 ⑵ 선 `--dry-run` 확인(2026-09-03 완료: 22건 + `_README` `[SKIP]`, 수동 MOC 미혼입) ⑶ B는 회수하지 않음
+- **G2_infra E2E** (`/wiki` 신규 노트 → MOC 자동갱신) 미수행
+
+---
 
 #### N-7 (운영) — 첫 실행은 **catch-up이라 22건이 한 회차에 정본으로 나간다**
 
