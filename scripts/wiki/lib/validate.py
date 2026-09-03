@@ -129,14 +129,6 @@ def find_unresolved_links_obsidian(
         if result.returncode != 0:
             return None
         obs = {l.strip() for l in result.stdout.splitlines() if l.strip()}
-        # ⚠️ 결정성 가드 — **rc=0 을 목적 달성의 증거로 읽지 않는다**.
-        # 실측(2026-09-03): 동일 vault·동일 명령 10회 중 1회가 281줄 대신 **1줄**을
-        # rc=0 으로 반환했다. 이것이 `broken: 0` 이 단 1회 나오고 13회 재현되지 않은
-        # 이상 관측의 정체다 — 인덱싱이 덜 끝난 상태에서도 종료코드는 0이다.
-        # FC-14 가 이 결과를 읽으므로 비결정성은 계약 문제다. 출력이 비면 실패로 보고
-        # 결정적인 정규식 폴백에 넘긴다(정상 vault 라면 폴백도 비어 결과가 같다).
-        if not obs:
-            return None
         if wiki_notes:
             wiki_targets: set[str] = set()
             for note in wiki_notes:
@@ -147,7 +139,20 @@ def find_unresolved_links_obsidian(
             filtered = obs & wiki_targets
         else:
             filtered = obs
-        return sorted(filtered - WIKILINK_WHITELIST)
+        found = sorted(filtered - WIKILINK_WHITELIST)
+        # ⚠️ 결정성 가드 — **rc=0 을 목적 달성의 증거로 읽지 않는다**.
+        # 실측(2026-09-03): 동일 vault·동일 명령 10회 중 1회가 281줄 대신 **1줄**을
+        # rc=0 으로 반환했다. 이것이 `broken: 0` 이 단 1회 나오고 13회 재현되지 않은
+        # 이상 관측의 정체다 — 인덱싱이 덜 끝나도 종료코드는 0이다.
+        #
+        # 가드를 **원시 출력(obs)이 아니라 필터 후 결과(found)** 에 건다. 관측된 이상은
+        # 1줄을 반환했고 그 1줄이 교차 필터에서 떨어져 0이 됐다 — 원시 출력만 보면
+        # "비어 있지 않다"로 통과해 버린다. 빈 결과는 실패로 보고 결정적인 정규식
+        # 폴백에 넘긴다. 진짜로 broken 이 0인 vault 라면 폴백도 0을 내므로 답은 같다.
+        # FC-14 가 이 결과를 읽는 이상 비결정성은 계약 문제다.
+        if not found:
+            return None
+        return found
     except (subprocess.TimeoutExpired, FileNotFoundError):
         return None
 
