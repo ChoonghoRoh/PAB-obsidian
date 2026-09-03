@@ -66,12 +66,49 @@ def collect_notes_by_index(notes: list[dict]) -> dict[str, list[dict]]:
     return groups
 
 
-def collect_topic_candidates(notes: list[dict], threshold: int = 3) -> dict[str, list[dict]]:
-    counts: dict[str, list[dict]] = {}
+# TOPIC MOC 파일명으로 안전한 stem 인가 (N-6 이중 가드 — 갱신 루프·승격 양쪽에 적용).
+# `_` 접두는 vault 전역 단일 관례로 제외한다(N-4) — `_README.md` 파일명 하드코딩 대신
+# 규칙으로 두면 나중에 `_draft.md` 가 생겨도 자동으로 갱신 대상에서 빠진다.
+# 경로 구분자·상대경로 토큰을 막는 것이 본 가드의 보안 측면이다(승격은 파일을 만든다).
+TOPIC_STEM_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
+
+
+def is_safe_topic_stem(stem: str) -> bool:
+    if not stem or stem.startswith("_") or len(stem) > 64:
+        return False
+    return bool(TOPIC_STEM_RE.match(stem))
+
+
+def is_source_note(note: dict) -> bool:
+    """15_Sources 하위 노트인가 (SOURCE 원본 — 승격 계수에서 제외)."""
+    return "15_Sources" in Path(note["path"]).parts
+
+
+def collect_notes_by_topic(notes: list[dict]) -> dict[str, list[dict]]:
+    """topic → 멤버 전건. **threshold 를 걸지 않는다**(지침 1).
+
+    승격 문턱은 *"새 MOC 를 만들 자격"* 이지 기존 MOC 갱신과 무관하다. 여기에
+    threshold 를 걸면 저빈도 TOPIC 이 다시 얼어붙어 결함이 절반만 고쳐진다.
+    """
+    groups: dict[str, list[dict]] = {}
     for n in notes:
         for t in n["topics"]:
-            counts.setdefault(t, []).append(n)
-    return {t: ns for t, ns in counts.items() if len(ns) >= threshold}
+            groups.setdefault(t, []).append(n)
+    return groups
+
+
+def collect_topic_candidates(notes: list[dict], threshold: int = 3) -> dict[str, list[dict]]:
+    """승격 후보. **계수만 비-SOURCE, 멤버는 전 노트**(지침 2).
+
+    멤버까지 비-SOURCE 로 좁히면 승격 직후 MOC 에서 SOURCE 가 빠지는데, 다음
+    run_moc_build 의 갱신 루프(A)가 전 노트로 다시 채운다 ⇒ 1회차 ≠ 2회차 = 진동.
+    A 가 없을 때는 드러나지 않다가 A 를 넣는 순간 실재화하는 종류다.
+    """
+    groups = collect_notes_by_topic(notes)
+    return {
+        t: ns for t, ns in groups.items()
+        if sum(1 for n in ns if not is_source_note(n)) >= threshold
+    }
 
 
 def update_moc_fallback_links(moc_path: Path, group: list[dict]) -> bool:
@@ -152,11 +189,37 @@ def run_moc_build(args: Any) -> int:
     for name in MOC_DOMAIN_NAMES:
         _process_moc(vault / f"00_MOC/DOMAINS/{name}.md", by_domain.get(name, []), f"DOMAINS/{name}.md")
 
-    # TOPICS/_README.md: placeholder 명세 노트 — 폴백 정적 링크 섹션 없음. 갱신 제외 (hotfix FIX-3)
-    # (Phase 1-3 산출물 보존 원칙 적용)
+    # ── A: 기존 TOPIC MOC 갱신 루프 (PAB-Prove 4067440 표적 이식) ────────────────
+    # 이 루프가 없어서 T-7 자동화가 절반만 돌았다 — TYPES·DOMAINS 는 갱신되는데
+    # 기존 TOPIC MOC 22건이 생성 시점에 얼어붙어 있었다. `orphans=0` 이 초록 불로
+    # 보이지만 그 지표는 TYPES·DOMAINS 등재만 보고 TOPIC 정체는 보지 않는다.
+    #
+    # ⚠️ 모수는 **디스크 glob** 이어야 한다(N-5). TYPES·DOMAINS 를 흉내 내
+    # MOC_TOPIC_NAMES 상수 목록을 만들면 승격할 때마다 손으로 넣어야 하고, 안 넣으면
+    # 다시 얼어붙은 채 `exit 0` 으로 조용히 지나간다 — 결함이 그대로 재발한다.
+    # TYPES·DOMAINS 가 상수인 것은 **고정 분류 체계**라서고, TOPIC 은 승격으로
+    # **자라는** 집합이라 성질이 다르다.
+    #
+    # threshold 를 걸지 않는다(지침 1) — by_topic 은 collect_notes_by_topic 산출물이다.
+    by_topic = collect_notes_by_topic(notes)
+    topics_dir = vault / "00_MOC/TOPICS"
+    if topics_dir.exists():
+        for moc_path in sorted(topics_dir.glob("*.md")):
+            stem = moc_path.stem
+            if not is_safe_topic_stem(stem):
+                # `_README.md`(placeholder 명세 노트, FIX-3) 등이 여기로 빠진다.
+                # 차단을 **출력**하는 이유(N-6): 승격·갱신 0건이 나왔을 때 "이식 실패"인지
+                # "정상 차단"인지 구분할 수 있어야 한다.
+                print(f"[SKIP] TOPICS/{moc_path.name} — 비정규 TOPIC stem (갱신 대상 아님)")
+                continue
+            _process_moc(moc_path, by_topic.get(stem, []), f"TOPICS/{stem}.md")
 
     promoted: list[str] = []
     for topic, members in topic_candidates.items():
+        # 이중 가드(N-6) — 승격은 파일을 **새로 만드는** 쪽이라 이름 검증이 더 중요하다.
+        if not is_safe_topic_stem(topic):
+            print(f"[SKIP] TOPIC 승격 차단: {topic!r} — 비정규 stem")
+            continue
         if dry_run:
             if not (vault / f"00_MOC/TOPICS/{topic}.md").exists():
                 print(f"[dry-run] TOPIC 승격 예정: {topic} ({len(members)}건)")
