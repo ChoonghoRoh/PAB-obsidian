@@ -23,6 +23,7 @@ LIST FROM "" WHERE contains(topics, "[[PAB_ECOSYSTEM]]") SORT created DESC
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-07-20_external_data_collection_tooling]] — 외부 자료수집 툴링 조사 — 메신저·크롤러·웹fetch (PAB-Prove 수집 확장)
 - [[2026-05-27_pab_mcp_model_sizing]] — PAB × MCP × 모델 사이즈 — RAG에서 tool-call 위임으로, 로컬 약한 모델 vs 엔터프라이즈 의사결정
 - [[2026-05-04_pab_reader_overview]] — PAB-Reader — 프로젝트 개요
 - [[2026-05-04_pab_ssot_nexus_overview]] — PAB-SSOT-Nexus — 프로젝트 개요

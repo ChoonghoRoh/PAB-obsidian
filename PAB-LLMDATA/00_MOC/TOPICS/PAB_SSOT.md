@@ -23,6 +23,8 @@ LIST FROM "" WHERE contains(topics, "[[PAB_SSOT]]") SORT created DESC
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-07-21_grok_build_vs_pab_ssot_harness_compare_source]] — Grok Build 오픈소스 하네스 vs PAB SSOT 하네스 정밀 비교 보고서 (원문)
+- [[2026-07-21_grok_build_vs_pab_ssot_harness_compare]] — Grok Build 하네스 vs PAB SSOT 하네스 정밀 비교 — 코드 강제 vs 문서 규범
 - [[2026-05-05_pab_ssot_skills_detail]] — PAB SSOT — 11 skill 상세 (입출력·내부 절차·예시)
 - [[2026-05-05_pab_ssot_portability]] — PAB SSOT — 다른 프로젝트 이식 가이드 (Portability)
 - [[2026-05-05_pab_ssot_intro]] — PAB SSOT v8.2-renewal-6th — 진입점·버전·3계층 아키텍처 개요

@@ -23,6 +23,8 @@ LIST FROM "" WHERE contains(topics, "[[API_GATEWAY]]") SORT created DESC
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-07-02_khala_tools_run_max_iter_issues_source]] — PAB-Khala tools/run 빈 응답·버그·개선점 조사 (원본)
+- [[2026-07-02_khala_tools_run_max_iter_issues]] — PAB-Khala tools/run 빈 응답·출력 오염 이슈
 - [[2026-06-30_phase6_persona_review_source]] — PAB-Khala Phase 6 페르소나 검증 — arbiter 적대 리뷰 (원문)
 - [[2026-06-30_gateway_design_compare_source]] — PAB-Khala 통합 게이트웨이 설계 — 현행 vs 통합 비교 (원문)
 - [[2026-06-30_phase6_unified_gateway_source]] — PAB-Khala Phase 6 통합 게이트웨이 마스터플랜 (원문)

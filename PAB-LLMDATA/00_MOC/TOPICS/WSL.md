@@ -23,5 +23,6 @@ LIST FROM "" WHERE contains(topics, "[[WSL]]") SORT created DESC
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
-- [[2026-07-08_claude_code_wsl_install_guide]] — Windows WSL2에서 Claude Code 설치·설정하기 (밤밤이 정리)
+- [[2026-07-08_claude_code_wsl_install_guide_source]] — Windows WSL에서 Claude Code 설치 가이드 (밤밤이)
+- [[2026-07-08_claude_code_wsl_install_guide]] — Windows WSL2에서 Claude Code 설치·설정하기
 <!-- moc-build:auto-end -->

@@ -23,6 +23,9 @@ LIST FROM "" WHERE contains(topics, "[[VLLM]]") SORT created DESC
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-07-20_llm_api_cost_local_vs_external]] — LLM 자료수집 비용 — Khala 로컬 vLLM vs 외부 API 손익분기 (PAB-Prove)
+- [[2026-07-02_khala_tools_run_max_iter_issues_source]] — PAB-Khala tools/run 빈 응답·버그·개선점 조사 (원본)
+- [[2026-07-02_khala_tools_run_max_iter_issues]] — PAB-Khala tools/run 빈 응답·출력 오염 이슈
 - [[2026-06-23_rtx3090_vllm_context_kv_offload_source]] — RTX 3090 환경 NVMe·RAM 컨텍스트 한계 극복 전략 보고서 (원본)
 - [[2026-06-23_rtx3090_vllm_context_kv_offload]] — vLLM 컨텍스트 확장 핵심 진단 — 엔진 KV캐시 vs 앱 외부기억 2층위 (RTX3090)
 - [[2026-05-07_qwen36_3090_launch_scripts_source]] — qwen3.6-on-rtx3090 GitHub Repository — README + Launch Scripts (Alexander-Ollman)

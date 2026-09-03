@@ -23,6 +23,8 @@ LIST FROM "" WHERE contains(topics, "[[LINEAGE]]") SORT created DESC
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-07-01_hugrag_pab_knowledge_graft_source]] — HugRAG↔PAB 지식체계 비교·외부 brain 접목 검토 (원문)
+- [[2026-07-01_hugrag_pab_knowledge_graft]] — HugRAG↔PAB 지식체계 비교 · 외부 brain 접목 검토
 - [[2026-06-30_khala_lineage_design_source]] — PAB-Khala 컨텍스트 이어가기·호출 연결고리 설계 (A⊕B) (원문)
 - [[2026-06-30_khala_lineage_guide_source]] — PAB-Khala Lineage 연결 가이드 — 호출 연결고리 추적 (원문)
 - [[2026-06-30_khala_lineage_design]] — PAB-Khala 컨텍스트 이어가기·호출 연결고리 설계 (A⊕B)

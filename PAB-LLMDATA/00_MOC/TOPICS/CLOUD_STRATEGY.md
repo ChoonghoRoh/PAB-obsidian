@@ -23,6 +23,8 @@ LIST FROM "" WHERE contains(topics, "[[CLOUD_STRATEGY]]") SORT created DESC
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-07-10_imagegen_3090_comprehensive_report_source]] — [원본] 로컬 이미지 생성(RTX 3090) 종합 평가 보고서 전문 (PAB-MakeIMG, 2026-07-10)
+- [[2026-07-10_imagegen_3090_comprehensive_report]] — 로컬 이미지 생성(RTX 3090) 종합 평가 — 배포 실측과 클라우드 3자 비교 (PAB-MakeIMG)
 - [[2026-06-01_samsung_sds_public_ax_strategy_source]] — 공공AX 전환 전략: 공공 AI·클라우드 기반 구조 설계 — 삼성SDS 인사이트 원본 (2026)
 - [[2026-06-01_samsung_sds_trusted_public_ax_workflow_source]] — 신뢰 기반 공공AX 업무 체계 고도화 전략 — 삼성SDS 인사이트 원본 (2026)
 - [[2026-06-01_samsung_sds_public_ax_direction_source]] — 공공AX 추진 방향 및 우선 과제 — 삼성SDS 인사이트 원본 (2026)

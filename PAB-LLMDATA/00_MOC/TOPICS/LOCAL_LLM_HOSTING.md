@@ -23,6 +23,15 @@ LIST FROM "" WHERE contains(topics, "[[LOCAL_LLM_HOSTING]]") SORT created DESC
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-08-17_minimax_h3_3090_feasibility_source]] — MiniMax-H3 모델 카드 원문 (Hugging Face)
+- [[2026-08-17_minimax_h3_3090_feasibility]] — MiniMax-H3 — 33B 옴니모달 비디오 생성 모델의 RTX 3090 24GB 구동 검토
+- [[2026-08-17_qwen3_8_27b_model_card_source]] — Qwen3.8-27B 모델 카드 원문 (Hugging Face)
+- [[2026-08-17_qwen3_8_27b_model_card]] — Qwen3.8-27B — Qwen 오픈모델 최신 세대 비전-언어 모델 카드 정리
+- [[2026-07-20_llm_api_cost_local_vs_external]] — LLM 자료수집 비용 — Khala 로컬 vLLM vs 외부 API 손익분기 (PAB-Prove)
+- [[2026-07-16_local_llm_limit_ladder_source]] — 로컬 LLM 한계 사다리 실험 프로토콜 (원본) — 3800X/24GB GPU/64GB RAM
+- [[2026-07-16_local_llm_limit_ladder]] — 로컬 LLM 한계 사다리 실험 — 기존 하드웨어로 어디까지 (3800X/24GB GPU/64GB RAM)
+- [[2026-07-16_colibri_glm52_moe_streaming_source]] — colibrì — GLM-5.2(744B MoE)를 25GB RAM PC에서 (GitHub README 원문)
+- [[2026-07-16_colibri_glm52_moe_streaming]] — colibrì — 744B MoE를 25GB RAM PC에서 (디스크 스트리밍 MoE 런타임)
 - [[2026-05-26_beellama_v020_dflash_3090_source]] — BeeLlama v0.2.0 — major DFlash update, single RTX 3090 (원본)
 - [[2026-05-26_beellama_v020_dflash_3090]] — BeeLlama.cpp v0.2.0 — DFlash로 단일 RTX 3090에서 Qwen3.6-27B 164 tps(4.40x)·Gemma4-31B 177.8 tps(4.93x)
 - [[2026-05-07_qwen36_3090_launch_scripts_source]] — qwen3.6-on-rtx3090 GitHub Repository — README + Launch Scripts (Alexander-Ollman)

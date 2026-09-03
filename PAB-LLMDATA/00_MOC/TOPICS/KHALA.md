@@ -23,6 +23,11 @@ LIST FROM "" WHERE contains(topics, "[[KHALA]]") SORT created DESC
 ## 폴백 정적 링크
 
 <!-- moc-build:auto-start -->
+- [[2026-07-20_llm_api_cost_local_vs_external]] — LLM 자료수집 비용 — Khala 로컬 vLLM vs 외부 API 손익분기 (PAB-Prove)
+- [[2026-07-02_khala_tools_run_max_iter_issues_source]] — PAB-Khala tools/run 빈 응답·버그·개선점 조사 (원본)
+- [[2026-07-02_khala_tools_run_max_iter_issues]] — PAB-Khala tools/run 빈 응답·출력 오염 이슈
+- [[2026-07-01_hugrag_pab_knowledge_graft_source]] — HugRAG↔PAB 지식체계 비교·외부 brain 접목 검토 (원문)
+- [[2026-07-01_hugrag_pab_knowledge_graft]] — HugRAG↔PAB 지식체계 비교 · 외부 brain 접목 검토
 - [[2026-06-30_phase6_persona_review_source]] — PAB-Khala Phase 6 페르소나 검증 — arbiter 적대 리뷰 (원문)
 - [[2026-06-30_gateway_design_compare_source]] — PAB-Khala 통합 게이트웨이 설계 — 현행 vs 통합 비교 (원문)
 - [[2026-06-30_khala_resumable_tools_source]] — PAB-Khala Resumable Tools API — NVMe 워크스페이스·무손실 재개 (원문)
