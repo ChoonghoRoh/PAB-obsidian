@@ -41,12 +41,21 @@ curl -sf -X PUT "${A}/_users/org.couchdb.user:${BRIDGE_USER}" \
   }
 echo "    OK"
 
-echo "==> [2/3] ${DB_NAME}._security 에 ${BRIDGE_USER} 읽기 권한 부여"
-# 기존 _admin 멤버 정책 유지 + bridge 사용자/롤 추가 (멤버는 읽기 가능)
+echo "==> [2/3] ${DB_NAME}._security 에 ${BRIDGE_USER} 읽기 권한 부여 (기존 멤버 보존)"
+# ⚠️ 여기는 **병합**이다. 통째로 PUT 하면 안 된다 — `_security` 에는 `_rev` 가 없어
+#   PUT 이 곧 전체 교체이고, 기존 members.names 가 그대로 사라진다.
+#   구 판본이 정확히 그랬다: `"names":["${BRIDGE_USER}"]` 를 통째로 넣어, 나중에 추가된
+#   계정(pabprove 등)을 **조용히 축출**했다. 에러도 안 나고 멱등해 보였다.
+#   그리고 이 자리의 옛 주석은 "기존 정책 유지 + 추가"라고 **코드와 반대로** 적혀 있어,
+#   주석을 믿고 읽으면 결함이 보이지 않았다. 병합 로직은 시험이 붙은 merge_security.py 에 있다.
+CUR_SEC="$(curl -sf "${A}/${DB_NAME}/_security" 2>/dev/null || true)"
+NEW_SEC="$(printf '%s' "${CUR_SEC}" | BRIDGE_USER="${BRIDGE_USER}" python3 "$(dirname "${BASH_SOURCE[0]}")/merge_security.py")" || {
+  echo "ERROR: _security 병합 실패 — 기존 멤버를 잃을 수 있으므로 쓰지 않고 중단한다" >&2
+  exit 1
+}
 curl -sf -X PUT "${A}/${DB_NAME}/_security" \
-  -H "Content-Type: application/json" \
-  -d "{\"admins\":{\"roles\":[\"_admin\"]},\"members\":{\"names\":[\"${BRIDGE_USER}\"],\"roles\":[\"_admin\",\"bridge_ro\"]}}" >/dev/null
-echo "    OK"
+  -H "Content-Type: application/json" -d "${NEW_SEC}" >/dev/null
+echo "    OK (members.names = $(printf '%s' "${NEW_SEC}" | python3 -c 'import json,sys;print(",".join(json.load(sys.stdin)["members"]["names"]))'))"
 
 echo "==> [3/3] 쓰기차단 검증함수 design doc 설치 (_design/zz_bridge_readonly)"
 # validate_doc_update: pabbridge 의 쓰기만 forbidden. 관리자/기타 사용자/LiveSync 는 그대로 허용.
