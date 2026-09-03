@@ -4,7 +4,9 @@ title: "CouchDB 볼륨 덤프 백업 + 세대 보존"
 domain: "[INFRA]"
 gap: "G-3 (🟡)"
 assignee: backend-dev
-status: running    # 구현·복원 리허설 PASS. ⚠️ 서버 cron 등록만 Observer OB2-C 판정 대기
+status: running    # 서버 cron 등록 완료(2026-09-03 10:05) + 복원 리허설 PASS.
+                   # ⚠️ 잔여 = 검증 3번(8일째 세대 정리) 미실증 — 현재 4세대 < KEEP=7.
+                   #    7세대 도달 09-06(일), 첫 회전은 09-07(월) 04:17 실행. 그때 실측한다.
 depends_on: []
 ---
 
