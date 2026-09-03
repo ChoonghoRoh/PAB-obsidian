@@ -45,22 +45,19 @@ blockers:
     task: "2-5-1"
     desc: "UK_PAB_VAULT_PUSH_URL 미발급 — Observer 측 회신 대기. 미설정 시 Push 생략 동작으로 선배포는 가능(진행 차단 아님)"
     owner: "Observer 측 (사용자 전달)"
-  - id: BL-3
-    task: "2-5-2"
-    desc: "맥북 crontab **쓰기** 차단 — 읽기(crontab -l)는 정상이나 쓰기(crontab <file>)가 무한 대기. Claude Code 세션 환경의 macOS TCC(전체 디스크 접근) 제약으로 추정. Team Lead 재현 확인(2026-08-26, 내용 무변경 왕복 테스트도 10초 초과). backend-dev가 04:25에는 성공한 이력이 있어 간헐적. **crontab 무결성은 보존됨**(기존 2종 그대로, 백업본과 diff 일치)"
-    owner: "사용자 (본인 터미널에서 실행 — `! bash scripts/monitoring/deploy_monitoring.sh --local-only`)"
   - id: BL-2
     task: "2-5-1"
     desc: "기존 UK CouchDB 모니터 알림 미도달 원인 미규명 — UK는 15초 주기로 /_up 감시 중이었으나 3일 장애가 사람에게 도달하지 않음. 규명 없이는 신규 모니터도 동일 침묵 위험"
     owner: "Observer 측 (사용자 전달)"
   - id: BL-3
     task: "2-5-2"
-    desc: "맥북 crontab **쓰기** 차단 — 읽기(crontab -l)는 정상이나 쓰기(crontab <file>)가 무한 대기. Claude Code 세션 환경의 macOS TCC(전체 디스크 접근) 제약으로 추정. Team Lead 재현 확인(2026-08-26, 내용 무변경 왕복 테스트도 10초 초과). backend-dev가 04:25에는 성공한 이력이 있어 간헐적. **crontab 무결성은 보존됨**(기존 2종 그대로, 백업본과 diff 일치)"
-    owner: "사용자 (본인 터미널에서 실행 — `! bash scripts/monitoring/deploy_monitoring.sh --local-only`)"
+    status: RESOLVED   # 2026-09-02 사용자 본인 터미널 실행으로 해소
+    desc: "[해소] 맥북 crontab **쓰기** 차단(macOS TCC 추정). 2026-09-02 사용자가 deploy_monitoring.sh --local-only 1회 실행하여 해소. 실측(2026-09-02 22:06 KST): crontab 3줄 — 기존 2종 무변경 + `17 */2 * * * ... # PAB-GIT-AUTOCOMMIT` 신규 등재. ⚠️ 등재는 확인됐으나 **발화는 2026-09-03 09:23 기준 0회** — 예정 6회(22:17·00:17·02:17·04:17·06:17·08:17)가 전부 맥북 슬립 창(09-02 22:00 직후 ~ 09-03 09:23:11, kern.waketime 실측)에 포함. macOS cron은 놓친 실행을 보충하지 않음. 다음 기회 09-03 10:17"
+    owner: "-"
 domain_tags_in_use: [INFRA]
 roles:
   team_lead: main
-  backend_dev: terminated    # 2026-08-26 정식 shutdown. T-2·T-3·T-5·T-7(§3)·T-1연계·G9 완료. 잔여는 전부 외부 대기(OB2-C·BL-3·Prove R-5)라 재스폰은 대기 해소 후
+  backend_dev: active        # 2026-09-03 재스폰 — T-3 서버 cron 2줄 등록 준비(등록 실행은 Team Lead 별도 지시 게이트)
   verifier: not_spawned
   tester: not_spawned        # G3_smoke 장애 주입 (HR-6 독립성)
   frontend_dev: not_spawned  # 미사용
