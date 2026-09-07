@@ -4,7 +4,7 @@ title: "운영 안정화 + 백업 무결성"
 team_name: "phase-2-5"
 ssot_version: v8.2-renewal-6th   # ver6-2 라인 이행 (2026-08-25). v8.3 policy/model-assignment.md는 이식 보존
 created: 2026-08-25
-updated: 2026-09-03
+updated: 2026-09-07
 current_state: IN_PROGRESS
 exceptions: [E-1, E-2, E-3, E-4]
 exceptions_ref: docs/phases/phase-2-exceptions.md
@@ -23,11 +23,16 @@ gate_results:
   G2_infra: PARTIAL  # 2026-08-26 갱신
   #   T-1 PASS (2026-08-25) + volbackup 감시 연계 PASS (2026-08-26, eb1875b — 6분기 전수 시험)
   #   T-2 조건부 PASS — 커밋·푸시 실체 충족(2efb00e). cron 활성화만 BL-3로 잔여
-  #   T-3 조건부 PASS (2026-09-03) — 서버 cron 2줄 등록 완료. Observer OB2-C §8.4 정식 수용 후 실행
-  #     ⚠️ 전건 PASS 아님 — task-2-5-3 §검증(G2_infra) 3번 "8일째 실행 시 가장 오래된 세대 정리"가
-  #        미실증이다. 현재 4세대 < KEEP=7이라 회전이 발동한 적이 없다. 격리 루트 가짜 8세대
-  #        시험은 통과했으나, 실제 백업 파일은 root:root 소유라 조건이 다르다(unlink 권한은
-  #        디렉토리에서 나오므로 성공이 예상되나 논증일 뿐이다). 첫 회전 09-07(월) 04:17에 실측.
+  #   T-3 ✅ PASS (2026-09-07 확정) — 조건부 → 확정. 마지막 미실증 항목이 닫혔다
+  #     ⭐ 세대 회전 실증 (2026-09-07 04:17:03, 무인 자동):
+  #        "회전 삭제: pab_couchdb_data-20260826-044630.tar.gz" → 세대 7/7 유지, 총 9487174B.
+  #        가장 오래된 것 1개 삭제 확인. root:root 소유 실파일에서 성공 — 논증이 아니라 실측이다
+  #        (종전 우려: 격리 루트 가짜 8세대 시험은 통과했으나 소유자 조건이 달랐다. 해소됨)
+  #     ⭐ 복원 리허설 첫 무인 실행 (2026-09-06 04:42:01~04, 주 1회 일요일):
+  #        doc_count 3064=3064 / _design/zz_bridge_readonly VDU 194자 / _local 13=13 / 잔재 0
+  #        → "덤프에서 실제로 DB가 살아난다" PASS. 사람 개입 0
+  #     · 백업 무인 발화 연속 4일 확인 (09-04·05·06·07 전부 04:17:0x)
+  #     · 잔여: UK Push URL 미설정으로 Observer 측 2계층 감시는 생략 중 (BL-1, T-1 로컬 폴백이 감시)
   #     · crontab 8줄 → 10줄, 기존 8줄 전건 무변경 (Observer #32 17:03 → 우리 17:04, 1시간 분리 확인)
   #     · 프라이밍 선행: 백업 1회 + 복원 리허설 1회 → LAST_OK_TS/LAST_VERIFY_TS 09-03 10:05로 갱신
   #     · ⭐ 목적 달성 확인 — T-1 check_couchdb_volbackup 판정이 실제로 OK
