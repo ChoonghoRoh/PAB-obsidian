@@ -4,8 +4,9 @@ title: "운영 안정화 + 백업 무결성"
 team_name: "phase-2-5"
 ssot_version: v8.2-renewal-6th   # ver6-2 라인 이행 (2026-08-25). v8.3 policy/model-assignment.md는 이식 보존
 created: 2026-08-25
-updated: 2026-09-07
-current_state: IN_PROGRESS
+updated: 2026-09-10
+current_state: BUILDING   # 2026-09-10 정정 — 종전 IN_PROGRESS는 SSOT 3-workflow §1.1 20개 상태 코드 밖이라 ENTRY-2 분기·state-transition-guard가 판정 불가였다.
+                          #   잔여 T-4·T-6·T-7이 모두 구현 단계이므로 BUILDING. 차단 사유는 아래 Blockers 표가 별도로 기록한다(상태 코드로 대체하지 않는다)
 exceptions: [E-1, E-2, E-3, E-4]
 exceptions_ref: docs/phases/phase-2-exceptions.md
 master_plan_ref: docs/phases/phase-2-master-plan.md
@@ -88,7 +89,8 @@ blockers:
 domain_tags_in_use: [INFRA]
 roles:
   team_lead: main
-  backend_dev: active        # 2026-09-03 재스폰 — T-3 서버 cron 2줄 등록 준비(등록 실행은 Team Lead 별도 지시 게이트)
+  backend_dev: not_spawned   # 2026-09-10 정정 — T-3 등록 완료 후 미스폰 상태였으나 표기가 남아 있었다.
+                             #   ListAgents 실측(2026-09-10): 팀원 0명, team-lead 단독
   verifier: not_spawned
   tester: not_spawned        # G3_smoke 장애 주입 (HR-6 독립성)
   frontend_dev: not_spawned  # 미사용
