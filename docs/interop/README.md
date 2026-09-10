@@ -13,7 +13,10 @@
 ## 채널 규약 (PAB-obsidian ↔ PAB-Prove 공통 · 2026-09-07 합의)
 
 > `PO10 §5` 초안 → `PO11 §3` 전건 채택. **양측 동일 문안**이며 PAB-Prove `docs/interop/README.md §2`에 같은 내용이 있다.
-> ⚠️ 현재는 **PAB-Prove 채널 한정**이다. PAB-Observer 채널로의 확대는 별도 합의 사항.
+> ⚠️ 현재는 **PAB-Prove 채널 한정**이다. PAB-Observer 채널로의 확대는 별도 합의 사항(`OB2-E` `E-5`로 판단 요청 중).
+> 📌 **PAB-v4 채널**은 본 규약을 기반으로 하되 **채번을 접두 분리**로 대체했다(`PV`=obsidian 발신 / `V`=v4 발신).
+>   접두를 나누면 동시 채번 충돌이 **원리적으로 발생하지 않아** 아래 "커밋 시각 이른 쪽" 사후 해소 조항이 불필요해진다.
+>   정본: [`pab-v4/README.md`](pab-v4/README.md) §4.
 
 ### 전달
 - 문서는 **양측 저장소에 대칭 배치**한다. 발신자가 자기 저장소의 채널 디렉토리와 상대 저장소의 채널 디렉토리 양쪽에 배치한다. 수신본은 커밋하지 않는다.
@@ -37,5 +40,6 @@
 |---|---|---|---|
 | PAB-Observer (관측 인프라) | [`pab-observer/README.md`](pab-observer/README.md) | obsidian=vault 정의·전파 계약 / Observer=4홉 체인 관측 | 활성 (2026-08-24 개설) |
 | PAB-Prove (수집 파이프라인) | [`pab-prove/README.md`](pab-prove/README.md) | obsidian=vault 정의·정본 authority / Prove=capture UI·워커 코드 | 활성 (2026-08-25 개설 — **PAB-Prove 발신**) |
+| PAB-v4 (회원 대면 웹서비스) | [`pab-v4/README.md`](pab-v4/README.md) | obsidian=vault 정의·정본 authority / v4=회원 vault 프로비저닝·미러 단방향 읽기 | 활성 (2026-09-11 개설 — **PAB-v4 발신**) |
 
 > **3자 연동 주의**: PAB-Prove의 3800X 디바이스 편입(PO1·PO2)은 **홉2 구조 변경**이라 PAB-Observer 사전 통지 대상이다(OB2-A §7.3, 리드타임 24h). 두 채널이 한 사안에 물리므로 **편입 실행 전 Observer 통지는 PAB-obsidian이 수행**한다.

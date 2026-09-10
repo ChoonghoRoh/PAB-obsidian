@@ -1,0 +1,65 @@
+# PAB-obsidian ↔ PAB-v4 협업 인덱스
+
+> **상위**: [`docs/interop/README.md`](../README.md)
+> **목적**: 회원제 전환에 따른 **회원별 vault**와 LiveSync 전파 경로의 계약 집약·조율 상태.
+> **생성**: 2026-09-11 (PAB-v4 발신 — 채널 부재로 인한 전달 실패를 계기로 개설)
+
+---
+
+## 1. 역할 경계 (한 줄)
+
+**PAB-obsidian = vault 정의·전파 계약(무엇이 정보이고 어디에 어떻게 쌓이는가) · 정본 authority** / **PAB-v4 = 회원 대면 웹서비스 · 회원 vault 프로비저닝 · 미러 단방향 읽기(RAG/임베딩)**.
+
+v4는 vault에 **쓰지 않는다** — 미러를 `:ro`로 읽는다(`config.py` §148~150 실측). 회원 vault 프로비저닝은 **빈 골격 생성까지**이고, 그 안의 노트 write 주체는 PAB-Prove다.
+
+## 2. 관측 중인 구조 (2026-09-10 실측)
+
+```
+/home/oceanui/pab-vault-mirror/     ← 정본 미러. bridge가 CouchDB에서 단방향 복제
+/home/oceanui/pab-vault-members/    ← 회원 vault 루트 (형제 디렉터리, 미러 바깥)
+    └── ve9bf23dbb988a8d18d0f1dc93aa83a37/   ← member_b, .md 192건
+```
+
+- bridge 마운트는 **미러 하나뿐**. `pab-vault-members`는 **미마운트** ⇒ 회원 vault는 현재 LiveSync 되지 않는다.
+- CouchDB `_all_dbs` = `_global_changes` `_replicator` `_users` `pab-llmdata` — **회원 DB 0개**.
+- `vault_id` = `"v" + secrets.token_hex(16)` (33자). v4가 생성하고 Prove에는 **불투명 id로만** 전달한다(Prove `vaultscope.py` — 경로는 Prove가 조립).
+
+## 3. 계약 문서 (SSOT 소유권)
+
+> 범례 — **수신본**: 상대=SSOT, 여기엔 읽기전용 사본 · **회신본**: PAB-obsidian=SSOT.
+
+| # | 문서 | SSOT | 성격 | 링크 |
+|---|---|---|---|---|
+| **PV1** | LiveSync 호환성 Q1~Q4 전건 회답 · 우리 `OB2-E` §4.4 **오류 정정** · 채널 규약 회답 · 신규 질의 `PV1-1`~`PV1-3` | **PAB-obsidian** | 회신본 | [`260911-PV1-LiveSync호환성Q1~Q4회답+규약회답.md`](260911-PV1-LiveSync호환성Q1~Q4회답+규약회답.md) |
+
+## 4. 채널 규약 (§4.0)
+
+> **PAB-v4 채널 한정.** 상위 [`docs/interop/README.md`](../README.md) §채널 규약(PAB-Prove 합의본)을 기반으로, v4 제안(`접두 분리`)을 채택하고 누락분(`수령 표명`)을 복원한 것이다.
+
+### 전달
+- 문서는 **양측 저장소에 대칭 배치**한다. **배치 주체는 발신자**이며, 수신자가 가지러 오지 않는다.
+- 배치 위치: `PAB-obsidian/docs/interop/pab-v4/` ↔ `personal-ai-brain-v4/docs/interop/obsidian/`
+- 🔴 **상대 저장소에는 파일만 놓고 커밋하지 않는다.** 발신 원본은 자기 저장소에 두고 커밋한다.
+- 배치 직후 **SendMessage로 1줄 고지**를 병행한다.
+
+### 수령
+- 🔴 **수신자의 명시적 표명**(회신 문서 또는 SendMessage)이 있어야 전달 완료다.
+- 발신 API의 성공 응답은 **도달의 증거가 아니다.** 2026-09-10~11 실증: SendMessage 3건이 전부 `success`를 반환했으나 수신 세션이 교체되어 **한 건도 읽히지 않았다.**
+
+### 채번
+- **접두를 발신 주체별로 분리한다** — PAB-obsidian 발신 = `PV`, PAB-v4 발신 = `V`.
+- 각자 **자기 접두 안에서만** 증가시키므로 동시 채번 충돌이 **원리적으로 발생하지 않는다.** 상대 저장소의 마지막 번호를 확인할 필요도 없다.
+- **발신 시점에 매긴다.** 미래 번호를 예약해 부르지 않는다.
+
+### 내용
+- 회답에는 **결과만이 아니라 근거를 함께 적는다.**
+- 실측과 추론을 구분해 표기한다. 미측정 항목은 **미측정으로 명시**한다.
+
+## 5. 미해결 / 대기
+
+| # | 항목 | 대기 방향 |
+|---|---|---|
+| `PV1-1` | 회원 vault 읽기 경로·마운트 모드(ro/rw)·watcher 루프·prune 가드 적용 여부 | → v4 |
+| `PV1-2` | Prove 전달 규격 — `vault_id` 외 경로성 값 동반 여부 | → v4 |
+| `PV1-3` | 🔴 **경로 불변식 소유자** — v4 프로비저닝 루트와 Prove `$PAB_MEMBER_VAULT_ROOT`가 같은 실물임을 무엇이 보장하는가 | → v4 |
+| — | 회원 vault LiveSync 편입 실행 시 **Observer 24h 사전 통지** | **PAB-obsidian 의무** |
