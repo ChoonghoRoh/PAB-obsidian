@@ -66,7 +66,7 @@
 ## PAB-Prove 편입 (T-4와 동시 실행) ← 2026-08-26 편성
 - [x] PO1 회답 발신 — PO2 (조건부 승인 + 정정 2건 + 요청 6건)
 - [ ] R-5 수신 — Prove 측 검증 시점 이동 완료 통지 (**편입 게이트 P-1**)
-- [ ] Observer 사전 통지 (홉2 구조 변경, 리드타임 24h)
+- [ ] Observer 사전 통지 (홉2 구조 변경) — ⚠️ **리드타임 출처 확인 필요**: 24h는 `OB2-A` §1.3(**승격 프로토콜**)의 값을 준용한 관행이고, 근거 조항인 관측 계약 §4(`OB1` §4)에는 **수치가 없다**. 통지 시 Observer와 재확인 (2026-09-15 `PV2` §1.1 정정)
 - [ ] `Hub.patched.ts` `allowWriteBack` 플래그 조건부화 — backend-dev
 - [ ] Prove 전용 bridge 컨테이너 + config 신설 — backend-dev
 - [ ] `pabprove` 계정 발급 + 쓰기 통과 실증 (T-4 회전과 동시) — backend-dev
