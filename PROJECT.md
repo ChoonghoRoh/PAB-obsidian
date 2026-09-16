@@ -112,4 +112,4 @@ PAB-LLMDATA(로컬) → LiveSync → CouchDB pab-llmdata(홉1, 3800X :5984)
 
 - 응답 언어는 **한국어**. 기술 용어·코드 식별자는 원문 유지
 - 이 프로젝트는 **지식 자산**을 다룬다. 노트의 삭제·덮어쓰기는 복제로 전 기기에 전파되므로, 파괴적 변경 전 반드시 확인한다
-- vault 노트 생성은 `/wiki` 스킬 규격(frontmatter 11필드 + 6 TYPE + naming-convention)을 따른다
+- vault 노트 생성은 `/wiki` 스킬 규격(frontmatter 11필드 + TYPE + naming-convention)을 따른다. 🔴 **TYPE 개수·목록이 세 곳에서 불일치한다 (2026-09-16 실측, 미해결)** — 본 문서 종전 표기 "6 TYPE" · `frontmatter-spec.md:49` "7 TYPE"(SOURCE 없고 INDEX 있음) · 실물 `00_MOC/TYPES/` 7개(SOURCE 있고 INDEX 없음). **정본 판정 전까지 실물을 사실로 본다.** v4 규정 R-11 로 MOC 분류 체계 소유가 우리에게 있으므로 **정리 후 v4 에 통지해야 한다**(`PV6` §3.1). ⚠️ **적용 대상은 `PAB-LLMDATA`(우리 authority vault)에 한정한다** — **회원 vault(`pab-vault-members/<vault_id>`)에는 적용하지 않는다.** 회원 데이터 룰의 소유자는 PAB-v4다(`docs/interop/260916-회원데이터-룰-소유규정-v4정본.md`). 회원 vault 노트 규격이 필요해지면 만들지 말고 v4에 문의한다
