@@ -4,7 +4,7 @@ title: "운영 안정화 + 백업 무결성"
 team_name: "phase-2-5"
 ssot_version: v8.2-renewal-6th   # ver6-2 라인 이행 (2026-08-25). v8.3 policy/model-assignment.md는 이식 보존
 created: 2026-08-25
-updated: 2026-09-10
+updated: 2026-09-21
 current_state: BUILDING   # 2026-09-10 정정 — 종전 IN_PROGRESS는 SSOT 3-workflow §1.1 20개 상태 코드 밖이라 ENTRY-2 분기·state-transition-guard가 판정 불가였다.
                           #   잔여 T-4·T-6·T-7이 모두 구현 단계이므로 BUILDING. 차단 사유는 아래 Blockers 표가 별도로 기록한다(상태 코드로 대체하지 않는다)
 exceptions: [E-1, E-2, E-3, E-4]
@@ -58,7 +58,13 @@ gate_results:
   #       결함/의도 판정은 유보. **T-7 범위 밖, 별도 판단 대상으로 등재**
   #     ⚠️ 잔여: 22건 일괄 갱신 미실행(정본 쓰기·사용자 승인 대기) / G2_infra E2E 미수행
   #   T-7 §작업3 PASS — link-check status 정합(PASS/exit 0, --strict-broken 하위호환)
-  #   T-4·T-5·T-6 미착수 (T-5 진행 중)
+  #   T-4 미착수(pending) · T-6 미착수(pending, depends_on 2-5-4) · T-7 running
+  #   ⚠️ 2026-09-21 정정 — 종전 "T-4·T-5·T-6 미착수 (T-5 진행 중)"은 T-5를 *미착수*와
+  #      *진행 중*으로 동시에 적은 자기모순이었고 둘 다 틀렸다. task-2-5-5.md 실측
+  #      `status: completed` (2026-08-26, workspace.json 추적 해제 + skip-worktree 제거).
+  #      frontmatter 8번 줄의 "잔여 T-4·T-6·T-7"이 맞는 기록이다.
+  #      ★ ssot-reload 에이전트도 이 줄을 그대로 인용해 같은 오류를 재생산했다 —
+  #        요약을 읽고 옮기지 말고 task 파일 status 를 실측할 것
   #   [T-1 검증 결과]
   #   ✓ Tailnet IP(100.109.251.86) 경유 — localhost 회피 확인
   #   ✓ printf %q 상태파일 규약 준수 (46일 침묵 사고 재발 방지)
@@ -70,22 +76,55 @@ gate_results:
   #   △ 잔여: 스크립트 주석의 문서 경로가 구 경로(phase-2-5-observer-integration-prompt.md)
   #           → OB2 경로로 갱신 필요 (Team Lead 문서 이동에 기인, backend-dev 재스폰 시 처리)
   #   ⏸ G3_smoke 장애 주입은 tester 미스폰 — HR-6 독립성 유지 위해 별도 수행 필요
+  #   🔴 2026-09-20 LiveSync 감시 전면 중단 (사용자 지시, Observer 실행 · 사후 통지)
+  #     3800X crontab 에서 `[LIVESYNC-STOP 20260920]` 태그와 함께 주석 처리된 3종 중
+  #     **2종이 우리 스크립트**다 — pab-vault-sync-collect.sh · pab_sync_healthcheck.sh.
+  #     ⚠️ **T-1 의 check_couchdb_volbackup 실행체가 pab_sync_healthcheck.sh 뿐이다**
+  #        (맥북 crontab 3줄에 healthcheck 없음). 즉 G2_infra PASS 근거였던 T-1 감시가
+  #        실제로 멈췄다. 백업(pab_couchdb_volume_backup.sh, crontab 12·13줄)은 생존 —
+  #        Observer 의 "백업은 별개" 판단은 옳다. 결과는 **백업은 돌고 검사자는 꺼진** 상태.
+  #     · 마지막 하트비트(2026-09-20 19:57:01 KST)가 STATUS=FAIL/FAILING=github-backup 로 얼어붙음.
+  #       독립 검증 결과 **고장 아님** — origin/main tip 51h 경과는 사실이나 autocommit 은
+  #       09-18 18:17~09-20 18:17 2시간 슬롯 25회 전건 실행(누락 0), 전부 "변경 없음".
+  #       vault 무변경이 원인이고, 체크가 "tip 나이"를 "백업 동작"의 대리 지표로 쓰는 과민이다.
+  #     · G2_infra 판정 영향: T-1 PASS 는 **관측 중단으로 유효성 정지**. 재개 시 재확인 필요.
   G3_smoke: PENDING  # E-3 — 장애 주입 E2E (pytest 대체)
   G4: PENDING
 blockers:
   - id: BL-1
     task: "2-5-1"
-    desc: "UK_PAB_VAULT_PUSH_URL 미발급 — Observer 측 회신 대기. 미설정 시 Push 생략 동작으로 선배포는 가능(진행 차단 아님)"
-    owner: "Observer 측 (사용자 전달)"
+    status: WITHDRAWN   # 2026-09-21 — 판정 대기에서 내림
+    desc: "[철회] UK_PAB_VAULT_PUSH_URL 미발급. 2026-09-20 LiveSync 감시가 전면 중단되어 Push 대상 자체가 사라졌다. Observer 도 OB2-C·OB2-F 를 같은 이유로 판정 대기에서 내렸다. 재개 시 재등재 — 단 Observer 경고대로 미러 경로 재편이면 홉 구조가 달라지므로 **지표를 그대로 되살리지 말고 무엇을 어떤 단위로 볼지 먼저 합의**한다"
+    owner: "재개 시점 재협의"
   - id: BL-2
     task: "2-5-1"
-    desc: "기존 UK CouchDB 모니터 알림 미도달 원인 미규명 — UK는 15초 주기로 /_up 감시 중이었으나 3일 장애가 사람에게 도달하지 않음. 규명 없이는 신규 모니터도 동일 침묵 위험"
-    owner: "Observer 측 (사용자 전달)"
+    status: WITHDRAWN   # 2026-09-21 — 판정 대기에서 내림 (단 원인은 BL-5 로 규명됨)
+    desc: "[철회·승계] 기존 UK CouchDB 모니터 알림 미도달 원인 미규명. 감시 체계 자체가 중단되어 대기 무의미. ⭐ 다만 **같은 실패 양식이 우리 쪽에서 실증되어 BL-5 로 승계**한다 — 규명 없이는 신규 모니터도 동일 침묵 위험이라던 우려가 맞았다"
+    owner: "→ BL-5"
   - id: BL-3
     task: "2-5-2"
-    status: RESOLVED   # 2026-09-02 사용자 본인 터미널 실행으로 해소
-    desc: "[해소] 맥북 crontab **쓰기** 차단(macOS TCC 추정). 2026-09-02 사용자가 deploy_monitoring.sh --local-only 1회 실행하여 해소. 실측(2026-09-02 22:06 KST): crontab 3줄 — 기존 2종 무변경 + `17 */2 * * * ... # PAB-GIT-AUTOCOMMIT` 신규 등재. ⚠️ 등재는 확인됐으나 **발화는 2026-09-03 09:23 기준 0회** — 예정 6회(22:17·00:17·02:17·04:17·06:17·08:17)가 전부 맥북 슬립 창(09-02 22:00 직후 ~ 09-03 09:23:11, kern.waketime 실측)에 포함. macOS cron은 놓친 실행을 보충하지 않음. 다음 기회 09-03 10:17"
-    owner: "-"
+    status: RECURRING   # 2026-09-02 1회 해소됐으나 2026-09-21 재발 — 일시 해소지 제거가 아니다
+    desc: "[해소] 맥북 crontab **쓰기** 차단(macOS TCC 추정). 2026-09-02 사용자가 deploy_monitoring.sh --local-only 1회 실행하여 해소. 실측(2026-09-02 22:06 KST): crontab 3줄 — 기존 2종 무변경 + `17 */2 * * * ... # PAB-GIT-AUTOCOMMIT` 신규 등재. ⚠️ 등재는 확인됐으나 **발화는 2026-09-03 09:23 기준 0회** — 예정 6회(22:17·00:17·02:17·04:17·06:17·08:17)가 전부 맥북 슬립 창(09-02 22:00 직후 ~ 09-03 09:23:11, kern.waketime 실측)에 포함. macOS cron은 놓친 실행을 보충하지 않음. 다음 기회 09-03 10:17.
+      🔴 **2026-09-21 재발** — watchdog 중단을 위한 `crontab <파일>` 쓰기가 **에러 없이 무기한 정지**(PID 실측 S 상태 2분+, rc 없음). `crontab -l` 읽기는 정상. 프로세스 종료 후 crontab 원본 무변경 확인. 2026-09-02 조치는 그 1회를 통과시킨 것이지 조건을 제거한 게 아니었다.
+      ⚠️ 부수 발견: macOS `crontab` 이 긴 경로를 잘라먹는다 — scratchpad 경로가 `.../scratchpad/c` 로 절단되어 ENOENT. 짧은 경로(`~/.pab-sync-monitor/`) 사용 필요.
+      준비 완료(사용자 터미널 1회 실행 대기): `crontab ~/.pab-sync-monitor/crontab.new` · 롤백 `crontab ~/.pab-sync-monitor/crontab.bak-20260921-202020`"
+    owner: "사용자 (터미널 1회)"
+  - id: BL-4
+    task: "2-5-1"
+    status: OPEN
+    desc: "🔴 맥북 역방향 watchdog 중단 미적용 — LiveSync 감시 중단(2026-09-20)으로 하트비트 생산자가 꺼졌으나 pab_sync_watchdog_local.sh 는 여전히 `0 9 * * 1` 로 등재돼 있다. BL-3(crontab 쓰기 차단)로 적용 실패. 사용자 터미널 1회 실행 필요"
+    owner: "사용자 (터미널 1회)"
+  - id: BL-5
+    task: "2-5-1"
+    status: OPEN
+    desc: "🔴 **watchdog 전역 래치 결함 — 최후 방어선이 21일간 무력화됐고 진짜 경보를 삼켰다**.
+      실측(2026-09-21 20:19): `~/.pab-sync-monitor/watchdog-state.env` = WATCHDOG_ALERT=1 / ALERT_SINCE=1788134522(**2026-08-31 09:02**).
+      경위 — 08-31 09:02 FAIL 로 래치 ON(이때 1회 발송) → 09-07·09-14 월요일 **미실행**(맥북 슬립, macOS cron 보충 없음; kern.boottime 09-04 08:40 로 /tmp 로그도 유실) → 09-21 09:02 FAIL 재확정하고 `이미 알림 상태 — 중복 발송 억제`.
+      ⚠️ 08-31~09-20 사이 서버는 **실제로 정상**이었다(하트비트 5분 주기 갱신을 09-20 19:57까지 실측). 그 사이 한 번만 돌았어도 `✅ 서버 정상 복귀 확인`이 나가고 래치가 풀려, 오늘의 진짜 고장('서버 감시가 멈췄다')이 정상 발신됐을 것이다.
+      ★ 근본 원인은 **전역 래치 1개**다. pab_sync_healthcheck.sh 는 주석에서 전역 래치를 명시적으로 거부하고 항목별(ALERTED_<key>)로 전환했는데, **pab_sync_watchdog_local.sh 는 그 수정을 못 받았다**(WATCHDOG_ALERT 단일 변수). 여기에 주1회 스케줄 + 슬립 결번이 겹쳐 복구 관측 기회가 3회 중 1회로 줄었다.
+      → 조치: ⑴ 항목별 래치 이식 ⑵ 스케줄 상향 또는 슬립 보정(오래 눌린 ALERT 자체를 이상으로 승격) ⑶ 래치 잔류 시 주기적 재알림.
+      ⚠️ scripts/ 코드 영역이라 **HR-1: backend-dev 위임 필수** — Team Lead 직접 수정 금지. FRESH-7 팀 재구성 선행"
+    owner: "backend-dev (미스폰)"
 domain_tags_in_use: [INFRA]
 roles:
   team_lead: main
