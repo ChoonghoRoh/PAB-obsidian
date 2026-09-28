@@ -31,7 +31,7 @@ line_crit: 700
 # --- 테스트 게이트 (G3) ---
 coverage_target: 80                # 인프라 Phase는 E-3 G3_smoke로 대체 (phase-2-exceptions.md)
 
-# --- 알림 (NOTIFY-1, 구 HR-8) ---
+# --- 알림 (NOTIFY-1) ---
 notify_channel: "telegram"         # telegram | none
 notify_project_label: "PAB-LLMDATA"  # 알림 메시지 [라벨]
 
@@ -106,7 +106,7 @@ PAB-LLMDATA(로컬) → LiveSync → CouchDB pab-llmdata(홉1, 3800X :5984)
 |---|---|
 | `scripts/monitoring/` | vault 동기화 헬스 수집기 + Observer Push + 맥북 역방향 watchdog |
 | `scripts/pmAuto/` | NOTIFY-1 Telegram 발송 |
-| `scripts/zombiecheck/` | LIFECYCLE-5·6 좀비 감지·체크 스케줄러 (ver6-2 프레임워크) |
+| `scripts/zombiecheck/` | LIFECYCLE-5·6 좀비 감지·체크 스케줄러 (번들 하네스) |
 | `scripts/wiki/` | wiki CLI (`wiki.py` — `moc-build`·`validate`·`link-check` 계열, Phase 1-4) |
 
 > **Telegram 주의**: `report_to_telegram.sh`는 `parse_mode=Markdown`을 강제한다. `G2_wiki` 같은 `_` 단독 토큰은 entity 파싱을 깨뜨리므로 하이픈 치환·escape가 필요하다.
