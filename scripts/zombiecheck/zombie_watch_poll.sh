@@ -1,20 +1,15 @@
 #!/usr/bin/env bash
-# =============================================================================
-# zombie_watch_poll.sh — zombie_watch.sh 폴링 루프 + arm 판정 라이브러리
-# (Phase 9-1-3 분리, source 전용)
+# zombie_watch_poll.sh — zombie_watch.sh 폴링 루프 + arm 판정 라이브러리 (source 전용)
 #
-# 폴링 루프(_zw_run_loop)는 --arm 이 백그라운드로 기동한다. arm 판정 3단(§2.2)은
+# 폴링 루프(_zw_run_loop)는 --arm 이 백그라운드로 기동한다. arm 판정 3단은
 # 마커 존재 + PID 생존 + 명령줄(본체 파일명 포함) 대조로 판단하며 이 판정이
 # 유일한 근거다 — status.md 필드는 가시성용일 뿐이다.
 #
 # 쉘 안전 옵션(errexit/nounset/pipefail)은 소싱하는 쪽에서 상속되므로 본 파일
 # 에서 재선언하지 않는다.
-# =============================================================================
 
-# -----------------------------------------------------------------------------
 # 폴링 루프 — --arm 이 백그라운드로 기동한다. jq/config.json 부재 시 목록 획득을
-# 포기하고 SKIP 하되 기동 1회는 반드시 emit 한다(§2.5).
-# -----------------------------------------------------------------------------
+# 포기하고 SKIP 하되 기동 1회는 반드시 emit 한다.
 _zw_run_loop() {
   local team="$1"
   local marker
@@ -24,8 +19,8 @@ _zw_run_loop() {
   local -a _zw_hash_store=()
   local first_cycle=true
   local list_warned=false
-  local excl_warned=false   # R2-1: 제외 멤버 존재 — 기동 1회만 emit(§2.3 edge-triggered, R-15)
-  local zero_warned=false   # R2-1: 대상 0명 — 상태 변화 시에만 emit
+  local excl_warned=false   # 기동 1회만 emit
+  local zero_warned=false   # 상태 변화 시에만 emit
 
   while true; do
     local config="${HOME:-}/.claude/teams/${team}/config.json"
@@ -37,32 +32,34 @@ _zw_run_loop() {
       sleep "$_ZW_POLL_INTERVAL"
       continue
     fi
-    local agents agent notice
-    # D-1(AUTO_FIX): tmuxPaneId `%숫자` 형식(실 pane 보유) 멤버만 폴링 대상 — 근거는 D-1 조사 참조.
+    local agents inproc_agents agent notice
+    # 실 pane(%N) 보유 멤버는 그대로 폴링. pane 없는 멤버는 in-process 감시 대상
+    # (team-lead 아닌 멤버, 대기 포함)만 폴링한다.
     agents="$(jq -r '.members[]? | select(.tmuxPaneId // "" | test("^%[0-9]+$")) | .name' "$config" 2>/dev/null)" || agents=""
+    inproc_agents="$(_zw_inproc_target_names "$config")" || inproc_agents=""
     if [[ "$excl_warned" == false ]]; then
       notice="$(_zw_excluded_notice "$team" "$config")"
       [[ -n "$notice" ]] && echo "$notice"
       excl_warned=true
     fi
-    if [[ -z "$agents" ]]; then
-      [[ "$zero_warned" == false ]] && echo "SKIP: team=${team} — 폴링 대상 0명 (전원 실 pane 미보유)"
+    if [[ -z "$agents" && -z "$inproc_agents" ]]; then
+      [[ "$zero_warned" == false ]] && echo "SKIP: team=${team} — 폴링 대상 0명 (전원 실 pane 미보유이며 in-process 대상도 없음)"
       zero_warned=true
     else
       zero_warned=false
     fi
     for agent in $agents; do
-      _zw_check_one "$team" "$agent" "$first_cycle" || true
+      _zw_check_one "$team" "$agent" "$first_cycle" "pane" || true
+    done
+    for agent in $inproc_agents; do
+      _zw_check_one "$team" "$agent" "$first_cycle" "inproc" || true
     done
     first_cycle=false
     sleep "$_ZW_POLL_INTERVAL"
   done
 }
 
-# -----------------------------------------------------------------------------
-# arm 판정 3단 (§2.2) — 마커 존재 + PID 생존 + 명령줄 대조. status.md 필드는 가시성용이며
-# 이 함수가 유일한 판정 근거다.
-# -----------------------------------------------------------------------------
+# arm 판정 3단
 _zw_marker_file() { printf '%s/%s.pid' "$_ZW_MARKER_DIR" "$1"; }
 
 _zw_is_armed() {
@@ -73,7 +70,7 @@ _zw_is_armed() {
   [[ "$pid" =~ ^[0-9]+$ ]] || return 1
   kill -0 "$pid" 2>/dev/null || return 1               # 2단: PID 생존
   cmd="$(ps -o command= -p "$pid" 2>/dev/null)" || return 1
-  [[ "$cmd" == *zombie_watch.sh*--_loop-internal* && "$cmd" =~ (^|[[:space:]])${team}($|[[:space:]]) ]] || return 1   # 3단: 명령줄+팀명 단어경계 대조(D-2/D8-5, foo가 foobar에 매칭되던 부분일치 오판정 방지)
+  [[ "$cmd" == *zombie_watch.sh*--_loop-internal* && "$cmd" =~ (^|[[:space:]])${team}($|[[:space:]]) ]] || return 1   # 3단: 명령줄+팀명 단어경계 대조(단어 경계 — foo가 foobar에 걸리지 않게)
   printf '%s' "$pid"
   return 0
 }
@@ -84,11 +81,8 @@ cmd_arm() {
     echo "이미 arm됨: team=${team} pid=${existing_pid}"
     return 0
   fi
-  # DEF-9-3-001③/CR-2(Phase 9-3-4): 종전엔 자식 프로세스 기동만 확인해 잘못된 팀명도
-  # rc=0("arm 완료")이 됐다 — 대상 없는 폴링 루프가 조용히 무한 SKIP 되는 원인이었다
-  # (PAB-Leader가 <team> 자리에 Phase ID를 넣어 arm한 실사례, 2-lifecycle-procedure.md
-  # §LIFECYCLE-6 SCHEDULER "arm 호출 규약" 참조). R-7(모르면 SKIP, 시끄럽게)에 따라
-  # 기동 전에 팀 디렉토리 존재를 검증한다 — <team>은 팀 디렉토리명(=세션 디렉토리명)이다.
+  # 기동 전에 팀 디렉토리를 확인한다 — <team>은 팀 디렉토리명이다(Phase ID 아님).
+  # 없으면 SKIP(3).
   local team_dir="${HOME:-}/.claude/teams/${team}"
   if [[ ! -d "$team_dir" ]]; then
     echo "SKIP: team=${team} — 팀 디렉토리 없음(${team_dir}). <team>은 팀 디렉토리명(=세션 디렉토리명)이어야 한다(Phase ID 금지)" >&2
@@ -120,7 +114,7 @@ cmd_stop() {
     echo "이미 미arm 상태: team=${team}"
   fi
   rm -f "$(_zw_marker_file "$team")"
-  rm -rf "${_ZW_STATE_ROOT:?}/${team}" 2>/dev/null || true   # D-7: 해당 팀 state 만 정리(타 팀 보존)
+  rm -rf "${_ZW_STATE_ROOT:?}/${team}" 2>/dev/null || true   # 해당 팀 state 만 정리(타 팀 보존)
 }
 
 cmd_status() {

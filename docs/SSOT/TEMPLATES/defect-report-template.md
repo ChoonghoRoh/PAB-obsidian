@@ -55,8 +55,8 @@ resolved_at: null
 | **런타임** | [예: Python 3.12.x / Node.js 22.x] |
 | **Docker** | [예: Docker Compose v2.x, 이미지 태그] |
 | **브라우저** | [예: Chrome 130 (E2E 해당 시)] |
-| **DB** | [예: PostgreSQL 16.x] |
-| **기타** | [Ollama 버전, Redis 버전 등] |
+| **DB** | [예: DB 이름·버전] |
+| **기타** | [런타임·외부 서비스 버전 등] |
 
 ---
 
@@ -79,7 +79,3 @@ resolved_at: null
 - **우회 방법**: [있으면 기술, 없으면 "없음"]
 - **관련 결함**: [연관 Defect ID, 없으면 "없음"]
 - **비고**: [추가 참고 사항]
-
----
-
-> **참조**: [SUB-SSOT/TESTER/1-testing-procedure.md](../SUB-SSOT/TESTER/1-testing-procedure.md) (결함 분류 체계 — ISTQB CTFL 4.0 기반), [3-workflow.md §4.2 G3](../3-workflow.md#42-게이트별-판정-기준)

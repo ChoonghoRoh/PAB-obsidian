@@ -80,7 +80,7 @@ worktree 디렉토리는 **메인 저장소와 같은 부모 디렉토리에 형
 ### 3.1 핵심 명령
 
 ```bash
-# ── SETUP ─────────────────────────────────────────────
+# SETUP
 # 신규 브랜치 생성 + worktree 추가
 git worktree add -b feature-x ../myproject-wt-feature-x
 
@@ -95,11 +95,11 @@ git worktree add -b sprint3-fe ../myproject-wt-sprint3-fe
 git worktree add -b refactor-branch-A ../myproject-wt-refactor-ab-A
 git worktree add -b refactor-branch-B ../myproject-wt-refactor-ab-B
 
-# ── LIST ──────────────────────────────────────────────
+# LIST
 git worktree list                    # 현황 확인
 git worktree list --porcelain        # 스크립트 처리용
 
-# ── CLEANUP ───────────────────────────────────────────
+# CLEANUP
 # 정상 제거
 git worktree remove ../myproject-wt-feature-x
 
@@ -430,8 +430,6 @@ gh pr create --draft --title "[Draft] feature-x" --body "" --head feature-x --ba
 # 다른 레포 clone + worktree 생성 (skill 호출 예시)
 # setup feature-x --remote=https://github.com/org/other-repo
 ```
-
-> **Phase 6-3 검증 예정**: gh CLI 연동 E2E 시나리오 및 다른 레포 호환성 상세 검증.
 
 ---
 

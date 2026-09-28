@@ -182,8 +182,6 @@ Templater의 `<% tp.date.now("YYYY-MM-DD HH:mm") %>`를 `updated` 값으로 사�
 # 전체 vault 검증
 python3 scripts/wiki/wiki.py link-check --full
 
-# 또는 Makefile 타겟
-make wiki-link-check
 ```
 
 ### 수동 검증

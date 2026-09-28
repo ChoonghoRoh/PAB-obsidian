@@ -12,7 +12,7 @@ allowed-tools: "Read, Glob, Bash, Write, Skill"
 
 ## 역할
 
-HR-3(컨텍스트 복구 시 SSOT 리로드 필수) + CHAIN-13(직전 3 Phase 자동 로딩) 자동화. 컨텍스트 한계 도달 또는 `/clear` 직전에 현재 작업 상태를 핸드오프 .md로 직렬화하고, 새 세션에서 이를 로드해 무손실로 작업을 재개한다.
+HR-3(컨텍스트 복구 시 SSOT 리로드 필수) 자동화. 컨텍스트 한계 도달 또는 `/clear` 직전에 현재 작업 상태를 핸드오프 .md로 직렬화하고, 새 세션에서 이를 로드해 무손실로 작업을 재개한다.
 
 ## 입력
 
@@ -77,20 +77,20 @@ HR-3(컨텍스트 복구 시 SSOT 리로드 필수) + CHAIN-13(직전 3 Phase �
 
 #### 2.1 컨텍스트 수집
 
-다음을 수집:
+다음을 수집(`WORKFLOW/recovery.md` §5.1 내용):
 
 - 현재 Phase 추론: `--phase` 또는 git branch / `docs/phases/phase-*/phase-*-status.md` 중 `current_state != DONE` 항목.
 - Phase status.md 본문 (요약).
-- 직전 3개 Phase의 final-summary 파일 (CHAIN-13).
 - `git status --short` + 최근 commit 5건 (`git log --oneline -5`).
 - 최근 대화에서 합의된 결정·차단 요인·다음 작업.
+- 활성 팀 확인: **이 세션이 쓰는 팀 하나만** 본다 — `ListAgents`의 Teammates 목록(또는 팀원 스폰 결과의 `@<팀 이름>`으로 정한 `~/.claude/teams/<팀 이름>/config.json`). 다른 팀 폴더는 다른 세션 소유일 수 있으므로 종료 대상이 아니다. 그 팀에 `team-lead` 외 **활성**(팀 config에 남아 있는 멤버 — 대기 포함. 종료를 승인한 멤버는 config에서 빠진다) 팀원이 있으면 비상주 팀원은 종료(shutdown_request)한 뒤 인계한다. 상주 팀원(planner 등)이 남아 있으면 핸드오프 문서에 이름을 적는다.
 - `--summary=TEXT`가 있으면 1줄 요약으로 사용; 없으면 자동 생성.
 
 #### 2.2 핸드오프 .md 작성
 
 경로: `docs/handoff/{YYMMDD-HHMM}-handoff.md` (예: `260501-1130-handoff.md`).
 
-5섹션 표준:
+표준 섹션(`WORKFLOW/recovery.md` §5.1):
 
 ```markdown
 # Handoff — {phase} ({timestamp})
@@ -104,12 +104,7 @@ HR-3(컨텍스트 복구 시 SSOT 리로드 필수) + CHAIN-13(직전 3 Phase �
 - 진행 중 작업: {in_progress}
 - 차단 요인: {blockers or '없음'}
 
-## 3. 직전 3 Phase 기억 (CHAIN-13)
-- {phase-N-1}: {1줄 요약}
-- {phase-N-2}: {1줄 요약}
-- {phase-N-3}: {1줄 요약}
-
-## 4. 작업 컨텍스트
+## 3. 작업 컨텍스트
 - git branch: {branch}
 - git status: {modified count} M / {untracked count} ??
 - 최근 commit:
@@ -119,7 +114,7 @@ HR-3(컨텍스트 복구 시 SSOT 리로드 필수) + CHAIN-13(직전 3 Phase �
   - {결정 1}
   - ...
 
-## 5. 다음 작업 프롬프트
+## 4. 다음 작업 프롬프트
 {새 세션에서 그대로 사용 가능한 한국어 프롬프트}
 ```
 
@@ -157,20 +152,19 @@ Skill(skill="ssot-reload")
 
 #### 3.3 압축 컨텍스트 출력
 
-핸드오프 5섹션을 사용자에게 요약 출력:
+핸드오프 표준 섹션을 사용자에게 요약 출력:
 
 ```
 📌 Resume — {phase} ({timestamp})
 한 줄: {summary}
 현재 상태: {state} | 진행 중: {in_progress} | 차단: {blockers}
-직전 3 Phase: {phase-N-1}, {phase-N-2}, {phase-N-3}
 git: {branch}, {M}M/{??}??
 합의된 결정: {결정 N건}
 ```
 
 #### 3.4 다음 작업 프롬프트 제시 + 대기
 
-- 핸드오프 §5 "다음 작업 프롬프트"를 그대로 출력.
+- 핸드오프 §4 "다음 작업 프롬프트"를 그대로 출력.
 - 사용자 승인 또는 추가 지시 대기.
 
 ## 예시
@@ -183,10 +177,3 @@ git: {branch}, {M}M/{??}??
 /context-handoff resume docs/handoff/260501-1130-handoff.md
 /context-handoff --help
 ```
-
-## 참조
-
-- HR-3: 컨텍스트 복구 시 SSOT 리로드 필수
-- CHAIN-13: 직전 3 Phase 기억 자동 로딩
-- 연계 스킬: `ssot-reload` (resume 모드 내부 호출)
-- 산출물 위치: `docs/handoff/`

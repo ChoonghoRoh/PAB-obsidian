@@ -1,26 +1,18 @@
 #!/usr/bin/env bash
-# =============================================================================
-# zombie_check_selftest.sh — zombie_check.sh 내장 단위 테스트 (Phase 8-4 분리)
+# zombie_check_selftest.sh — zombie_check.sh 내장 단위 테스트
 #
-# 배경: zombie_check.sh 본체 455줄 중 self-test부가 233줄(51%)을 차지해 500줄
-#       한도를 위협했다(L-2/A-1/N-1 추가 시 초과 확정, Team Lead 사전 승인 분리).
-#       본체는 `--self-test` 인자를 받으면 이 파일을 exec 로 위임한다 — 호출법
-#       (`bash zombie_check.sh --self-test`)·stdout·exit code 는 분리 전과 동일하다.
+# 본체가 --self-test를 받으면 이 파일로 exec 위임한다.
 #
-# A-2 안전: 이 파일은 zombie_check.sh 를 source 해 함수·상수(readonly 포함)를
+# 이 파일은 zombie_check.sh 를 source 해 함수·상수(readonly 포함)를
 #       가져온다. 이 파일이 항상 "자신만의 새 프로세스"로 실행되므로(exec 위임
 #       또는 직접 실행) source 는 프로세스당 정확히 1회만 일어나 readonly 재선언
 #       충돌이 발생하지 않는다. zombie_check.sh 를 다시 source 하는 코드를 이
 #       파일 안에 추가하지 말 것.
 #
-# 구성: tmux 無 — 스텁4 + 실헬퍼3(대체 케이스 1건) + 회귀12(8-2분4 + 8-4분 신호원3[A1 스킵]
-#       + 분리견고성2 + F-1분2 + 8-3분 P-1 1) = 19케이스
-#       tmux 有 — 스텁4 + 실헬퍼4(pane_id·pane_tail 2건) + 회귀13(신호원4[A1 포함]) = 21케이스
 #   스텁: 래퍼(_zc_find_pid 등)를 재정의해 조합 로직만 검증 (정상/좀비/의심/SKIP)
-#   실헬퍼: _real 구현을 직접 호출해 실제 시스템(ps/date/tmux) 위에서 헬퍼 자체를 검증 (KPI-03)
+#   실헬퍼: _real 구현을 직접 호출해 실제 시스템(ps/date/tmux) 위에서 헬퍼 자체를 검증
 #   회귀: 스크립트 자신을 서브프로세스로 재호출해 과거 결함 재발을 방지
 # 전건 PASS → exit 0 / 하나라도 실패 → exit 1
-# =============================================================================
 
 set -euo pipefail
 
@@ -44,15 +36,8 @@ _zc_selftest_run_case() {
 
 zombie_check_self_test() {
   local fail_count=0
-  # G-1(verifier 8-4 G2 재검증 지적): fail_count==0 만으로는 "실패 없음"만 보장하고
-  # "충분히 실행했음"은 보장하지 않는다 — F-1이 케이스 블록을 통째로 건너뛰면서도
-  # fail_count=0인 채 "전건 PASS"를 위조할 수 있었던 근본 원인이다. 각 케이스가
-  # 실제로 도달했는지를 case_count 로 별도 집계해 하한 미달을 자동 FAIL 처리한다.
+  # fail_count==0은 실패 없음만 보장한다 — 실행 수는 case_count 로 따로 세어 하한 미달을 자동 FAIL 처리한다.
   local case_count=0
-  # 기대 케이스 수는 tmux 미설치 19(8-4 실측 18 + Phase 8-3 회귀-P1 1) / tmux 설치 21
-  # (8-4 실측 20 + 1)이며, 하한이 아니라 **정확 일치**로 끝부분(§G-1 재확인부)에서 검증한다
-  # — 회귀-P1의 nested 오염 시나리오(정확히 1건만 누락)를 하한 방식이 못 잡기 때문
-  # (8-4 verifier P-2와 동일 구조, 상세는 §G-1 재확인부 주석).
   # 회귀 케이스가 본체를 서브프로세스로 재호출할 때 쓸 절대경로 (CWD 무관하게 안전)
   local self_path="${SELFTEST_DIR}/zombie_check.sh"
 
@@ -60,17 +45,16 @@ zombie_check_self_test() {
   echo ""
   echo "=== 스텁 케이스 (조합 로직 검증) ==="
 
-  # 케이스 1/3은 mtime_unavailable(=신호원 실존 여부)이 실제 파일시스템을 보므로
-  # (H-1 수정으로 mtime_unavailable=true면 SUSPECT 판정 자체를 건너뜀), _zc_mtime/_zc_now
-  # 스텁이 의미를 가지려면 신호원이 실제로 존재해야 한다 — 더미 HOME에 inbox+config 둘 다 만든다
-  # (L-2: inbox 우선 순위 검증 겸용).
+  # 케이스 1/3은 mtime_unavailable(=신호원 실존 여부)이 실제 파일시스템을 보므로,
+  # _zc_mtime/_zc_now 스텁이 의미를 가지려면 신호원이 실제로 존재해야 한다 — 더미 HOME에
+  # inbox+config 둘 다 만든다.
   local combo_home
   combo_home="$(mktemp -d)"
   mkdir -p "$combo_home/.claude/teams/selftest-team/inboxes"
   printf '{}' > "$combo_home/.claude/teams/selftest-team/config.json"
   printf '[]' > "$combo_home/.claude/teams/selftest-team/inboxes/selftest-agent.json"
 
-  # --- 케이스 1: 정상 (프로세스 존재 + pane 정상 + idle 짧음) ---
+  # 케이스 1: 정상 (프로세스 존재 + pane 정상 + idle 짧음)
   case_count=$((case_count + 1))
   _zc_find_pid() { printf '12345'; }
   _zc_pane_id() { printf 'pane-1'; }
@@ -80,7 +64,7 @@ zombie_check_self_test() {
   _zc_now() { printf '1050'; }   # diff=50s < 180s
   HOME="$combo_home" _zc_selftest_run_case "[스텁] 정상 케이스 (OK)" "$EXIT_OK" || fail_count=$((fail_count + 1))
 
-  # --- 케이스 2: 좀비 확정 (프로세스 부재 — 시그널 #1 단독) ---
+  # 케이스 2: 좀비 확정 (프로세스 부재 — 시그널 #1 단독)
   case_count=$((case_count + 1))
   _zc_find_pid() { printf ''; }
   _zc_pane_id() { printf ''; }
@@ -89,7 +73,7 @@ zombie_check_self_test() {
   _zc_now() { printf '1010'; }
   _zc_selftest_run_case "[스텁] 좀비 케이스 (프로세스 부재)" "$EXIT_ZOMBIE" || fail_count=$((fail_count + 1))
 
-  # --- 케이스 3: 추정 좀비 (프로세스 존재 + pane 조회 불가 + idle 초과, D2=180초) ---
+  # 케이스 3: 추정 좀비 (프로세스 존재 + pane 조회 불가 + idle 초과)
   case_count=$((case_count + 1))
   _zc_find_pid() { printf '54321'; }
   _zc_pane_id() { printf ''; }
@@ -99,7 +83,7 @@ zombie_check_self_test() {
   HOME="$combo_home" _zc_selftest_run_case "[스텁] 의심 케이스 (idle TTL 초과)" "$EXIT_SUSPECT" || fail_count=$((fail_count + 1))
   rm -rf "$combo_home"
 
-  # --- 케이스 4: SKIP (시그널 #1 UNAVAILABLE + tmux/config 전부 조회 불가) ---
+  # 케이스 4: SKIP (시그널 #1 UNAVAILABLE + tmux/config 전부 조회 불가)
   case_count=$((case_count + 1))
   _zc_find_pid() { printf 'UNAVAILABLE'; }
   _zc_pane_id() { printf ''; }
@@ -114,7 +98,7 @@ zombie_check_self_test() {
   echo ""
   echo "=== 실헬퍼 케이스 (_real 구현 직접 호출 — 실제 시스템 위에서 실행, KPI-03) ==="
 
-  # --- 실헬퍼 1: _zc_mtime_real — 실제 임시파일 mtime을 date -r 로 실측, ±2초 이내 일치 검증 ---
+  # 실헬퍼 1: _zc_mtime_real — 실제 임시파일 mtime을 date -r 로 실측, ±2초 이내 일치 검증
   case_count=$((case_count + 1))
   local rh1_tmp rh1_expected rh1_actual rh1_diff
   rh1_tmp="$(mktemp)"
@@ -130,7 +114,7 @@ zombie_check_self_test() {
     fail_count=$((fail_count + 1))
   fi
 
-  # --- 실헬퍼 2: _zc_find_pid_real — 실제 백그라운드 프로세스를 ps로 실측 검출 ---
+  # 실헬퍼 2: _zc_find_pid_real — 실제 백그라운드 프로세스를 ps로 실측 검출
   case_count=$((case_count + 1))
   local rh2_marker="agent-id selftest-real@selftest-team"
   bash -c "exec -a '${rh2_marker}' sleep 5" &
@@ -147,7 +131,7 @@ zombie_check_self_test() {
     fail_count=$((fail_count + 1))
   fi
 
-  # --- 실헬퍼 3/4: _zc_pane_id_real / _zc_pane_tail_real — tmux 있으면 실세션, 없으면 SKIP 정상 처리로 대체 ---
+  # 실헬퍼 3/4: _zc_pane_id_real / _zc_pane_tail_real — tmux 있으면 실세션, 없으면 SKIP 정상 처리로 대체
   if command -v tmux >/dev/null 2>&1; then
     case_count=$((case_count + 2))   # 이 분기는 PASS/FAIL 판정이 2건(pane_id, pane_tail)
     local rh34_sess="zc-selftest-$$"
@@ -194,7 +178,7 @@ zombie_check_self_test() {
   fi
 
   echo ""
-  echo "=== 회귀 케이스 (Phase 8-2 AUTO_FIX — C-1/H-1/H-2/A-3 재발 방지) ==="
+  echo "=== 회귀 케이스 (C-1/H-1/H-2/A-3 재발 방지) ==="
 
   # --- 회귀-C1: HOME 미설정 → unbound variable로 인한 오탐(exit 1) 재발 방지. 기대: exit 0 또는 3 ---
   case_count=$((case_count + 1))
@@ -386,8 +370,7 @@ zombie_check_self_test() {
   echo "=== 회귀 케이스 (F-1 — A-2 가드 오염으로 인한 exit 0 위조 재발 방지) ==="
 
   # --- 회귀-F1a: _ZC_SOURCED류 환경변수 오염 + 직접 실행(죽은 에이전트) → exit 1 (0 아님) ---
-  # 실제 마커는 declare -p EXIT_OK 로 대체됐지만, 과거 마커 이름을 주입해도 더 이상
-  # 영향을 주지 않아야 한다는 것 자체가 회귀 방지 포인트다.
+  # _ZC_SOURCED를 주입해도 직접 실행 판정이 바뀌지 않아야 한다.
   case_count=$((case_count + 1))
   local f1a_rc=0 f1a_out
   f1a_out="$(_ZC_SOURCED=1 bash "$self_path" nonexistent-f1a-agent nonexistent-f1a-team 2>&1)" || f1a_rc=$?
@@ -410,22 +393,15 @@ zombie_check_self_test() {
   fi
 
   # 회귀-F1b(오염 상태에서 --self-test 가 실제로 전건 실행되는지)는 이 self-test 자신이
-  # 그 --self-test 이므로, 자동화 케이스로 넣으면 각 레벨마다 다시 자기 자신을 서브
-  # 프로세스로 호출해 무한 재귀·프로세스 폭발이 된다. 수동 실증으로만 검증했다
-  # (report-backend-dev.md 참조) — self-test 안에 넣지 않은 것은 누락이 아니라 의도.
+  # 그 --self-test 이므로, 자동화하면 자기 재귀가 된다 — 케이스에 넣지 않는다.
 
   echo ""
   echo "=== 회귀 케이스 (P-1 — declare -F 가드 교체, EXIT_OK 이름 충돌 면역 확인, Phase 8-3) ==="
 
   # --- 회귀-P1: EXIT_OK 사전 export(이름 충돌) 상태에서 --self-test 정상 실행 (P-1 해소) ---
-  # F1b 와 같은 무한재귀 함정을 피하려 _ZC_SELFTEST_P1_NESTED 로 재귀 1단만 허용했으나
-  # (env 로 readonly 충돌 우회, 상세: report-backend-dev.md §P-1), 마커만 신뢰하면
-  # leak 시(예: 마커를 직접 export 하고 --self-test 실행) 검증 없이 [PASS] 위조가
-  # 가능했다(F-1과 동일 계열, Team Lead 8-3 지적). case_count 미증가 + 하한 완화만으로는
-  # legitimate nested 와 오염을 구분 못 함을 실측 확인(둘 다 case_count 동일) → **마커가
-  # 아니라 사실(부모 프로세스가 실제 zombie_check_selftest.sh 인지 ps 로 확인, A-1과 같은
-  # 원칙)로 판정**한다. 사실 확인된 nested 만 재호출 생략(case_count 미증가), 마커뿐이면
-  # case_count 증가 + 명시적 FAIL(오염이 조용히 지나가지 않게).
+  # nested는 1단만 허용한다(F1b 같은 무한재귀 방지, env 로 readonly 충돌 우회).
+  # 부모 프로세스가 실제 zombie_check_selftest.sh인지 ps로 확인하고,
+  # 표식 변수만 있으면 FAIL 처리한다(마커만으로는 leak·위조를 구분하지 못한다).
   local _p1_nested_verified=false
   if [[ -n "${_ZC_SELFTEST_P1_NESTED:-}" ]]; then
     local _p1_parent_cmd
@@ -461,8 +437,8 @@ zombie_check_self_test() {
   [[ "$_p1_nested_verified" == true ]] && _p1_expected_adjust=1
 
   # G-1: "실패 없음"만으로는 부족 — "충분히 실행했음"도 확인한다. 하한(≥) 대신 **정확
-  # 일치**를 쓰는 이유: tmux 유무로 정상 케이스 수가 갈리므로(19/21), 하한만으로는
-  # "정확히 1건 누락"을 못 잡는다(8-4 verifier P-2 와 동일 구조 — 본 교체가 조기 해소).
+  # 일치**를 쓰는 이유: tmux 유무로 정상 케이스 수가 갈리므로, 하한만으로는
+  # "정확히 1건 누락"을 못 잡는다.
   local expected_cases=19
   command -v tmux >/dev/null 2>&1 && expected_cases=21
   expected_cases=$((expected_cases - _p1_expected_adjust))

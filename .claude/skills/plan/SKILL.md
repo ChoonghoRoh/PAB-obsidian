@@ -1,18 +1,18 @@
 ---
 name: plan
-description: 사용자 주도 마스터 플랜 진입 전 프롬프트 품질 토픽 논의 및 자료 수집(AutoCycle Step 0 Pre-draft). Team Lead 단독 운영, 코드 조사·리뷰 필요 시에만 BE/FE/tester 온디맨드 호출. AI handoff 시 자동 제외.
+description: 사용자 주도 마스터 플랜 진입 전 프롬프트 품질 토픽 논의 및 자료 수집(선택 절차). Team Lead 단독 운영, 코드 조사·리뷰 필요 시에만 BE/FE/tester 온디맨드 호출.
 argument-hint: "[--help]"
 user-invocable: true
 context: inherit
 agent: main
-allowed-tools: "Read, Glob, Grep, Bash, Write, Edit, EnterPlanMode, ExitPlanMode, Agent"
+allowed-tools: "Read, Glob, Grep, Bash, Write, Edit, EnterPlanMode, ExitPlanMode, Agent, WebSearch, WebFetch"
 ---
 
-# plan — AutoCycle Step 0 Pre-draft (사용자 주도 한정)
+# plan — 마스터 플랜 Pre-draft (사용자 주도 한정)
 
 ## 역할
 
-`PROMPT-QUALITY` 규칙(`6-rules-index.md §1.20`)에 따라 사용자 주도 마스터 플랜 진입 전 프롬프트 품질을 점검하고, 마스터 플랜 등록에 필요한 자료를 수집·정리한다. Claude Code 내장 **Plan Mode**와 유사하게 동작하며, **Team Lead 단독**으로 운영된다.
+`PROMPT-QUALITY` 규칙(`CORE/rules-index.md §1.20`)에 따라 사용자 주도 마스터 플랜 진입 전 프롬프트 품질을 점검하고, 마스터 플랜 등록에 필요한 자료를 수집·정리한다. Claude Code 내장 **Plan Mode**와 유사하게 동작하며, **Team Lead 단독**으로 운영된다.
 
 ## 입력
 
@@ -59,15 +59,7 @@ allowed-tools: "Read, Glob, Grep, Bash, Write, Edit, EnterPlanMode, ExitPlanMode
 
 ## 진입 조건 (§1)
 
-아래 2가지 조건 중 하나라도 만족하면 진입:
-
-| 조건 | 판별 방법 |
-|------|-----------|
-| **A** 사용자가 `/plan` 명시 호출 | 본 스킬이 호출됨 |
-| **B** master-plan YAML `initiator: user` | Team Lead가 마스터 플랜 요청 접수 시 자동 확인 |
-
-**제외 조건** (진입 불가):
-- master-plan YAML `initiator: ai-handoff` — AI 주도 Next Prompt 이어짐 → Step 0 자동 스킵 + CHAIN-13(직전 3 Phase 기억 자동 로딩)으로 대체
+사용자가 `/plan`을 명시 호출하면 진입한다 — 마스터 플랜 작성·팀 생성(첫 팀원 스폰) 이전 시점.
 
 ## 동작 원리 (§2)
 
@@ -86,15 +78,15 @@ allowed-tools: "Read, Glob, Grep, Bash, Write, Edit, EnterPlanMode, ExitPlanMode
 
 ## 온디맨드 팀원 호출 (§3)
 
-필요 시에만 `Agent` 도구로 단일 질문 단위 스폰. 지속 협업 금지 — 응답 수신 후 즉시 활용하고 재호출은 별도.
+필요 시에만 `Agent` 도구로 단일 질문 단위 스폰한다 — 서브에이전트 모드다(보고 = 최종 응답, `ROLES/SUB-SSOT/TEAM-LEAD/orchestration-procedure.md` §실행 모드). 지속 협업 금지 — 응답 수신 후 즉시 활용하고 재호출은 별도.
 
 | 상황 | 호출 대상 | 목적 |
 |------|-----------|------|
 | 기존 코드 현황 파악 | `backend-dev` / `frontend-dev` | 파일·모듈 경로 확인, 현행 구조 조사 |
 | 문서 정합성·기존 규칙 확인 | `verifier` (또는 직접 Grep) | SSOT 충돌·중복 확인 |
-| 외부 벤치마크·기술 비교 | `research-analyst` | 대안 기술 비교, 웹 리서치 |
-| 영향도 분석 | `research-architect` | 의존성·변경 파급 분석 |
 | 결함·리스크 식별 | `tester` | 테스트 가능성·엣지 케이스 사전 식별 |
+
+외부 벤치마크·기술 비교가 필요하면 팀원 호출 대신 **Team Lead가 직접 WebSearch**로 조사한다 (결과는 `pre-draft-topics.md §3.2 외부 리서치`에 기록).
 
 **온디맨드 호출 원칙**:
 - 호출 전 반드시 "호출 없이 해결 가능한가" 자문
@@ -135,8 +127,7 @@ allowed-tools: "Read, Glob, Grep, Bash, Write, Edit, EnterPlanMode, ExitPlanMode
 
 | 상황 | 이유 |
 |------|------|
-| AI handoff에서 자동 이어진 마스터 플랜 | `initiator: ai-handoff` — 직전 Phase의 Next Prompt Suggestion이 채택된 경우, CHAIN-13으로 기억 전달이 이미 수행됨 |
-| 이미 Phase 실행 중 (BUILDING 이후) | Step 0는 마스터 플랜 작성 **전** 단계 — Phase 실행 중 호출은 범위 혼란 초래 |
+| 이미 Phase 실행 중 (BUILDING 이후) | 본 절차는 마스터 플랜 작성 **전** 단계 — Phase 실행 중 호출은 범위 혼란 초래 |
 | 단순 질문·정보 조회 요청 | Phase 착수가 아닌 일반 질문은 스킬 불요 |
 | 코드 수정 직접 요청 | Team Lead는 코드 수정 금지(HR-1) — 팀 스폰 플로우로 이행 |
 
@@ -146,7 +137,7 @@ allowed-tools: "Read, Glob, Grep, Bash, Write, Edit, EnterPlanMode, ExitPlanMode
 ## /plan 스킬 실행 결과
 
 ### 진입 판정
-- 조건: [A /plan 명시 호출 | B initiator: user]
+- 조건: /plan 명시 호출
 - 본 Phase: Phase-{N} "{제목}"
 
 ### 산출물
@@ -173,13 +164,10 @@ allowed-tools: "Read, Glob, Grep, Bash, Write, Edit, EnterPlanMode, ExitPlanMode
 ## 예시
 
 ```
-/plan          # AutoCycle Step 0 Pre-draft 진입
+/plan          # 마스터 플랜 Pre-draft 진입
 /plan --help   # 도움말
 ```
 
 ## 참고
 
-- 규칙: `docs/SSOT/core/6-rules-index.md §1.20 PROMPT-QUALITY` (HIGH)
 - 템플릿: `docs/SSOT/TEMPLATES/pre-draft-topics.md`
-- 규정 근거: Phase-I I-2 (AutoCycle Pre-draft Gate)
-- 제외 분기 로직: `SUB-SSOT/TEAM-LEAD/1-orchestration-procedure.md §Step-0 Branch` (Phase-I I-4 산출물)

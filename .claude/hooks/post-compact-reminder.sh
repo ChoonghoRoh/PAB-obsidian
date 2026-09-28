@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# =============================================================================
 # post-compact-reminder.sh — PostCompact Hook: SSOT 컨텍스트 복구 리마인더
-# =============================================================================
 # 트리거: Claude Code PostCompact 이벤트 (auto/manual)
 # 목적: 컨텍스트 압축 후 SSOT 버전·Phase 상태·핵심 규칙을 모델에 재주입
 #        (FRESH-7: 컨텍스트 복구 시 SSOT 리로드 필수)
@@ -10,24 +8,20 @@
 #
 # Exit codes:
 #   0 — 항상 통과 (정보 주입 전용, 차단하지 않음)
-# =============================================================================
 
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
-# ---------------------------------------------------------------------------
 # 1. SSOT 버전 수집
-# ---------------------------------------------------------------------------
-SSOT_VERSION="unknown"
-VERSION_FILE="$PROJECT_ROOT/docs/SSOT/VERSION.md"
-if [ -f "$VERSION_FILE" ]; then
-  SSOT_VERSION=$(grep -oP 'v[0-9]+\.[0-9]+-[a-zA-Z0-9-]+' "$VERSION_FILE" | head -n 1 || echo "unknown")
+SSOT_VERSION="버전 미확인"
+ENTRYPOINT_FILE="$PROJECT_ROOT/docs/SSOT/entrypoint.md"
+if [ -f "$ENTRYPOINT_FILE" ]; then
+  FOUND_VERSION=$(head -n 10 "$ENTRYPOINT_FILE" | grep -E '^\*\*SSOT 버전\*\*:' | head -n 1 | sed 's/^\*\*SSOT 버전\*\*:[[:space:]]*//;s/[[:space:]]*$//' || true)
+  [ -n "$FOUND_VERSION" ] && SSOT_VERSION="$FOUND_VERSION"
 fi
 
-# ---------------------------------------------------------------------------
 # 2. 현재 Phase 상태 수집
-# ---------------------------------------------------------------------------
 PHASE_INFO="없음 (활성 Phase 없음)"
 PHASES_DIR="$PROJECT_ROOT/docs/phases"
 if [ -d "$PHASES_DIR" ]; then
@@ -47,9 +41,7 @@ if [ -d "$PHASES_DIR" ]; then
   fi
 fi
 
-# ---------------------------------------------------------------------------
 # 3. additionalContext 구성
-# ---------------------------------------------------------------------------
 CONTEXT=$(cat <<CTXEOF
 [FRESH-7 컨텍스트 복구] 컨텍스트 압축이 발생했습니다. 아래 정보를 참고하세요.
 
@@ -66,9 +58,7 @@ CONTEXT=$(cat <<CTXEOF
 CTXEOF
 )
 
-# ---------------------------------------------------------------------------
 # 4. JSON 출력 (hookSpecificOutput.additionalContext)
-# ---------------------------------------------------------------------------
 # jq가 있으면 안전하게 이스케이프, 없으면 수동 이스케이프
 if command -v jq &>/dev/null; then
   ESCAPED=$(echo "$CONTEXT" | jq -Rs .)

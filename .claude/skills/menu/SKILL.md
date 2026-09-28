@@ -1,6 +1,6 @@
 ---
 name: menu
-description: PAB 스킬 카탈로그를 출력. /menu 호출 시 .claude/skills/ 전체 스킬(18종)과 사용 예시를 일괄 표시하여 신규 사용자의 발견성을 확보.
+description: PAB 스킬 카탈로그를 출력. /menu 호출 시 .claude/skills/ 전체 스킬과 사용 예시를 일괄 표시하여 신규 사용자의 발견성을 확보.
 argument-hint: "[--help]"
 user-invocable: true
 context: inherit
@@ -10,7 +10,7 @@ allowed-tools: []
 
 # menu — PAB 스킬 카탈로그
 
-`/menu` 호출로 `.claude/skills/`의 활성 스킬 18종을 한눈에 확인하세요.
+`/menu` 호출로 `.claude/skills/`의 활성 스킬을 한눈에 확인하세요.
 신규 사용자는 이 카탈로그를 진입점으로 활용하세요.
 
 ## 0. 프로젝트 설정
@@ -26,11 +26,11 @@ allowed-tools: []
 /project-config check   # 정합성 검사
 ```
 
-## A. SSOT 워크플로우 스킬 (9종)
+## A. SSOT 워크플로우 스킬
 
 ### 1. /ssot-reload
 
-**설명**: FRESH-1 절차 자동 실행. SSOT 0→1→2→3 순서 읽기 + 버전 확인.
+**설명**: FRESH-1 절차 자동 실행. SSOT entrypoint → workflow 순서 읽기 + 버전 확인.
 **인수**: `[--help]`
 **사용 예시**:
 ```
@@ -39,7 +39,7 @@ allowed-tools: []
 
 ### 2. /plan
 
-**설명**: 사용자 주도 마스터 플랜 진입 전 프롬프트 품질 점검 및 자료 수집 (AutoCycle Step 0 Pre-draft).
+**설명**: 사용자 주도 마스터 플랜 진입 전 프롬프트 품질 점검 및 자료 수집 (선택 절차).
 **인수**: `[--help]`
 **사용 예시**:
 ```
@@ -48,7 +48,7 @@ allowed-tools: []
 
 ### 3. /phase-init
 
-**설명**: Phase 디렉토리+산출물 4종 자동 생성. CHAIN-6/CHAIN-10 검증.
+**설명**: Phase 디렉토리+산출물 자동 생성. CHAIN-6/CHAIN-10 검증.
 **인수**: `<phase_id> [--dry] [--force] [--no-tasks] [--help]`
 **사용 예시**:
 ```
@@ -58,7 +58,7 @@ allowed-tools: []
 
 ### 4. /gate-check
 
-**설명**: G0~G4 게이트 기준 표시 + 현재 Phase 상태 대비 판정.
+**설명**: G1~G4 게이트 기준 표시 + 현재 Phase 상태 대비 판정.
 **사용 예시**:
 ```
 /gate-check
@@ -66,7 +66,7 @@ allowed-tools: []
 
 ### 5. /rules-lookup
 
-**설명**: `docs/SSOT/core/6-rules-index.md`에서 규칙 ID 빠른 조회.
+**설명**: `docs/SSOT/CORE/rules-index.md`에서 규칙 ID 빠른 조회.
 **사용 예시**:
 ```
 /rules-lookup HR-1
@@ -82,7 +82,7 @@ allowed-tools: []
 
 ### 7. /verify-backend · /verify-frontend
 
-**설명**: 백엔드/프론트엔드 코드 심층 리뷰. G2_be / G2_fe 게이트 검증 (SSOT ROLES/verifier.md §2.1·§2.2 기준).
+**설명**: 백엔드/프론트엔드 코드 심층 리뷰. G2_be / G2_fe 게이트 검증 (`WORKFLOW/handoff/verifying.md` §1 + `PROJECT.md` §4 기준).
 **사용 예시**:
 ```
 /verify-backend
@@ -101,14 +101,14 @@ allowed-tools: []
 
 ### 9. /notify-telegram
 
-**설명**: Phase 완료/이슈 알림을 Telegram으로 전송 (NOTIFY-1, 구 HR-8 — 의무 자동화).
+**설명**: Phase 완료/이슈 알림을 Telegram으로 전송 (NOTIFY-1 — 의무 자동화).
 **인수**: `<--phase=ID> <--status=STATUS> [--summary=TEXT] [--report-path=PATH] [--type=TYPE] [--help]`
 **사용 예시**:
 ```
 /notify-telegram --phase=4-5 --status=done --summary="구현 완료"
 ```
 
-## B. 세션·기록 유틸리티 스킬 (7종)
+## B. 세션·기록 유틸리티 스킬
 
 ### 10. /context-handoff
 
@@ -163,7 +163,7 @@ allowed-tools: []
 
 ### 15. /abort
 
-**설명**: AutoCycle/Phase/Chain 안전 중단 (3-workflow.md §8.5 사용자 중단 요청의 표준 진입점). 팀 shutdown + status.md BLOCKED 기록 + 재개 정보 보존.
+**설명**: Phase/Chain 안전 중단 (`WORKFLOW/phase-chain.md` §4 사용자 중단 요청의 표준 진입점). 팀 shutdown + status.md BLOCKED 기록 + 재개 정보 보존.
 **인수**: `[사유] [--help]`
 **사용 예시**:
 ```
@@ -175,11 +175,23 @@ allowed-tools: []
 
 **설명**: 본 카탈로그 출력.
 
+### 17. /interop
+
+**설명**: 세션·저장소 간 단일원본 파일 기반 1:N 협업(`docs/interop/`) 스캐폴딩·프로토콜. 문서=정본·메시지=신호로 계약·경계·조율 관리.
+**인수**: `<init|partner|deliver|notify|status> [args] [--help]`
+**사용 예시**:
+```
+/interop init
+/interop partner dabeeo-changes ~/projects/Dabeeo-Changes
+/interop deliver dabeeo-changes ver2-to-ver3-route-matching
+/interop status
+```
+
 ## 옵션
 
 - `--help`: 본 도움말 출력
 
 ## 참고
 
-- 스킬 위치: `.claude/skills/` (단일 소스 — 루트 `skills/` 폴더는 폐지)
-- 스킬 추가/삭제 시 본 카탈로그 수동 동기화 필요 (현재 18종)
+- 스킬 위치: `.claude/skills/` (단일 소스)
+- 스킬 추가/삭제 시 본 카탈로그 수동 동기화 필요

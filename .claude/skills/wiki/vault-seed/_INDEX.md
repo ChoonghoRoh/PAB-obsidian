@@ -76,10 +76,7 @@ SORT file.name ASC
 
 ## 사용 가이드
 
-- 새 노트 작성: `make wiki-new TYPE=research SLUG=my-topic` (Phase 1-4 이후)
-- 링크 검증: `make wiki-link-check` (Phase 1-4 이후)
-- MOC 갱신: `make wiki-moc-build` (Phase 1-4 이후)
-- TOC 추천: `make wiki-toc-suggest NOTE=path/to/note.md` (Phase 1-4 이후)
+- 새 노트 작성 · 링크 검증 · MOC 갱신 · TOC 추천: 프로젝트에 wiki 도구(스크립트 · 빌드 타겟)가 있으면 그 명령으로, 없으면 `/wiki` 스킬과 아래 수동 절차로
 - 새 TOPIC 등록: 노트 frontmatter `topics: ["[[NEW_TOPIC]]"]` 추가 → 3건 누적 시 자동 MOC 승격 (Phase 1-4 `wiki moc-build`)
 
 ## 폴더 구조

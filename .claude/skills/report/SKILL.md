@@ -117,5 +117,4 @@ allowed-tools: "Read, Write, Edit, Bash"
 
 ## 참조
 
-- 기본 저장 위치 정의: `docs/guide/index.html` → 🗂 기록·알림 위치
 - Phase 산출물 경로 규칙: HR-4 / CHAIN-10

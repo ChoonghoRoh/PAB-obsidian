@@ -164,7 +164,6 @@ obsidian unresolved
 
 # Phase 1-4 구현 후
 python3 scripts/wiki/wiki.py link-check
-make wiki-link-check
 ```
 
 ## 잘못된/올바른 예시 5건
@@ -245,7 +244,6 @@ obsidian unresolved
 
 # 전체 검증 (Phase 1-4 구현 후)
 python3 scripts/wiki/wiki.py link-check --full
-make wiki-link-check
 ```
 
 ### 수동

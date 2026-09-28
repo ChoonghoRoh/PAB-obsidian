@@ -12,14 +12,15 @@ allowed-tools: "Read, Glob, Grep, Skill"
 
 ## 역할
 
-Task 구현 결과를 검증하는 오케스트레이터. 변경 파일의 도메인을 자동 판별하고 해당 도메인의 검증 스킬을 호출하여 통합 G2 리포트를 생성한다.
+Task 구현 결과를 검증하는 오케스트레이터. 변경 파일의 도메인을 자동 판별하고 해당 도메인의 검증 스킬을 호출하여 통합 G2 리포트를 생성한다. 판정 항목 · 등급의 정본은 `docs/SSOT/ROLES/SUB-SSOT/VERIFIER/verification-procedure.md` §G2 판정 기준이다.
 
 ## 입력
 
 `$ARGUMENTS` — 다음 중 하나:
 - Task ID (예: `15-1-2`) → 해당 Task의 변경 파일을 자동 수집
-- 파일 경로 또는 디렉토리 (예: `backend/routers/admin/`) → 직접 검증
-- 비어있으면 → `git diff --name-only HEAD`에서 전체 변경 파일 수집
+- 파일 경로 또는 디렉토리 (`PROJECT.md` §3 작업 폴더 하위 경로) → 직접 검증
+- 비어있으면 → `git -c core.quotePath=false diff --name-only HEAD`에서 전체 변경 파일 수집
+- `--base <커밋>` — 주석 판정 기준 커밋. 하위 스킬에 그대로 넘긴다(없으면 하위 스킬이 `HEAD` 기준)
 
 ## 실행 절차
 
@@ -28,31 +29,26 @@ Task 구현 결과를 검증하는 오케스트레이터. 변경 파일의 도�
 - `$ARGUMENTS`가 Task ID 형식이면:
   - `docs/phases/` 하위에서 해당 Task 내역서(task-X-Y-N-*.md) 검색
   - 내역서의 파일 변경 계획에서 대상 파일 추출
-  - 또는 `git diff --name-only HEAD`에서 관련 파일 필터링
+  - 또는 `git -c core.quotePath=false diff --name-only HEAD`에서 관련 파일 필터링
 - `$ARGUMENTS`가 파일/디렉토리 경로이면:
   - 해당 경로의 파일 직접 수집 (Glob)
 - 비어있으면:
-  - `git diff --name-only HEAD` 전체 변경 파일 사용
+  - `git -c core.quotePath=false diff --name-only HEAD` 전체 변경 파일 사용
 
 ### 2단계: 도메인 자동 판별
 
-| 파일 경로 패턴 | 도메인 |
-|---------------|--------|
-| `backend/**` | BE |
-| `web/**` | FE |
-| `tests/**` | TEST (BE 관련) |
-| `e2e/**` | TEST (FE 관련) |
-| `alembic/**` | DB (BE 관련) |
+`PROJECT.md` §3(작업 폴더) 담당 구역과 Task 태그(`[BE]`/`[DB]`/`[FE]`/`[FS]`/`[TEST]`/`[INFRA]`, `entrypoint.md` §3.8)로 판별한다. Task 태그가 없으면 변경 파일이 속한 `PROJECT.md` §3 작업 폴더의 담당(backend-dev/frontend-dev)을 기준으로 도메인을 추정한다.
 
 판별 결과:
 - BE 파일만 → `[BE]` → verify-backend 호출
 - FE 파일만 → `[FE]` → verify-frontend 호출
 - BE + FE 모두 → `[FS]` → verify-backend + verify-frontend 모두 호출
+- `[DB]`·`[INFRA]`는 BE, `[TEST]`는 대상 코드의 도메인으로 판별한다
 
 ### 3단계: 도메인별 스킬 호출
 
-- `[BE]` 또는 `[FS]`: `/verify-backend <BE 파일 목록>` 호출
-- `[FE]` 또는 `[FS]`: `/verify-frontend <FE 파일 목록>` 호출
+- `[BE]` 또는 `[FS]`: `/verify-backend <BE 파일 목록> [--base <커밋>]` 호출
+- `[FE]` 또는 `[FS]`: `/verify-frontend <FE 파일 목록> [--base <커밋>]` 호출
 
 ### 4단계: 통합 G2 리포트 생성
 
@@ -89,8 +85,8 @@ Task 구현 결과를 검증하는 오케스트레이터. 변경 파일의 도�
 | BE/FE | C/H/L | path:NN | ... |
 
 ### 검증 파일 목록
-- backend/...
-- web/...
+- {file1}
+- {file2}
 ```
 
 ## 통합 판정 규칙
@@ -103,6 +99,4 @@ Task 구현 결과를 검증하는 오케스트레이터. 변경 파일의 도�
 
 ## 참조
 
-- `docs/SSOT/ROLES/verifier.md` — G2 판정 기준 상세
-- `docs/SSOT/2-architecture.md` §8 — 검증 기준 체크리스트
-- `docs/SSOT/1-project.md` §4 — 품질 게이트 정의
+- `PROJECT.md` §4 — 개발 규칙 오버라이드

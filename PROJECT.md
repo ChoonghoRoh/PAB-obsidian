@@ -36,7 +36,7 @@ notify_channel: "telegram"         # telegram | none
 notify_project_label: "PAB-LLMDATA"  # 알림 메시지 [라벨]
 
 # --- SSOT 연동 ---
-ssot_version: "v8.2-renewal-6th"   # ver6-2 라인 (LIFECYCLE-5·6). policy/model-assignment.md는 v8.3에서 이식 보존
+ssot_version: "ver6-6"             # 정본: docs/SSOT/entrypoint.md 머리 **SSOT 버전**:
 ssot_path: "docs/SSOT"
 ---
 

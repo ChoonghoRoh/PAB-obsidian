@@ -1,6 +1,6 @@
 ---
 name: notify-telegram
-description: Phase 완료/이슈 알림을 Telegram으로 전송한다 (NOTIFY-1, 구 HR-8 — 의무 자동화).
+description: Phase 완료/이슈 알림을 Telegram으로 전송한다 (NOTIFY-1 — 의무 자동화).
 argument-hint: "<--phase=ID> <--status=STATUS> [--summary=TEXT] [--report-path=PATH] [--type=TYPE] [--help]"
 user-invocable: true
 context: inherit
@@ -12,7 +12,7 @@ allowed-tools: "Bash, Read"
 
 ## 역할
 
-Phase 또는 Sub-Phase가 DONE 상태에 도달할 때 NOTIFY-1(구 HR-8) 규칙에 따라 Telegram 알림을 자동 발송한다.
+Phase 또는 Sub-Phase가 DONE 상태에 도달할 때 NOTIFY-1 규칙에 따라 Telegram 알림을 자동 발송한다.
 `scripts/pmAuto/report_to_telegram.sh`를 호출해 `.env`의 토큰/채널을 사용한다.
 
 ## 입력
@@ -75,7 +75,7 @@ Phase 또는 Sub-Phase가 DONE 상태에 도달할 때 NOTIFY-1(구 HR-8) 규칙
 #### `--type=phase` (기본)
 
 ```
-[{PAB_NOTIFY_LABEL}] {emoji} Phase {phase} {status_label}: {summary}
+{emoji} Phase {phase} {status_label}: {summary}
 📊 결과: {핵심 수치 또는 '본문 참조'}
 📁 보고서: {report_path 또는 'N/A'}
 ```
@@ -87,7 +87,7 @@ Phase 또는 Sub-Phase가 DONE 상태에 도달할 때 NOTIFY-1(구 HR-8) 규칙
 #### `--type=master-summary`
 
 ```
-[{PAB_NOTIFY_LABEL}] 🎉 Master Plan {phase} 전체 완료
+🎉 Master Plan {phase} 전체 완료
 📊 종합: {summary}
 📁 보고서: {report_path}
 ```
@@ -95,7 +95,7 @@ Phase 또는 Sub-Phase가 DONE 상태에 도달할 때 NOTIFY-1(구 HR-8) 규칙
 #### `--type=alert`
 
 ```
-[{PAB_NOTIFY_LABEL}] 🚨 {phase} 알림: {summary}
+🚨 {phase} 알림: {summary}
 ```
 
 > **프로젝트명 prefix**: `.claude/hooks/hooks.env`의 `PAB_NOTIFY_LABEL` 값을 사용한다 (소스: `PROJECT.md` frontmatter `notify_project_label`).
@@ -108,7 +108,7 @@ Phase 또는 Sub-Phase가 DONE 상태에 도달할 때 NOTIFY-1(구 HR-8) 규칙
 bash scripts/pmAuto/report_to_telegram.sh "$PAB_NOTIFY_LABEL" "{포맷된_메시지}"
 ```
 
-- 스크립트가 `.env` 부재·토큰 미설정 시 ERROR 반환 → 본 스킬도 ERROR 전파.
+- 스크립트가 `.env` 부재·토큰(`PAB_TELEGRAM_BOT_TOKEN` / `PAB_TELEGRAM_CHAT_ID`) 미설정 시 ERROR 반환 → 본 스킬도 ERROR 전파.
 
 ### 4. 결과 보고
 
@@ -124,10 +124,3 @@ bash scripts/pmAuto/report_to_telegram.sh "$PAB_NOTIFY_LABEL" "{포맷된_메시
 /notify-telegram --phase=3-1 --status=blocked --type=alert --summary="토큰 발급 대기"
 /notify-telegram --help
 ```
-
-## 참조
-
-- NOTIFY-1~3(구 HR-8): `docs/SSOT/core/6-rules-index.md` §1.17, `docs/SSOT/3-workflow.md §3 NOTIFY`
-- 스크립트: `scripts/pmAuto/report_to_telegram.sh`
-- 토큰: 환경변수 `PAB_TELEGRAM_BOT_TOKEN` / `PAB_TELEGRAM_CHAT_ID` (또는 루트 `.env` — 커밋 금지)
-- 세팅 절차: `docs/guide/index.html` → 🗂 기록·알림 위치 §① Telegram 세팅

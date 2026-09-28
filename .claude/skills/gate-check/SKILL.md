@@ -1,6 +1,6 @@
 ---
 name: gate-check
-description: G0~G4 기준 표시 + 현재 Phase 상태 대비 판정.
+description: G1~G4 기준 표시 + 현재 Phase 상태 대비 판정.
 user-invocable: true
 context: fork
 agent: Explore
@@ -11,27 +11,36 @@ allowed-tools: "Read, Glob, Grep"
 
 ## 역할
 
-3-workflow.md에 정의된 G0~G4 게이트 기준을 추출하고, 현재 Phase 상태와 대비하여 게이트 진입 가능 여부를 판정한다.
+G1~G4 게이트 기준을 추출하고, 현재 Phase 상태와 대비하여 게이트 진입 가능 여부를 판정한다.
+
+게이트별 기준 출처:
+
+| 게이트 | 출처 |
+|--------|------|
+| G1 | `docs/SSOT/WORKFLOW/handoff/planning.md` §2 |
+| G2 | `docs/SSOT/WORKFLOW/handoff/verifying.md` §1 |
+| G3 | `docs/SSOT/WORKFLOW/handoff/testing.md` §1 |
+| G4 | `docs/SSOT/entrypoint.md` §3.7 |
 
 ## 입력
 
 `$ARGUMENTS` -- gate_id (선택)
 
-- 특정 게이트 지정: "G0", "G1", "G2", "G3", "G4"
-- 인수 없음: 전체 게이트(G0~G4) 기준을 모두 표시
+- 특정 게이트 지정: "G1", "G2", "G3", "G4"
+- 인수 없음: 전체 게이트(G1~G4) 기준을 모두 표시
 
 ## 실행 절차
 
 ### 1. gate_id 파싱
 
 - `$ARGUMENTS`에서 gate_id를 파싱한다.
-- 유효값: G0, G1, G2, G3, G4 (대소문자 무관)
+- 유효값: G1, G2, G3, G4 (대소문자 무관)
 - 인수가 없으면 전체 게이트를 대상으로 한다.
 - 유효하지 않은 값이면 오류를 반환한다.
 
 ### 2. 게이트 기준 추출
 
-- `docs/SSOT/3-workflow.md`를 읽는다.
+- 위 표의 해당 출처 파일을 읽는다.
 - Grep으로 해당 게이트 섹션을 찾아 기준 항목을 추출한다.
 
 ### 3. 현재 Phase 상태 읽기
@@ -60,7 +69,6 @@ allowed-tools: "Read, Glob, Grep"
 
 | 게이트 | 기준 요약 | 현재 결과 | 진입 가능 |
 |--------|-----------|-----------|-----------|
-| G0 | {기준} | PASS/FAIL/null | YES/NO/DONE |
 | G1 | {기준} | PASS/FAIL/null | YES/NO/DONE |
 | G2 | {기준} | PASS/FAIL/null | YES/NO/DONE |
 | G3 | {기준} | PASS/FAIL/null | YES/NO/DONE |

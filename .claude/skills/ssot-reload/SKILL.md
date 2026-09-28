@@ -1,6 +1,6 @@
 ---
 name: ssot-reload
-description: FRESH-1 절차 자동 실행. SSOT 0->1->2->3 순서 읽기 + 버전 확인.
+description: FRESH-1 절차 자동 실행. SSOT entrypoint → workflow 순서 읽기 + 버전 확인.
 argument-hint: "[--help]"
 user-invocable: true
 context: fork
@@ -65,18 +65,15 @@ FRESH-1(컨텍스트 복구 시 SSOT 리로드 필수) 절차를 자동화한다
 
 아래 순서대로 Read로 파일을 읽는다:
 
-1. `docs/SSOT/0-entrypoint.md`
-2. `docs/SSOT/1-project.md`
-3. `docs/SSOT/2-architecture.md`
-4. `docs/SSOT/3-workflow.md`
+1. `docs/SSOT/entrypoint.md`
+2. `docs/SSOT/WORKFLOW/workflow.md`
 
 파일이 존재하지 않으면 해당 파일을 MISSING으로 표시하고 다음으로 진행한다.
 
-### 2. VERSION 확인
+### 2. 버전 확인
 
-- `docs/SSOT/VERSION.md` 파일을 읽는다.
-- 버전 번호와 최종 갱신일을 추출한다.
-- 파일이 없으면 VERSION MISSING으로 표시한다.
+- `docs/SSOT/entrypoint.md` 앞 10줄 안에서 `**SSOT 버전**:`·`**최근 수정일**:` 줄을 찾아 값을 추출한다.
+- 줄이 없으면 「버전 미확인」으로 표시한다.
 
 ### 3. 현재 Phase 상태 확인
 
@@ -95,16 +92,14 @@ FRESH-1(컨텍스트 복구 시 SSOT 리로드 필수) 절차를 자동화한다
 ## SSOT Reload 결과
 
 ### SSOT Version
-- 버전: {version} | MISSING
-- 최종 갱신: {date} | MISSING
+- 버전: {version} | 버전 미확인
+- 최근 수정일: {date} | 버전 미확인
 
 ### SSOT 문서 로딩
 | 순서 | 파일 | 상태 |
 |------|------|------|
-| 0 | 0-entrypoint.md | OK / MISSING |
-| 1 | 1-project.md | OK / MISSING |
-| 2 | 2-architecture.md | OK / MISSING |
-| 3 | 3-workflow.md | OK / MISSING |
+| 1 | entrypoint.md | OK / MISSING |
+| 2 | WORKFLOW/workflow.md | OK / MISSING |
 
 ### 현재 Phase 상태
 - Phase: {phase_id} | NO ACTIVE PHASE

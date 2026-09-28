@@ -18,7 +18,7 @@ frontmatter는 `scripts/sync-project-config.sh`를 통해 `.claude/hooks/hooks.e
 
 ```
 PROJECT.md (단일 소스)
-  ├─ frontmatter ──sync──▶ .claude/hooks/hooks.env ──▶ 훅 9종 (HR-1/HR-5 가드 등)
+  ├─ frontmatter ──sync──▶ .claude/hooks/hooks.env ──▶ 훅 (HR-1/HR-5 가드 등)
   └─ 프로즈 §1~§9 ────────▶ Team Lead·팀원 스폰 시 로드 (규칙 오버라이드·페르소나)
 ```
 
@@ -87,10 +87,13 @@ PROJECT.md (단일 소스)
 | 1 | frontmatter ↔ hooks.env 동기화 | `sync-project-config.sh check` exit 3 |
 | 2 | `code_dirs` 실존 여부 | 나열된 폴더가 프로젝트에 없음 (신규 프로젝트면 정보성) |
 | 3 | `build/test/run_cmd` 실행 가능성 | 명령의 실행 파일이 PATH/프로젝트에 없음 |
-| 4 | `ssot_version` ↔ `docs/SSOT/VERSION.md` 일치 | 불일치 (FRESH-2) |
+| 4 | `ssot_version` ↔ entrypoint 머리 `**SSOT 버전**:` 값 일치 | 불일치 (FRESH-2) |
 | 5 | 페르소나 오버라이드 파일 실존 | §6에 기입된 경로가 없음 |
 | 6 | 알림 설정 | `notify_channel: telegram`인데 토큰 환경변수 미설정 |
 | 7 | 번들 기본값 미변경 | `project_name`이 `PAB-claude`인데 저장소 폴더명이 다름 (이식 후 PROJECT.md 미설정) → `/project-config init` 안내 |
+| 8 | `PAB_CODE_DIRS`/`PAB_CODE_EXTS` 가드 허용 문자 | hooks.env 값이 hr1-guard 허용 문자(디렉터리 `A-Za-z0-9._/ -`, 확장자 `A-Za-z0-9._ -`) 밖 — 가드가 값을 버리고 기본값으로 동작한다. `sync-project-config.sh check`가 stderr로 알린다 → frontmatter를 공백 구분으로 고친 뒤 sync |
+| 9 | 폐지된 번호 SSOT 문서 잔존 | `.git`·`node_modules`·백업 폴더·`docs/phases`·`docs/history`·`docs/handoff`·`docs/reports`를 뺀 저장소에 옛 번호 SSOT 파일명(`0-entrypoint.md`·`1-project.md`·`2-architecture.md`·`3-workflow.md`·`4-event-protocol.md`·`5-automation.md`·`6-rules-index.md`·`7-shared-definitions.md` 등 번들 INSTALL.md §7.2 ⓐ·ⓑ·ⓓ 목록)이 있음. git 저장소면 git이 무시하는 경로(`git check-ignore`)는 뺀다 → §7.2 ⓑ 대상인지 확인한다 — 옮길 서술은 옮기고(통째 복원 금지), 지울지는 사용자가 정한다(보관본이면 둔다). 경고만 하고 파일은 건드리지 않는다 |
+| 10 | 스폰 로딩 대상 | `PROJECT.md` §6 표의 「기본」 열이나 본문 스폰 지시가 `docs/SSOT/ROLES/` 밖 문서를 가리킴 → 기본은 `ROLES/*.md` §1, 프로젝트 고유 내용은 §6 오버라이드 칸으로 |
 
 WARN 발견 시 수정 방법을 함께 안내한다.
 
@@ -103,7 +106,7 @@ WARN 발견 시 수정 방법을 함께 안내한다.
 | `PAB_LINE_WARN` / `PAB_LINE_CRIT` | line_warn / line_crit | line-count-monitor, on-task-completed |
 | `PAB_COVERAGE_TARGET` | coverage_target | tester (G3) |
 | `PAB_NOTIFY_CHANNEL` / `PAB_NOTIFY_LABEL` | notify_channel / notify_project_label | /notify-telegram |
-| `PAB_BUILD_CMD` 등 4종 | build/run/test/lint_cmd | tester, dev 팀원 |
+| `PAB_BUILD_CMD` 등 | build/run/test/lint_cmd | tester, dev 팀원 |
 | `PAB_SSOT_VERSION` / `PAB_SSOT_PATH` | ssot_version / ssot_path | FRESH-2 검사 |
 
 ## 예시
@@ -120,5 +123,3 @@ WARN 발견 시 수정 방법을 함께 안내한다.
 
 - 단일 소스: `PROJECT.md` (프로젝트 루트)
 - 동기화 스크립트: `scripts/sync-project-config.sh`
-- 자동 동기화: SessionStart 훅(`ssot-freshness-check.sh` §0)이 변경 감지 시 자동 실행
-- SSOT 업그레이드 시 보존: `docs/SSOT/UPGRADE.md`

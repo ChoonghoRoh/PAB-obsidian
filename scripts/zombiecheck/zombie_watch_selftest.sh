@@ -1,36 +1,28 @@
 #!/usr/bin/env bash
-# =============================================================================
-# zombie_watch_selftest.sh — zombie_watch.sh 내장 단위 테스트 (Phase 8-3 분리)
+# zombie_watch_selftest.sh — zombie_watch.sh 내장 단위 테스트
 #
-# 배경: zombie_watch.sh 본체가 self-test 를 포함하면 570줄로 500줄 한도(REFACTOR-1)를
-#       초과한다(self-test 부가 176줄, 본체의 31%). zombie_check.sh/zombie_check_selftest.sh
-#       분리 선례(Phase 8-4, Team Lead 사전 승인)를 그대로 준용한다 — 본체는 `--self-test`
-#       인자를 받으면 이 파일을 exec 로 위임한다. 호출법(`bash zombie_watch.sh --self-test`)·
-#       stdout·exit code 는 분리 전과 동일하다.
+# 본체가 --self-test를 받으면 이 파일로 exec 위임한다.
 #
 # 이 파일은 zombie_watch.sh 를 source 해 함수를 가져온다. zombie_watch.sh 는 readonly
-# 상수를 쓰지 않으므로(모든 _ZW_* 는 일반 대입) zombie_check.sh 의 A-2(readonly 재선언
-# 충돌) 문제가 애초에 없다 — 그래도 이 파일은 항상 자신만의 새 프로세스로 실행되므로
+# 상수를 쓰지 않으므로(모든 _ZW_* 는 일반 대입) zombie_check.sh 의 readonly 재선언
+# 충돌 문제가 애초에 없다 — 그래도 이 파일은 항상 자신만의 새 프로세스로 실행되므로
 # (exec 위임 또는 직접 실행) source 는 프로세스당 정확히 1회만 일어난다.
 #
-# 구성(Phase 8-6 갱신, expected_cases 로 정확 일치 검사): arm 3단 3종 + emit edge-triggered
-#       4종 + 억제 게이트 3종 + respawn 무효화 1종 + 해시 메모리 보관 1종 + D-1 필터 1종
-#       + D-3 rc 계약 5종 + R2-5 2종 + R2-1 2종 + D-2/D-7 회귀 2종 + R-14 대조군(S3~S6) 4종
-#       + T-1 회귀 1종 = 29케이스. T-2(D8-2, Phase 8-6): 케이스[18]이 원함수를 stub 했다가
-#       종료 시 반드시 복원한다 — 복원 누락 시 이후 케이스가 no-op 을 물려받아 무조건 통과한다.
-#       전건 PASS → exit 0 / 하나라도 실패(케이스 수 불일치 포함) → exit 1
-#
-# 분리(Phase 9-3-1, 498/500 한도 여유 2): "D-2/D-7 회귀"·"R-14 회귀"·"T-1 회귀" 3개 절(원문
-#       section 제목 자체가 "회귀") — 케이스 [20]~[26] 7종 — 을 zombie_watch_selftest_regression.sh
-#       로 이관했다(source 전용, _zw_self_test() 본문 안에서 로드). source 는 새 함수 스코프를
-#       만들지 않으므로 case_count/fail_count 등 이 함수의 지역변수가 인라인 배치와 완전히
-#       동치로 공유·갱신된다. 이관 구간은 원본 L368~478 과 바이트 동일(diff exit 0 + md5 대조,
-#       9-1 zombie_watch_lib.sh/poll.sh 분리 방식 준용). 케이스 추가·삭제 없음, expected_cases=29 불변.
-# =============================================================================
+# 전건 PASS → exit 0 / 하나라도 실패(케이스 수 불일치 포함) → exit 1
 
 set -euo pipefail
 
 SELFTEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# 라이브 상태 디렉터리(/tmp/zombie-watch-state)를 셀프테스트가 건드리지 않도록,
+# source 전에 전용 오버라이드 디렉터리를 잡아 둔다(TD-50) — zombie_watch.sh의
+# _ZW_STATE_ROOT_OVERRIDE가 이 값을 그대로 받는다. 케이스 안에서 "복원"할 때도
+# 라이브 경로가 아니라 이 디렉터리로 되돌린다.
+_ZW_SELFTEST_STATE_ROOT="$(mktemp -d)"
+export _ZW_STATE_ROOT_OVERRIDE="$_ZW_SELFTEST_STATE_ROOT"
+_zw_selftest_cleanup() { rm -rf "$_ZW_SELFTEST_STATE_ROOT"; }
+trap _zw_selftest_cleanup EXIT
+
 # shellcheck source=zombie_watch.sh
 source "${SELFTEST_DIR}/zombie_watch.sh"
 
@@ -67,7 +59,7 @@ _zw_self_test() {
   kill "$other_pid" 2>/dev/null || true; wait "$other_pid" 2>/dev/null || true
   rm -rf "$t2_dir"
 
-  # [3] 정상 마커(3단 전부 통과, 팀명 일치) → arm 확인 (양성 대조. D-2: 팀명까지 대조하므로
+  # [3] 정상 마커(3단 전부 통과, 팀명 일치) → arm 확인 (양성 대조. 팀명까지 대조하므로
   #     exec -a 인자의 팀명은 마커의 팀명("ok-team")과 일치해야 한다)
   case_count=$((case_count + 1))
   local t3_dir; t3_dir="$(mktemp -d)"
@@ -99,7 +91,7 @@ _zw_self_test() {
     echo "  [FAIL] [4] 기동 시 emit 누락"; fail_count=$((fail_count + 1))
   fi
 
-  # [5] OK → OK 연속 → 무출력 + rc=0 동시 확인 (R2-4: 무출력만으로는 정상 억제와 중도 사망을
+  # [5] OK → OK 연속 → 무출력 + rc=0 동시 확인 (무출력만으로는 정상 억제와 중도 사망을
   #     구분할 수 없다 — 정상 종료(rc=0)까지 함께 단언해야 맹점이 닫힌다)
   case_count=$((case_count + 1))
   local out5 rc5=0; out5="$(_zw_check_one "emit-team" "agentA" false)" || rc5=$?
@@ -162,7 +154,7 @@ _zw_self_test() {
     echo "  [PASS] [9] 해시 불변 → 미억제(SUSPECT 유지) 확인 (대조군)"
   fi
 
-  # [10] config/jq 불가 → 게이트 unavailable → 원 판정 유지 (§2.4 (f))
+  # [10] config/jq 불가 → 게이트 unavailable → 원 판정 유지
   case_count=$((case_count + 1))
   _zw_pane_id() { printf ''; }
   if _zw_suppress_check "team1" "agentW"; then
@@ -194,13 +186,10 @@ _zw_self_test() {
   # [12] 억제 게이트 동작 중 /tmp 에 해시 파일이 생성되지 않았는지 확인
   case_count=$((case_count + 1))
   local hash_files
-  # T-1(High, Phase 8-6, tester 8-6 발견): Linux systemd 는 /tmp 에 권한 거부 디렉터리
-  # (systemd-private-*, snap-private-tmp 등)를 둔다. find 가 그런 디렉터리를 만나면 stderr는
-  # 2>/dev/null 로 삼켜지지만 find 자신의 종료코드는 1이 되고, set -o pipefail(zombie_watch.sh
-  # 상속)로 파이프라인 전체가 실패해 set -e 가 self-test 를 무설명 중단시킨다(macOS 에는 이런
-  # 보호 디렉터리가 없어 재현되지 않았다). 매치된 파일 수(stdout)는 오류와 무관하게 정확하므로
-  # `|| true` 로 종료코드만 무시한다 — 값 정확성은 실측으로 확인됨(권한 거부 디렉터리 존재 시에도
-  # 실 매치 카운트가 그대로 나옴).
+  # Linux systemd 는 /tmp 에 권한 거부 디렉터리(systemd-private-*, snap-private-tmp 등)를 둔다.
+  # find 가 그런 디렉터리를 만나면 stderr는 2>/dev/null 로 삼켜지지만 종료코드는 1이 되고,
+  # set -o pipefail(zombie_watch.sh 상속)로 self-test 가 무설명 중단된다 — 매치된 파일 수
+  # (stdout)는 오류와 무관하게 정확하므로 `|| true` 로 종료코드만 무시한다.
   hash_files="$(find /tmp -maxdepth 3 -iname '*hash*' -newer "$st_dir" 2>/dev/null | wc -l | tr -d ' ' || true)"
   if [[ "$hash_files" == "0" ]]; then
     echo "  [PASS] [12] 해시 파일 쓰기 0건(메모리 전용 보관 확인)"
@@ -209,10 +198,10 @@ _zw_self_test() {
   fi
 
   rm -rf "$st_dir"
-  _ZW_STATE_ROOT="/tmp/zombie-watch-state"
+  _ZW_STATE_ROOT="$_ZW_SELFTEST_STATE_ROOT"
 
   echo ""
-  echo "=== 팀원 목록 필터 (D-1 AUTO_FIX — team-lead 상시 ZOMBIE 오탐 방지) ==="
+  echo "=== 팀원 목록 필터 (D-1 — team-lead 상시 ZOMBIE 오탐 방지) ==="
 
   # [13] team-lead(비-%N pane) 는 폴링 대상에서 제외, 실 pane 보유 멤버만 포함
   case_count=$((case_count + 1))
@@ -233,13 +222,13 @@ _zw_self_test() {
   fi
 
   echo ""
-  echo "=== --once 종료코드 계약 (D-3 AUTO_FIX — 자동화 호출자는 stdout 을 안 읽는다) ==="
+  echo "=== --once 종료코드 계약 (D-3 — 자동화 호출자는 stdout 을 안 읽는다) ==="
 
   # [14] --once <team> <agent> 단건 — 판정 rc 가 그대로 전파되는지 (SKIP/SUSPECT/ZOMBIE/OK)
-  # run_in_background 로 거는 자동화 호출자(§2.5)는 종료코드만 본다 — 무조건 0 이면
-  # ZOMBIE/SUSPECT 가 "정상"으로 조용히 사라진다(F-1과 같은 실패 방향).
+  # run_in_background 로 거는 자동화 호출자는 종료코드만 본다 — 무조건 0 이면
+  # ZOMBIE/SUSPECT 가 "정상"으로 조용히 사라진다.
   local d3_rc
-  _zw_pane_id() { printf '%s' '%1'; }   # V-6(9-3-2): cmd_once 화이트리스트 통과용 유효 pane. 억제 게이트는 미존재 프로세스(d3agent@d3team)로 별도 미억제 — SUSPECT 유지 불변
+  _zw_pane_id() { printf '%s' '%1'; }   # cmd_once 화이트리스트 통과용 유효 pane. 억제 게이트는 미존재 프로세스(d3agent@d3team)로 별도 미억제 — SUSPECT 유지 불변
 
   case_count=$((case_count + 1))
   _zw_invoke_zc() { echo "SKIP: stub"; return 3; }
@@ -319,7 +308,7 @@ _zw_self_test() {
   rm -rf "$r25_dir"; _zw_inbox_mtime() { _zw_inbox_mtime_real "$@"; }
 
   # [17] R2-5 대조군 — wake_marker 가 없는(직전이 SUSPECT 아니었던) 정상 OK 는 그대로
-  #      확정된다 — 감지력이 저하되지 않았음을 확인(R-14)
+  #      확정된다 — 감지력이 저하되지 않았음을 확인
   case_count=$((case_count + 1))
   local r25b_dir; r25b_dir="$(mktemp -d)"
   _ZW_STATE_ROOT="$r25b_dir"
@@ -330,21 +319,21 @@ _zw_self_test() {
   else
     echo "  [FAIL] [17] 기대 rc=0 'OK: agentR25b', 실제 rc=${rc17} out='${out17}'"; fail_count=$((fail_count + 1))
   fi
-  rm -rf "$r25b_dir"; _ZW_STATE_ROOT="/tmp/zombie-watch-state"
+  rm -rf "$r25b_dir"; _ZW_STATE_ROOT="$_ZW_SELFTEST_STATE_ROOT"
 
   echo ""
   echo "=== R2-1 — D-1 필터 제외 가시화 ==="
 
   # [18] R2-1 — 제외 멤버(team-lead) 존재 시 기동 1회만 emit, 2사이클 이상 지나도 무출력
-  #      (실 루프 실행, 1초 간격으로 2.2초 관측 — §2.3 edge-triggered)
+  #      (실 루프 실행, 1초 간격으로 2.2초 관측)
   case_count=$((case_count + 1))
   local r21_home r21_log; r21_home="$(mktemp -d)"; r21_log="$(mktemp)"
   mkdir -p "${r21_home}/.claude/teams/r21team"
   printf '{"members":[{"name":"team-lead","tmuxPaneId":"leader"},{"name":"agentX","tmuxPaneId":"%%3"}]}' > "${r21_home}/.claude/teams/r21team/config.json"
-  # D8-2(T-2, High, Phase 8-6): 이 스텁은 실 루프가 zombie_check.sh 서브프로세스를 매 사이클
+  # 이 스텁은 실 루프가 zombie_check.sh 서브프로세스를 매 사이클
   # 띄우지 않도록 막는 용도일 뿐이다 — 원함수를 저장해 두었다가 케이스 종료 직후 반드시
   # 복원한다. 복원하지 않으면 [18] 이후 전 케이스가 이 no-op 을 영구히 물려받아
-  # "실제 ZOMBIE 도 rc=0/무출력으로 통과"하는 상태가 된다(8-5 verifier D8-2, tester 8-6 T-2 재확인).
+  # "실제 ZOMBIE 도 rc=0/무출력으로 통과"하는 상태가 된다.
   local _zw_check_one_orig; _zw_check_one_orig="$(declare -f _zw_check_one)"
   _zw_check_one() { :; }
   ( local _ZW_POLL_INTERVAL=1; HOME="$r21_home" _zw_run_loop "r21team" >"$r21_log" 2>&1 ) & local r21_pid=$!
@@ -352,7 +341,7 @@ _zw_self_test() {
   kill -TERM "$r21_pid" 2>/dev/null || true; wait "$r21_pid" 2>/dev/null || true
   local r21_hits; r21_hits="$(grep -c "실 pane 미보유로 폴링 제외" "$r21_log" 2>/dev/null || echo 0)"
   rm -rf "$r21_home"; rm -f "$r21_log"
-  eval "$_zw_check_one_orig"   # D8-2/T-2: 원함수 복원 — 이 줄 없이는 이후 전 케이스가 무력화된다
+  eval "$_zw_check_one_orig"   # 원함수 복원 — 이 줄 없이는 이후 전 케이스가 무력화된다
   if [[ "$r21_hits" -eq 1 ]]; then
     echo "  [PASS] [18] R2-1 — 제외 멤버 알림 기동 1회만 emit(2+ 사이클 관측, 이후 무출력)"
   else
@@ -372,17 +361,13 @@ _zw_self_test() {
     echo "  [FAIL] [19] 기대 rc=3+0명 문구, 실제 rc=${r21b_rc} out='${r21b_out}'"; fail_count=$((fail_count + 1))
   fi
 
-  # Phase 9-3-1(498/500 분할): 회귀 케이스 [20]~[26](D-2/D-7·R-14·T-1)을
-  # zombie_watch_selftest_regression.sh 로 이관했다. source 는 새 함수 스코프를 만들지
-  # 않으므로 case_count/fail_count 등 이 함수(_zw_self_test)의 지역변수가 원문(인라인
-  # 배치)과 완전히 동일하게 공유·갱신된다. 이관 구간은 원본 L368~478 과 바이트 동일
-  # (diff exit 0 + md5 대조 — 9-1 zombie_watch_lib.sh/poll.sh 분리 방식 준용).
+  # source는 새 함수 스코프를 만들지 않으므로 case_count/fail_count 등 지역변수를 공유한다.
   source "${SELFTEST_DIR}/zombie_watch_selftest_regression.sh"
 
-  # R2-2(Medium, Phase 8-5): 케이스 수 정확 일치 — 하한이 아니라 정확 일치라 케이스가
+  # 케이스 수 정확 일치 — 하한이 아니라 정확 일치라 케이스가
   # 조용히 사라져도(누락) 조용히 늘어도(중복) 잡힌다. 총계 표기 자기 자신을 나눈 값이라
-  # 이 검사 없이는 항상 참이었다(P-2 계열 재발, R2-2).
-  readonly expected_cases=29
+  # 이 검사 없이는 항상 참이었다.
+  readonly expected_cases=51
   if (( case_count != expected_cases )); then
     echo "  [FAIL] 케이스 수 불일치: 실행 ${case_count}건 (기대 ${expected_cases}건) — 케이스 누락/중복 의심"
     fail_count=$((fail_count + 1))

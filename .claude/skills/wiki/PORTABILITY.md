@@ -14,8 +14,6 @@
 4. **두 산출물 동시 생성** — 1회 호출 → 원본+요약 두 파일 (`created` 같은 분)
 5. **Karpathy 3계층 충족** — 원본 출처 / 위키 / 스키마 폴더-파일 분리
 
-상세: 원본 프로젝트의 `docs/phases/phase-1-5/phase-1-5-intent.md`
-
 ---
 
 ## 1. 전제조건
@@ -239,28 +237,6 @@ python3 scripts/wiki/wiki.py link-check
 | 프로젝트 | 시나리오 | 상태 |
 |---|---|---|
 | PAB-obsidian (origin) | A (자기 자신, dogfooding) | ✅ G2-wiki PASS+ (STAGE A 5/5 + Hard 12/12 + Soft 6/6 + AUDITOR 4/4) |
-| PAB-SSOT-Nexus | **D 최소 셋업** (vault 없음, 사용자 명령은 B였으나 조사 결과 D로 정정) | ✅ 이식 완료 (2026-05-03). 복사: `skills/wiki/` + `wiki/{15_Sources,10_Notes}/.gitkeep`. plugin.json 변경 0건 (이미 `name: pab`). nexus 세션에서 `/wiki --help` 자동완성 + 첫 호출 본질 5/5 검증 대기. |
-
-### 9.2 v0.3 보강 (2026-05-04) — vault root 추상화 + PAB-LLMDATA 정식
-
-| 변경 | 영향 |
-|---|---|
-| `wiki.py` + `lib/{validate,frontmatter,moc}.py` 전 hardcoded `wiki/` prefix 제거 | vault 안의 *상대 경로* 사용 (10_Notes / 15_Sources / 00_MOC / 40_Templates 등) |
-| `VAULT_ROOT_DEFAULT` 환경변수 우선 (`$WIKI_VAULT_ROOT`) + default `<project>/wiki/` | skill·CLI 일관성. 후방호환: 환경변수 미설정 시 default 보존 |
-| PAB-obsidian/wiki/ → PAB-obsidian/PAB-LLMDATA/ vault 이름 정명 | "Personal AI Brain - LLM Data" 의미. PAB-obsidian = *튜닝 프로젝트* / PAB-LLMDATA = *vault* 역할 분리 |
-| §3.1 단순화 (5-step → 1-line) | 별도 vault 신설 폐기. PAB-LLMDATA가 이미 풀 셋업 |
-| 본질 5항목 영향 | **변경 없음** — 코드 정합만. 본질 #5 Karpathy 3계층 *강화* (vault = 진짜 외부 뇌) |
-
-### 9.1 v0.2 보강 (2026-05-03) — 공통 vault 지원
-
-| 변경 | 영향 |
-|---|---|
-| SKILL.md §3 Step 8 vault root 결정 로직 추가 | `$WIKI_VAULT_ROOT` 환경변수 우선, 미설정 시 `./wiki/` (기존 동작 보존) |
-| SKILL.md §4 이전 가이드 — 운영 모드 선택 명시 | 공통 vault (Karpathy 본래 의도) vs 자기완결 (dogfooding) |
-| PORTABILITY.md §3.1 공통 vault 셋업 절차 추가 | 5 step 셋업 명령 + 누적 흐름 다이어그램 |
-| PORTABILITY.md §7 트러블슈팅 3건 추가 | 환경변수 미설정 / 옵시디언 미등록 / 프로젝트 분리 |
-| 본질 5항목 영향 | **변경 없음** — vault 위치만 추상화. 본질 #5 Karpathy 3계층은 *강화* (공통 vault = 진짜 외부 뇌) |
-| 후방 호환성 | ✅ — 환경변수 미설정 시 기존 `./wiki/` 동작 그대로
 
 ---
 

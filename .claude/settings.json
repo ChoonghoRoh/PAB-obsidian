@@ -1,36 +1,23 @@
 {
-  "autoCompact": "disabled",
   "permissions": {
     "allow": [
       "Bash(find:*)",
       "Bash(mkdir:*)",
-      "Bash(python -m pytest:*)",
-      "Bash(python3 -m pytest:*)",
-      "Bash(python3:*)",
-      "Bash(docker-compose ps:*)",
-      "Bash(docker-compose logs:*)",
-      "Bash(docker compose:*)",
-      "Bash(curl:*)",
       "Bash(chmod:*)",
-      "Bash(docker exec:*)",
-      "Bash(node -c:*)",
-      "Bash(git checkout:*)",
-      "Bash(docker logs:*)",
-      "Bash(./scripts/backup/backup.sh:*)",
-      "Bash(ls:*)",
-      "Bash(git log:*)",
-      "Bash(wc:*)",
-      "Bash(just:*)",
-      "Skill(phase-init:*)",
-      "Skill(ssot-reload:*)",
-      "Skill(gate-check:*)",
-      "Skill(refactor-scan:*)",
-      "Skill(rules-lookup:*)",
       "Bash(node:*)",
+      "Bash(ls:*)",
+      "Bash(wc:*)",
+      "Bash(git log:*)",
+      "Bash(git checkout:*)",
       "Bash(bash scripts/log-prompt.sh:*)",
       "Bash(./scripts/log-prompt.sh:*)",
       "Skill(project-config:*)",
+      "Skill(ssot-reload:*)",
       "Skill(plan:*)",
+      "Skill(phase-init:*)",
+      "Skill(gate-check:*)",
+      "Skill(rules-lookup:*)",
+      "Skill(refactor-scan:*)",
       "Skill(verify-implementation:*)",
       "Skill(verify-backend:*)",
       "Skill(verify-frontend:*)",
@@ -41,7 +28,8 @@
       "Skill(notify-telegram:*)",
       "Skill(wiki:*)",
       "Skill(worktree:*)",
-      "Skill(abort:*)"
+      "Skill(abort:*)",
+      "Skill(interop:*)"
     ]
   },
   "hooks": {
@@ -87,6 +75,17 @@
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/lock1-guard.sh\"",
             "timeout": 5,
             "statusMessage": "LOCK-1 SSOT 수정 권한 확인 중..."
+          }
+        ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/team-sentinel.sh\" spawn",
+            "timeout": 5,
+            "statusMessage": "팀원 스폰 감지 — 팀 활성 센티넬 등록 중..."
           }
         ]
       }
@@ -161,6 +160,28 @@
             "statusMessage": "work-log 기록 확인 중..."
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/team-sentinel.sh\" reconcile",
+            "timeout": 5,
+            "statusMessage": "팀원 상태 대조 중..."
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/team-sentinel.sh\" end",
+            "timeout": 5,
+            "statusMessage": "세션 종료 — 센티넬 정리 중..."
+          }
+        ]
       }
     ],
     "PostCompact": [
@@ -174,10 +195,26 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/prompt-stack.sh\"",
+            "timeout": 5,
+            "statusMessage": "프롬프트 원문 적재 중..."
+          }
+        ]
+      }
     ]
   },
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
-  "teammateMode": "tmux"
+  "teammateMode": "tmux",
+  "statusLine": {
+    "type": "command",
+    "command": "\"$CLAUDE_PROJECT_DIR/scripts/statusline.sh\""
+  }
 }

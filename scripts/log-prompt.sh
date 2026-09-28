@@ -1,5 +1,5 @@
 #!/bin/bash
-# 프롬프트 작업 기록 스크립트 (PH-1 ~ PH-7)
+# 프롬프트 작업 기록 스크립트
 # 사용법:
 #   ./scripts/log-prompt.sh init
 #   ./scripts/log-prompt.sh log "프롬프트 원문" "결과 설명"
@@ -10,6 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 HISTORY_DIR="$PROJECT_ROOT/docs/history"
 OUTPUT_DIR="$HISTORY_DIR/output"
+PENDING_ROOT="$HISTORY_DIR/.pending"
 TODAY=$(date +%y%m%d)
 TODAY_FULL=$(date +%Y-%m-%d)
 WORKLOG="$HISTORY_DIR/${TODAY}-work-log.md"
@@ -51,8 +52,6 @@ make_slug() {
     local out
     out=$(printf '%s' "$input" | sed 's/[^a-zA-Z0-9가-힣_-]/-/g' 2>/dev/null)
     if [ $? -eq 0 ] && [ -n "$out" ]; then
-      # cut -c는 이 환경에서 바이트 단위로 잘려 UTF-8이 깨지므로
-      # bash 문자 단위 부분 문자열(${out:0:30})을 사용
       printf '%s' "${out:0:30}"
       return 0
     fi
@@ -80,6 +79,53 @@ EOF
   fi
 }
 
+# pending: .pending/ 전 날짜의 미회수 프롬프트 원문 열람
+cmd_pending() {
+  if [ ! -d "$PENDING_ROOT" ]; then
+    echo "[OK] 대기 중인 프롬프트가 없습니다."
+    return
+  fi
+
+  local any_found=0
+  local dir date_dir f day_found
+  for dir in "$PENDING_ROOT"/*/; do
+    [ -d "$dir" ] || continue
+    date_dir=$(basename "$dir")
+    case "$date_dir" in
+      [0-9][0-9][0-9][0-9][0-9][0-9]) : ;;
+      *) continue ;;
+    esac
+    day_found=0
+    while IFS= read -r f; do
+      if [ "$day_found" -eq 0 ]; then
+        echo "=== ${date_dir} ==="
+        day_found=1
+        any_found=1
+      fi
+      echo "  $(basename "$f")"
+    done < <(find "$dir" -maxdepth 1 -name '*.txt' 2>/dev/null | sort)
+  done
+
+  if [ "$any_found" -eq 0 ]; then
+    echo "[OK] 대기 중인 프롬프트가 없습니다."
+  fi
+}
+
+# 지정 날짜의 pending 파일을 회수(삭제)하고 회수 건수를 반환한다 — log가 실제로 pending을 지운다
+recover_pending() {
+  local date_dir="$1"
+  local dir="$PENDING_ROOT/$date_dir"
+  local cnt
+  cnt=0
+  if [ -d "$dir" ]; then
+    cnt=$(find "$dir" -maxdepth 1 -name '*.txt' 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$cnt" -gt 0 ]; then
+      rm -f "$dir"/*.txt
+    fi
+  fi
+  echo "$cnt"
+}
+
 # log: 프롬프트 기록
 cmd_log() {
   local prompt="$1"
@@ -92,12 +138,10 @@ cmd_log() {
     exit 1
   fi
 
-  # work-log 없으면 자동 init
   if [ ! -f "$WORKLOG" ]; then
     cmd_init
   fi
 
-  # 순번 계산
   local last_seq
   last_seq=$(get_last_seq)
   local next_seq=$((last_seq + 1))
@@ -122,9 +166,20 @@ cmd_log() {
   prompt=$(echo "$prompt" | sed 's/|/\\|/g')
   result=$(echo "$result" | sed 's/|/\\|/g')
 
-  # work-log에 행 추가
   echo "| ${seq_str} | ${prompt} | ${result} |" >> "$WORKLOG"
   echo "[OK] #${seq_str} 기록 완료"
+
+  local yesterday recovered_today recovered_yesterday recovered_total
+  recovered_today=$(recover_pending "$TODAY")
+  yesterday=$(date -v-1d +%y%m%d 2>/dev/null || date -d "yesterday" +%y%m%d 2>/dev/null || echo "")
+  recovered_yesterday=0
+  if [ -n "$yesterday" ]; then
+    recovered_yesterday=$(recover_pending "$yesterday")
+  fi
+  recovered_total=$((recovered_today + recovered_yesterday))
+  if [ "$recovered_total" -gt 0 ]; then
+    echo "[OK] pending ${recovered_total}건 회수(오늘 ${recovered_today}건 + 전일 ${recovered_yesterday}건)"
+  fi
 }
 
 # check: 누락 검증
@@ -168,13 +223,11 @@ cmd_check() {
     echo "[WARN] 누락 파일 ${missing}건"
   fi
 
-  # 총 기록 수
   local total
   total=$(grep -cE '^\| [0-9]{4} \|' "$latest" 2>/dev/null)
   echo "=== 총 ${total}건 기록 ==="
 }
 
-# 메인
 case "${1:-}" in
   init)
     cmd_init
@@ -185,6 +238,9 @@ case "${1:-}" in
   check)
     cmd_check
     ;;
+  pending)
+    cmd_pending
+    ;;
   *)
     echo "프롬프트 작업 기록 스크립트"
     echo ""
@@ -193,5 +249,6 @@ case "${1:-}" in
     echo "  $0 log \"프롬프트\" \"결과\"              프롬프트 기록"
     echo "  $0 log \"프롬프트\" \"결과\" \"출력내용\"   프롬프트 기록 + output 파일 생성"
     echo "  $0 check                             누락 검증"
+    echo "  $0 pending                           .pending/ 전 날짜 미기록 프롬프트 열람"
     ;;
 esac

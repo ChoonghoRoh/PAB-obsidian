@@ -84,7 +84,9 @@ mkdir -p docs/phases/phase-{id}
 
 ### 4. 필수 산출물 생성 (CHAIN-6)
 
-`--dry` 미지정 시 아래 4종을 생성:
+`docs/SSOT/entrypoint.md` 앞 10줄의 `**SSOT 버전**:` 값을 `ssot_version`에 넣는다. 없으면 「버전 미확인」.
+
+`--dry` 미지정 시 아래 항목을 생성:
 
 #### 4-1. phase-{id}-status.md
 
@@ -95,14 +97,23 @@ title: ""
 current_state: "PLANNING"
 created_at: "{today}"
 updated_at: "{today}"
+ssot_version: "{SSOT 버전 — entrypoint 머리}"
+retry_count: 0
 gate_results:
-  G0: null
   G1: null
   G2: null
   G3: null
   G4: null
 agents: []
-# ↑ 카운터 행(retry_count 등)·current_state 행에 인라인 주석 금지 — state-transition-guard 훅 파싱 대상
+token_budget:
+  policy: ""
+  limit: 0
+  estimate: 0
+  declared: ""
+  unit: "noncache"
+  consumed: 0
+  measure_from: null
+# ↑ current_state 행에 인라인 주석 금지 — LOCK-1 훅(lock1-guard)이 값을 잘못 읽는다
 ---
 
 # Phase {id} Status
@@ -137,7 +148,6 @@ agents: []
 
 - [ ] Plan 작성 완료
 - [ ] Task 명세 작성 완료
-- [ ] G0 통과
 - [ ] 구현 완료
 - [ ] G2 통과
 - [ ] G3 통과

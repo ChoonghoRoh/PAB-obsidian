@@ -1,6 +1,6 @@
 # .claude — PAB SSOT 포터블 설정 번들
 
-Claude Code 기반 **AutoCycle v1.1 / SSOT 6th (v8.2)** 운영 설정. 이 폴더와 `PROJECT.md`, `docs/SSOT/`, `scripts/`를 함께 복사하면 다른 프로젝트에서 동일한 체계로 운영할 수 있다.
+Claude Code 기반 SSOT 운영 설정. 이 폴더와 `PROJECT.md`, `docs/SSOT/`, `scripts/`를 함께 복사하면 다른 프로젝트에서 동일한 체계로 운영할 수 있다.
 
 ## 0. 설정 단일 소스: PROJECT.md
 
@@ -8,7 +8,7 @@ Claude Code 기반 **AutoCycle v1.1 / SSOT 6th (v8.2)** 운영 설정. 이 폴�
 
 ```
 PROJECT.md (단일 소스)
-  ├─ frontmatter ──/project-config sync──▶ .claude/hooks/hooks.env ──▶ 훅 9종
+  ├─ frontmatter ──/project-config sync──▶ .claude/hooks/hooks.env ──▶ 훅
   └─ 프로즈 §1~§9 ───────────────────────▶ Team Lead·팀원 스폰 시 로드
 ```
 
@@ -22,7 +22,7 @@ PROJECT.md (단일 소스)
 ├── CLAUDE.md            # 페르소나·SSOT 진입점 지시 (시작 시 로드)
 ├── settings.json        # 권한 + hooks 배선 (프로젝트 공유)
 ├── settings.local.json  # 개인 로컬 권한 (git 제외 대상)
-├── hooks/               # 훅 스크립트 9종 + hooks.env (자동 생성)
+├── hooks/               # 훅 스크립트 + hooks.env (자동 생성)
 │   ├── hooks.env                  # PROJECT.md frontmatter에서 자동 생성 (직접 수정 금지)
 │   ├── ssot-freshness-check.sh    # SessionStart — PROJECT.md 자동 동기화 + SSOT·Phase 요약
 │   ├── hr1-guard.sh               # PreToolUse — 팀 운영 중 Team Lead 코드 수정 차단
@@ -30,10 +30,11 @@ PROJECT.md (단일 소스)
 │   ├── line-count-monitor.sh      # PostToolUse — HR-5 줄수 경고
 │   ├── state-transition-guard.sh  # PostToolUse — status.md 상태 전이 검증
 │   ├── on-task-completed.sh       # TaskCompleted — CDN/HR-5 품질 검사
-│   ├── team-sentinel.sh           # SubagentStart/Stop — 팀 활성 센티넬
+│   ├── team-sentinel.sh           # PreToolUse·Stop·SessionEnd(+SubagentStart·SubagentStop) — 팀 활성 센티넬
 │   ├── stop-worklog-reminder.sh   # Stop — work-log 기록 리마인더
 │   └── post-compact-reminder.sh   # PostCompact — FRESH-7 복구 안내
-└── skills/              # 스킬 단일 소스 18종 (/menu로 카탈로그 조회)
+├── agents/              # 팀원 에이전트 정의 (Team Lead 제외 역할별)
+└── skills/              # 스킬 단일 소스 (/menu로 카탈로그 조회)
 ```
 
 **외부 의존 (함께 복사)**:
@@ -41,10 +42,10 @@ PROJECT.md (단일 소스)
 | 경로 | 용도 |
 |------|------|
 | `PROJECT.md` | 프로젝트 단일 설정 문서 (/project-config로 관리) |
-| `docs/SSOT/` | SSOT 본체 (진입점 `0-entrypoint.md`, 업그레이드는 `UPGRADE.md`) |
+| `docs/SSOT/` | SSOT 본체 (진입점 `entrypoint.md`) |
 | `scripts/sync-project-config.sh` | PROJECT.md → hooks.env 동기화 |
 | `scripts/log-prompt.sh` | work-log 기록 CLI (SessionStart/Stop hook + /worklog 스킬이 사용) |
-| `scripts/pmAuto/report_to_telegram.sh` | HR-8 Telegram 알림 (/notify-telegram 스킬이 사용) |
+| `scripts/pmAuto/report_to_telegram.sh` | Telegram 알림 (/notify-telegram 스킬이 사용) |
 
 ## 2. 이식 가이드 (다른 프로젝트에 설치)
 
@@ -56,7 +57,7 @@ PROJECT.md (단일 소스)
 # 신규 설치:
 bash ~/pab-ssot-bundle/install.sh /path/to/target-project
 
-# 기존 이식 프로젝트의 SSOT/스킬/훅 업그레이드 (프로젝트 설정 보존):
+# 기존 이식 프로젝트의 SSOT/스킬/훅/에이전트 업그레이드 (프로젝트 설정 보존):
 bash ~/pab-ssot-bundle/install.sh /path/to/target-project --upgrade
 ```
 
@@ -67,12 +68,12 @@ bash ~/pab-ssot-bundle/install.sh /path/to/target-project --upgrade
 1. **PROJECT.md 편집** — 대상 프로젝트에서 `/project-config init`(대화형) 또는 직접 편집: 이름·성격·언어·빌드 명령·코드 영역(`code_dirs`)·HR-5 임계값 전부 이 문서에서
 2. **동기화** — `/project-config sync` (새 세션 시작 시 자동)
 3. **Telegram (선택)** — `export PAB_TELEGRAM_BOT_TOKEN=... PAB_TELEGRAM_CHAT_ID=...` (문서에 기입 금지)
-4. **기존 .claude가 있는 대상** — 충돌 파일은 `*.pab-new`로 저장됨 → diff 후 수동 병합
+4. **기존 .claude가 있는 대상** — 드리프트가 있는 충돌 파일은 `*.pab-new`로 저장됨 → diff 후 수동 병합
 5. **동작 확인** — 새 세션 시작 → SessionStart hook의 "Project: ..." 줄 확인 → `/menu` → `/project-config check` → `/ssot-reload`
 
 ### SSOT 업그레이드
 
-번들의 SSOT가 개정되면 `--upgrade`로 배포한다. 프레임워크 파일만 덮어쓰고 `PROJECT.md`, `hooks.env`, 커스터마이징된 `1-project.md`/`2-architecture.md`/`PERSONA/`는 보존된다. 상세: [docs/SSOT/UPGRADE.md](../docs/SSOT/UPGRADE.md)
+번들의 SSOT가 개정되면 `--upgrade`로 배포한다. 프레임워크 파일만 덮어쓰고 `PROJECT.md`, `hooks.env`는 보존된다.
 
 ## 3. 페르소나 설정 위치 (참고)
 

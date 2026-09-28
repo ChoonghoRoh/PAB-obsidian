@@ -1,10 +1,9 @@
 # 프롬프트 Pre-draft 토픽 정리 템플릿
 
-> **버전**: 1.0 | **생성일**: 2026-04-16 (Phase-I I-3)
-> **적용 Step**: AutoCycle Step 0 — 사용자 주도 마스터 플랜 진입 전 프롬프트 품질 토픽 논의
-> **적용 규칙**: PROMPT-QUALITY (HIGH) — `6-rules-index.md §1.20`
-> **작성 주체**: Team Lead 단독 (Plan Mode 유사). 필요 시에만 BE/FE/tester/research 온디맨드 호출
-> **적용 조건**: `initiator: user` OR 사용자가 `/plan` 명시 호출. AI handoff 시 적용 제외
+> **용도**: `/plan` — 마스터 플랜 작성 전 프롬프트 품질 토픽 논의
+> **적용 규칙**: PROMPT-QUALITY (HIGH) — `rules-index.md §1.20`
+> **작성 주체**: Team Lead 단독 (Plan Mode 유사). 필요 시에만 BE/FE/tester 온디맨드 호출
+> **적용 조건**: 사용자가 `/plan` 호출
 > **저장 경로**: `docs/phases/pre/phase-{N}-pre-draft.md`
 
 ---
@@ -46,13 +45,13 @@ Team Lead와 사용자 간 경량 대화로 발굴한 토픽 목록. 각 토픽�
 |-----------|-----------|------|
 | {파일/모듈 경로} | {현황 요약} | {본 요청에 미치는 영향} |
 
-### 3.2 외부 리서치 (research-analyst 호출)
+### 3.2 외부 리서치 (Team Lead WebSearch)
 
 | 벤치마크 대상 | 비교 결과 | 채택 여부 |
 |---------------|-----------|-----------|
 | {기술/라이브러리/패턴} | {장단점} | [채택 | 보류 | 부결] |
 
-### 3.3 기존 규격 조회 (verifier 또는 research-lead 호출)
+### 3.3 기존 규격 조회 (verifier 호출)
 
 - 참조 SSOT: {경로}
 - 관련 규칙: {규칙 ID}
@@ -82,7 +81,7 @@ Team Lead와 사용자 간 경량 대화로 발굴한 토픽 목록. 각 토픽�
 
 ---
 
-## §5 PROMPT-QUALITY 5항목 판정
+## §5 PROMPT-QUALITY 항목 판정
 
 | # | 항목 | 판정 | 근거 | 보완 필요 사항 |
 |---|------|------|------|----------------|
@@ -94,10 +93,10 @@ Team Lead와 사용자 간 경량 대화로 발굴한 토픽 목록. 각 토픽�
 
 ### 종합 판정
 
-- [ ] 5항목 전부 PASS → 마스터 플랜 착수 승인
+- [ ] 전 항목 PASS → 마스터 플랜 착수 승인
 - [ ] 1건 이상 PARTIAL → 보완 후 재판정
 - [ ] 1건 이상 FAIL → 재질문 또는 범위 조정 필요
-- [ ] Fast-path 적용 가능 (5항목 자명 PASS, 본 문서 §1~§4 생략 허용)
+- [ ] Fast-path 적용 가능 (전 항목 자명 PASS, 본 문서 §1~§4 생략 허용)
 
 ---
 
@@ -143,7 +142,6 @@ Team Lead와 사용자 간 경량 대화로 발굴한 토픽 목록. 각 토픽�
 ```yaml
 phase: "{N}"
 name: "{Phase 이름}"
-initiator: "user"
 prompt_quality: "full"   # "full" | "fast-path"
 pre_draft_ref: "docs/phases/pre/phase-{N}-pre-draft.md"
 ```
@@ -158,12 +156,8 @@ pre_draft_ref: "docs/phases/pre/phase-{N}-pre-draft.md"
 
 ## §8 작성 지침 (Template Usage Notes)
 
-- 본 템플릿은 **사용자 주도 마스터 플랜**(`initiator: user`) 진입 시에만 사용
-- **AI handoff**(`initiator: ai-handoff`, Next Prompt 자동 이어짐)에서는 적용 제외 (Step 0 스킵 → CHAIN-13 자동 로딩으로 대체)
+- 본 템플릿은 `/plan` 호출 시에만 사용
 - Fast-path 선언 시 §1, §5, §6만 기록하고 §2~§4, §7은 "해당 없음"으로 처리 가능
 - HR-1 준수 — Team Lead는 코드 수정 금지. §3 수집 자료에 포함된 코드 조사 결과도 BE/FE 온디맨드 호출 결과일 뿐 Team Lead 직접 수정 아님
 - 완료 후 마스터 플랜의 `pre_draft_ref` 필드에 본 문서 경로 명시 필수
 
----
-
-**문서 관리**: v1.0, 2026-04-16, PROMPT-QUALITY 규칙 준수용 템플릿 (Phase-I I-3 산출물)

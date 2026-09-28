@@ -1,41 +1,50 @@
 #!/usr/bin/env bash
-# =============================================================================
 # on-task-completed.sh — TaskCompleted Hook: 자동 품질 검사
-# =============================================================================
 # 트리거: Claude Code TaskCompleted 이벤트
 # 목적: Task 완료 시 경량 정적 검사를 자동 실행하여 Critical 이슈 차단
 #
 # Exit codes:
 #   0 — 검사 통과 (또는 검사 대상 파일 없음)
 #   2 — Critical 이슈 발견 → Task 완료 차단
-# =============================================================================
 
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$PROJECT_ROOT"
 
-# 프로젝트별 설정 로드 (없으면 기본값)
+# 프로젝트별 설정 로드 (없으면 기본값) — hooks.env는 source하지 않고 값만 읽는다
 PAB_LINE_WARN=500
 PAB_LINE_CRIT=700
-[ -f "$PROJECT_ROOT/.claude/hooks/hooks.env" ] && . "$PROJECT_ROOT/.claude/hooks/hooks.env"
 
-# 변경된 파일 목록 수집 (staged + unstaged)
-CHANGED_FILES=$(git diff --name-only HEAD 2>/dev/null || true)
+# hooks.env에서 키 하나를 안전하게 읽는다(CRLF 제거 · 인용부호 벗김)
+env_read() {
+  local key="$1" f="$2" v
+  v="$([ -f "$f" ] && sed -n "s/^${key}=//p" "$f" 2>/dev/null | tail -n 1)" || v=""
+  v="${v%$'\r'}"
+  v="${v#\"}"; v="${v%\"}"
+  v="${v#\'}"; v="${v%\'}"
+  v="$(printf '%s' "$v" | sed "s/'\\\\''/'/g")"
+  printf '%s' "$v"
+}
+
+_val="$(env_read PAB_LINE_WARN "$PROJECT_ROOT/.claude/hooks/hooks.env")"
+case "$_val" in ''|*[!0-9]*) : ;; *) PAB_LINE_WARN="$_val" ;; esac
+_val="$(env_read PAB_LINE_CRIT "$PROJECT_ROOT/.claude/hooks/hooks.env")"
+case "$_val" in ''|*[!0-9]*) : ;; *) PAB_LINE_CRIT="$_val" ;; esac
+
+# 변경된 파일 목록 수집 (staged + unstaged) — 한글 등 비아스키 파일명이 이스케이프되지 않게 quotePath 끔
+CHANGED_FILES=$(git -c core.quotePath=false diff --name-only HEAD 2>/dev/null || true)
 if [ -z "$CHANGED_FILES" ]; then
-  CHANGED_FILES=$(git diff --name-only --cached 2>/dev/null || true)
+  CHANGED_FILES=$(git -c core.quotePath=false diff --name-only --cached 2>/dev/null || true)
 fi
 
-# 변경 파일 없으면 통과
 if [ -z "$CHANGED_FILES" ]; then
   exit 0
 fi
 
 CRITICAL_ISSUES=()
 
-# ---------------------------------------------------------------------------
 # 검사 1: 외부 CDN 참조 검출 (HTML, JS 파일)
-# ---------------------------------------------------------------------------
 CDN_PATTERNS=(
   "cdn.jsdelivr.net"
   "cdnjs.cloudflare.com"
@@ -54,9 +63,7 @@ while IFS= read -r file; do
   fi
 done <<< "$CHANGED_FILES"
 
-# ---------------------------------------------------------------------------
 # 검사 2: HR-5 줄수 검사 (변경된 코드 파일)
-# ---------------------------------------------------------------------------
 while IFS= read -r file; do
   if [[ "$file" == *.html || "$file" == *.js || "$file" == *.css ]] && [ -f "$file" ]; then
     lines=$(wc -l < "$file" | tr -d ' ')
@@ -68,9 +75,7 @@ while IFS= read -r file; do
   fi
 done <<< "$CHANGED_FILES"
 
-# ---------------------------------------------------------------------------
 # 결과 출력
-# ---------------------------------------------------------------------------
 if [ ${#CRITICAL_ISSUES[@]} -gt 0 ]; then
   echo "============================================" >&2
   echo " Task 완료 품질 검사 FAIL — Critical 이슈 발견" >&2
@@ -84,9 +89,7 @@ if [ ${#CRITICAL_ISSUES[@]} -gt 0 ]; then
   exit 2
 fi
 
-# ---------------------------------------------------------------------------
 # 알림: work-log 기록 리마인더
-# ---------------------------------------------------------------------------
 WORKLOG="$PROJECT_ROOT/docs/history/$(date +%y%m%d)-work-log.md"
 if [ -f "$WORKLOG" ]; then
   echo "[REMINDER] 작업 완료 — log-prompt.sh log 로 work-log 기록 필요" >&2

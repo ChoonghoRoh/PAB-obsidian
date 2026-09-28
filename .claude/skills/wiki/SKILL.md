@@ -78,8 +78,6 @@ allowed-tools: "Read, Write, Bash, WebFetch"
 
 ### 2.3 frontmatter 11필드
 
-상세: `wiki/30_Constraints/frontmatter-spec.md`
-
 | # | 필드 | 등급 | 자동 결정 방식 |
 |---|---|---|---|
 | 1 | `title` | **Critical** | 본문 핵심 + 저자/소스명 (한글 가능) |
@@ -107,8 +105,6 @@ allowed-tools: "Read, Write, Bash, WebFetch"
 
 ### 2.4 파일명 규칙
 
-상세: `wiki/30_Constraints/naming-convention.md`
-
 | 파일 | 패턴 | 예시 |
 |---|---|---|
 | 요약본 | `wiki/10_Notes/YYYY-MM-DD_<slug>.md` | `wiki/10_Notes/2026-05-02_karpathy_llm_wiki.md` |
@@ -117,7 +113,7 @@ allowed-tools: "Read, Write, Bash, WebFetch"
 - slug: `^[a-z0-9_]{1,50}$` (소문자·숫자·언더스코어, 하이픈 금지)
 - 정규식: `^\d{4}-\d{2}-\d{2}_[a-z0-9_]{1,50}\.md$`
 
-## §3 처리 절차 (Step 1~10 + 보조 8.5·9.5)
+## §3 처리 절차 (12 step)
 
 ### Step 1 — 입력 파싱 + WebFetch
 - URL 패턴 추출 (`https?://...`)
@@ -185,10 +181,10 @@ vault root 결정 직후, 저장 전에 **vault 구조를 검사**하고 누락�
 
    | 구분 | 경로 | 부트스트랩 방식 |
    |---|---|---|
-   | 폴더 9종 | `00_MOC/{TYPES,DOMAINS,TOPICS}/` `10_Notes/` `15_Sources/` `20_Lessons/` `30_Constraints/` `40_Templates/` `99_Inbox/` | `mkdir -p` |
-   | 규격 문서 4종 | `30_Constraints/{frontmatter-spec,naming-convention,linking-policy,toc-recommendation}.md` — keywords·topics·index·tags 규칙 정의 | 시드 복사 |
-   | 템플릿 8종 | `40_Templates/` 7 TYPE + `_schema.json` | 시드 복사 |
-   | MOC 골격 | `00_MOC/TYPES/` 7종 · `00_MOC/DOMAINS/` 6종 · `00_MOC/TOPICS/_README.md` · vault 루트 `_INDEX.md` | 시드 복사 |
+   | 폴더 | `00_MOC/{TYPES,DOMAINS,TOPICS}/` `10_Notes/` `15_Sources/` `20_Lessons/` `30_Constraints/` `40_Templates/` `99_Inbox/` | `mkdir -p` |
+   | 규격 문서 | `30_Constraints/{frontmatter-spec,naming-convention,linking-policy,toc-recommendation}.md` — keywords·topics·index·tags 규칙 정의 | 시드 복사 |
+   | 템플릿 | `40_Templates/` 7 TYPE + `_schema.json` | 시드 복사 |
+   | MOC 골격 | `00_MOC/TYPES/` · `00_MOC/DOMAINS/` · `00_MOC/TOPICS/_README.md` · vault 루트 `_INDEX.md` | 시드 복사 |
 
 2. **덮어쓰기 절대 금지** — 이미 존재하는 파일·폴더는 건드리지 않는다. 누락분만 채우는 idempotent 동작 (기존 vault에는 아무 영향 없음).
 3. **부트스트랩 발생 시 사용자 보고**:
@@ -197,7 +193,7 @@ vault root 결정 직후, 저장 전에 **vault 구조를 검사**하고 누락�
       문서규격(frontmatter 11필드·keywords·topics·index·MOC): 30_Constraints/frontmatter-spec.md
       Obsidian 앱에서 "Open folder as vault"로 이 경로를 열면 바로 사용 가능
    ```
-4. **시드 위치**: 본 SKILL.md와 같은 디렉토리의 `vault-seed/`. 시드가 없으면(구버전 이식 등) 폴더만 생성하고 규격 파일 복사는 생략 + WARN 출력 (이후 Step 5~7의 frontmatter 자동 결정은 본 SKILL.md §2 규격만으로도 동작).
+4. **시드 위치**: 본 SKILL.md와 같은 디렉토리의 `vault-seed/`. 시드가 없으면 폴더만 생성하고 규격 파일 복사는 생략 + WARN 출력 (이후 Step 5~7의 frontmatter 자동 결정은 본 SKILL.md §2 규격만으로도 동작).
 
 ### Step 8a — 원본 저장 (SOURCE, immutable)
 - 경로: `${VAULT_ROOT}/15_Sources/YYYY-MM-DD_<slug>_source.md`
@@ -212,34 +208,15 @@ vault root 결정 직후, 저장 전에 **vault 구조를 검사**하고 누락�
 - 동일 파일 존재 시 사용자에게 확인
 - `--dry` 시 stdout만 출력
 
-### Step 9 — 검증 게이트 (양 파일 모두) ⚠️ **필수 실행**
-
+### Step 9 — 검증 (양 파일 모두)
 ```bash
 # vault root 자동 감지 — Step 8 우선순위 적용($WIKI_VAULT_ROOT → 정본 vault 탐지 → 확인 후 ./wiki)
-python3 scripts/wiki/wiki.py --json link-check   # vault-wide
+python3 scripts/wiki/wiki.py link-check  # vault-wide
 ```
-
-**판정 근거는 `counts`다 — `status` 문자열이 아니다.**
-
-| 지표 | 판정 | 조치 |
-|---|---|---|
-| `counts.violations > 0` | ❌ **게이트 FAIL** | **중단 + 보고.** 생성한 파일은 남기되 위반 항목을 사용자에게 명시하고, 수정 없이 완료 선언하지 않는다 |
-| `counts.orphans > 0` | ⚠️ MOC 미등재 | Step 9.5가 해소한다. 그래도 남으면 사용자에게 보고 |
-| `counts.broken = N` | ℹ️ **정보 지표** | 미래 노트 unresolved — **정상 동작**. 분리 보고만 |
-
-- `status` 필드는 현행 산정이 `broken>0`이면 `FAIL`을 내므로 **이 판정에 쓰지 않는다** (Phase 2-5 T-7에서 정합 예정)
-- TOC 링크 검증: 요약본의 `[원본 §... →]` anchor가 **원본 실제 헤더와 문자열 단위로 일치**하는지 확인. 원본 헤더가 `## 0. 요지`인데 링크가 `#0. 요지 (TL;DR)`이면 broken이다 — 실제 발생 사례
-
-### Step 9.5 — MOC 갱신 ⚠️ **필수 실행 (수동 안내 금지)**
-
-```bash
-make wiki-moc-build     # 또는: python3 scripts/wiki/wiki.py moc-build
-```
-
-- **반드시 실행한다.** 사용자에게 "나중에 실행하세요"라고 안내만 하고 넘어가지 않는다 — 미실행이 orphan 누적의 원인이었다
-- 실행 결과(갱신 MOC 수 · TOPIC 신규 승격 목록)를 Step 10 응답에 포함한다
-- `moc-build`는 idempotent다 — 여러 번 실행해도 같은 결과에 수렴한다. 안전하게 재실행 가능
-- 실행 후 `link-check`를 1회 더 돌려 `counts.orphans == 0` 을 확인한다
+- `violations=0` → Critical/High PASS ✅
+- `broken=N` → 미래 노트 unresolved (WARN, 사용자에게 분리 보고, 정상)
+- `schema_violations`만 critical로 취급
+- TOC 링크 검증: 요약본의 `[원본 §... →]` anchor가 원본 실제 헤더와 일치 확인
 
 ### Step 10 — 사용자 응답 메시지
 ```
@@ -251,11 +228,9 @@ make wiki-moc-build     # 또는: python3 scripts/wiki/wiki.py moc-build
 🔗 wikilink N개 + TOC 링크 M개 자동 삽입
 ⚠️  원본은 변경 금지 — Karpathy immutable sources 계층
 
-✅ 검증: violations 0 / orphans 0 (broken N — 미래 노트, 정상)
-🗂️  MOC 갱신: N개 갱신 (+ TOPIC 승격: <TOPIC1>, ...)
+⚠️  (TOPIC 신규 마중물 시) TOPIC `<TOPIC>`은 처음 등장 — 노트 3개 도달 시
+    프로젝트에 MOC 빌드 명령이 있으면 그것으로 MOC로 승격합니다(없으면 생략).
 ```
-
-> **게이트 FAIL 시**에는 위 형식 대신 **무엇이 위반인지·어느 파일 몇 행인지·어떻게 고치는지**를 먼저 보고한다. 위반을 남긴 채 ✅ 로 응답하지 않는다.
 
 ## §4 이전 가이드 (요약 — 상세는 PORTABILITY.md)
 

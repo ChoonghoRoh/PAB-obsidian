@@ -131,6 +131,5 @@ LLM이 명시적으로 작업을 기록할 때 호출. SessionStart hook이 자�
 
 ## 참조
 
-- 결정 #6: hook(자동 init) + 스킬(명시 기록) 역할 분담
 - 구현 표준: `scripts/log-prompt.sh` (SessionStart/Stop hook과 동일 파일 규격 공유)
 - hook 연동: `.claude/settings.json` SessionStart(자동 init) · Stop(기록 누락 리마인더)

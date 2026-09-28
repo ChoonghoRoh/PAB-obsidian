@@ -18,7 +18,7 @@
 ### Decision #1: {제목}
 
 - **시각**: {ISO8601}
-- **판단 주체**: {Team Lead / DecisionEngine / Council}
+- **판단 주체**: {Team Lead}
 - **맥락**: {의사결정이 필요했던 배경}
 - **선택지**:
   - A: {선택지 A 설명}

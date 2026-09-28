@@ -1,6 +1,6 @@
 ---
 name: rules-lookup
-description: 6-rules-index.md에서 규칙 ID 빠른 조회.
+description: CORE/rules-index.md에서 규칙 ID 빠른 조회.
 user-invocable: true
 context: fork
 agent: Explore
@@ -11,7 +11,7 @@ allowed-tools: "Read, Grep"
 
 ## 역할
 
-`6-rules-index.md`에서 규칙 ID 또는 키워드로 빠르게 규칙을 검색하고 관련 정보를 반환한다.
+`CORE/rules-index.md`에서 규칙 ID 또는 키워드로 빠르게 규칙을 검색하고 관련 정보를 반환한다.
 
 ## 입력
 
@@ -30,8 +30,8 @@ allowed-tools: "Read, Grep"
 
 ### 2. 규칙 인덱스 파일 읽기
 
-- `docs/SSOT/core/6-rules-index.md`를 대상으로 한다.
-- 둘 다 없으면 오류를 반환한다.
+- `docs/SSOT/CORE/rules-index.md`를 대상으로 한다.
+- 파일이 없으면 오류를 반환한다.
 
 ### 3-A. 개요 모드 (인수 없음)
 

@@ -1,6 +1,6 @@
 ---
 name: abort
-description: AutoCycle/Phase/Chain 안전 중단 — 사용자 중단 요청의 표준 진입점. 팀 shutdown + 상태 기록 + 재개 정보 보존까지 일괄 처리.
+description: Phase/Chain 안전 중단 — 사용자 중단 요청의 표준 진입점. 팀 shutdown + 상태 기록 + 재개 정보 보존까지 일괄 처리.
 argument-hint: "[사유] [--help]"
 user-invocable: true
 context: inherit
@@ -8,12 +8,12 @@ agent: main
 allowed-tools: "Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion, SendMessage"
 ---
 
-# abort — 사이클/Phase/Chain 안전 중단
+# abort — Phase/Chain 안전 중단
 
 ## 역할
 
-진행 중인 AutoCycle·Phase·Phase Chain을 **안전하게 중단**하는 표준 명령이다 (3-workflow.md §8.5 "사용자 중단 요청"의 공식 트리거).
-단순히 멈추는 것이 아니라 ① 팀원 정리 ② 상태 영속화 ③ 재개 정보 보존까지 수행하여, 이후 Warm Start 재개가 가능하도록 한다.
+진행 중인 Phase·Phase Chain을 **안전하게 중단**하는 표준 명령이다 (`WORKFLOW/phase-chain.md` §4 "사용자 중단 요청"의 공식 트리거).
+단순히 멈추는 것이 아니라 ① 팀원 정리 ② 상태 영속화 ③ 재개 정보 보존까지 수행하여, 이후 재개가 가능하도록 한다.
 
 > 중단은 **파괴적이지 않다** — 산출물·브랜치·worktree는 삭제하지 않고 보존한다. 삭제가 필요하면 별도로 `/worktree` 정리를 사용한다.
 
@@ -54,16 +54,16 @@ Chain이 없고 Phase만 활성이면 "현재 Phase를 중단할까요?" 단일 
 
 1. **LIFECYCLE-3**: 각 팀원의 미완료 Task를 status.md `blockers[]` 또는 tasks 파일에 "ABORT 보류" 로 기록 (재할당하지 않음 — 중단이므로).
 2. 전 팀원에게 `SendMessage(type: shutdown_request)` 전송 → 응답 대기.
-3. TeamDelete로 팀 해산 (TEAM_SHUTDOWN 상태 경유).
+3. 응답 확인 후 팀 config에 team-lead만 남았는지 확인해 해산을 확인한다(별도 삭제 도구 없음 — 팀 폴더는 `/clear`·세션 종료 뒤에도 남아 자동 정리되지 않는다).
 
 ### 4. 상태 영속화
 
 1. **status.md**:
    - `current_state: "BLOCKED"` (모든 상태에서 진입 허용 — state-transition-guard 통과)
    - `blockers[]`에 추가: `"USER_ABORT: {사유} ({ISO 시각})"`
-   - `last_action`: "사용자 중단 (/abort)" / `next_action`: "재개 시 FRESH-7 + §8.4 복구 절차"
-2. **Chain 파일** (범위 B 선택 시): `status: "aborted"` 로 변경. 범위 A면 변경하지 않는다(§8.4 재개 절차가 그대로 동작).
-3. 반복·재시도 카운터(`retry_count`, `pre_build_iteration_counter`, `replan_counter` 등)는 **절대 리셋하지 않는다** — 재개 시 상한이 이어져야 한다.
+   - `last_action`: "사용자 중단 (/abort)" / `next_action`: "재개 시 FRESH-7 + recovery.md §2 복구 절차"
+2. **Chain 파일** (범위 B 선택 시): `status: "aborted"` 로 변경. 범위 A면 변경하지 않는다(recovery.md §2 재개 절차가 그대로 동작).
+3. 반복·재시도 카운터(`retry_count`)는 **절대 리셋하지 않는다** — 재개 시 상한이 이어져야 한다.
 
 ### 5. 기록·알림
 
@@ -80,8 +80,8 @@ Chain이 없고 Phase만 활성이면 "현재 Phase를 중단할까요?" 단일 
   1. 새/기존 세션에서 /ssot-reload (FRESH-1)
   2. status.md의 BLOCKED 상태 + blockers의 USER_ABORT 항목 확인
   3. Phase 재개: BLOCKED → 중단 시점 상태로 복귀 (BLOCKED에서 모든 상태 복귀 허용)
-     Chain 재개(범위 A): 3-workflow.md §8.4 절차 그대로
-     Chain 재개(범위 B): chain status를 "running"으로 수동 변경 후 §8.4
+     Chain 재개(범위 A): recovery.md §2 절차 그대로
+     Chain 재개(범위 B): chain status를 "running"으로 수동 변경 후 recovery.md §2
 ```
 
 ## 예시
@@ -91,10 +91,3 @@ Chain이 없고 Phase만 활성이면 "현재 Phase를 중단할까요?" 단일 
 /abort 요구사항 변경으로 재계획 필요   # 사유 포함
 /abort --help
 ```
-
-## 참조
-
-- 3-workflow.md §8.5 Chain 중단·재개 / §8.4 `/clear` 후 컨텍스트 복구
-- 5-automation.md §컨텍스트 복구 (FRESH-7)
-- LIFECYCLE-1~6 (6-rules-index.md) — 팀원 종료 규칙 (LIFECYCLE-5: 좀비 감지 + Respawn · LIFECYCLE-6: 체크 스케줄러)
-- `/context-handoff` — 세션 인계 / `/worktree` — worktree 정리

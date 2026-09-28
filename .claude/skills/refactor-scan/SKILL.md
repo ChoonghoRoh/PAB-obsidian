@@ -76,6 +76,12 @@ HR-5(코드 유지관리 리팩토링 규정)에 따라 프로젝트 내 코드 
 
 위치 인수(`path`)가 있으면 해당 경로, 없으면 프로젝트 루트(`.`).
 
+> 🔴 **스캔 범위 = HR-5 「개발 파일」에 한정**한다.
+> `docs/SSOT/WORKFLOW/refactoring/refactoring-rules.md` §1 용어 정의:
+> *"**개발 파일** | \*.py, \*.js, \*.css, \*.html (**테스트·설정·문서 제외**)"*
+> 따라서 `tests/`·`test/`는 스캔 대상이 아니다 — 포함하면 **규칙에 없는 예산**이 산출되고,
+> 그 오판이 제품 설계 결정을 바꾼다.
+
 ```bash
 find {target_path} \
   -type f \( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.vue" -o -name "*.svelte" \) \
@@ -87,6 +93,8 @@ find {target_path} \
   -not -path "*/.next/*" \
   -not -path "*/dist/*" \
   -not -path "*/build/*" \
+  -not -path "*/tests/*" \
+  -not -path "*/test/*" \
   -exec wc -l {} + | sort -rn
 ```
 
@@ -96,22 +104,27 @@ find {target_path} \
 
 | 줄수 | 등급 | 설명 |
 |------|------|------|
-| THRESHOLD 초과 | WATCH | 레지스트리 등록 대상 |
-| THRESHOLD * 1.4 초과 (기본 700) | WARN | Level 분류 필요 (Lv1/Lv2) |
+| THRESHOLD 초과 | WATCH | 레지스트리 등록 대상 — **단 HR-5 「개발 파일」에 한함** |
+| THRESHOLD * 1.4 초과 (기본 700) | WARN | Level 분류 필요 (Lv1/[예외]) |
 | THRESHOLD * 2 초과 (기본 1000) | DANGER | 즉시 리팩토링 필요 |
+
+> ⚠️ **「등록 대상」은 무조건이 아니다.** 등급은 줄수만으로 매기지만, **레지스트리 등록·
+> 리팩토링 편성 의무는 규칙 §1의 「개발 파일」(테스트·설정·문서 **제외**)에만 발생**한다.
+> §2 `find`가 이미 테스트를 제외하므로 정상 경로에서는 문제가 없으나, `path` 인수로
+> 테스트 경로를 직접 지정한 경우 등급이 나와도 **등록 의무는 없다** — 보고 시 구분해 적는다.
 
 ### 4. Level 세부 분류 (WARN 이상 파일)
 
-WARN 이상에 대해 추가 분석:
+WARN 이상에 대해 추가 분석(`refactoring-rules.md` §3.2 자동 판별 기준):
 
-- **Lv1 (독립 분리 가능)**: import 관계가 단순하고 독립 모듈로 분리 가능한 경우
-- **Lv2 (연관 파일 밀접)**: 다수 파일과 상호 의존하여 별도 Phase로 리팩토링이 필요한 경우
+- **Lv1 (분리 가능)**: 연관 파일 중 500줄 초과가 없거나, 있어도 단방향 참조만인 경우
+- **[예외] 후보**: 연관 파일과 양방향 참조(밀접)가 있어 분리가 맞지 않는 경우 — §5 [예외] 확정 조건 충족 여부는 사람이 판단
 
-Lv1/Lv2 판정은 import/export 관계를 Grep으로 확인하여 참고 정보를 제공. 최종 판정은 사람이 수행한다.
+Lv1/[예외] 판정은 import/export 관계를 Grep으로 확인하여 참고 정보를 제공. 최종 판정은 사람이 수행한다.
 
 ### 5. 레지스트리 확인
 
-- `docs/SSOT/refactoring/` 하위에 기존 레지스트리 파일이 있는지 Glob으로 확인.
+- `docs/SSOT/WORKFLOW/refactoring/` 하위에 기존 레지스트리 파일이 있는지 Glob으로 확인.
 - 있으면 기존 등록 파일과 신규 탐지 파일을 대비한다.
 
 ### 6. 출력
@@ -134,7 +147,7 @@ Lv1/Lv2 판정은 import/export 관계를 Grep으로 확인하여 참고 정보�
 ### DANGER — 즉시 리팩토링
 | 파일 | 줄수 | Level | 비고 |
 |------|------|-------|------|
-| {path} | {lines} | Lv1/Lv2 | {참고} |
+| {path} | {lines} | Lv1/[예외] | {참고} |
 
 ### WARN — Level 분류 필요
 | 파일 | 줄수 | Level | 비고 |
