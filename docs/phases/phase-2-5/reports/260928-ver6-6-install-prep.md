@@ -1,7 +1,8 @@
 # SSOT ver6-6 설치 준비 — 검증 결과 및 실행 절차
 
 **작성**: 2026-09-28 · **작성자**: Team Lead (Obsidian0914) · **상대 세션**: Nexus-0928
-**대상 번들**: `~/pab-dist/ver6-6-260928/pab-ssot-bundle/` (고정 사본, Nexus 커밋 `42c4111`, 무결성 147/147)
+**대상 번들**: `~/pab-dist/ver6-6-260928/pab-ssot-bundle/` (고정 사본, **2차 수정판 Nexus 커밋 `48f6352`**, 22:01 갱신)
+**재검증**: 번들이 2회 갱신되어 그때마다 재확인했다 — 손실 64건 불변, `scripts/monitoring`·`scripts/wiki` 매니페스트 0건 유지, 게이트 `[DONE]` 통과
 **현재**: ver6-2 라인 `v8.2-renewal-6th` → **ver6-6**
 
 > 본 문서의 모든 판정은 번들 **코드를 직접 읽어** 확인한 것이다. Nexus 회신 중 한 건은 실제 코드와 달라 정정했다(§2 ③).
@@ -32,11 +33,16 @@ Nexus는 "두 목록에 없어 보존됩니다"라고 했으나 **삭제된다.*
 ⚠️ 게다가 `--dry-run`의 「복원되지 않음」 보고는 `DELETE_LIST − MANIFEST`로 계산되고 `docs/SSOT/*`는 애초에 `DELETE_LIST`에서 빠지므로, **dry-run이 이 손실을 경고하지 못한다.** 그래서 손실 목록을 직접 계산했다(§3).
 "고친 파일은 보존" 로직도 `.claude/`·`scripts/` 에만 적용되고 `docs/SSOT/` 에는 적용되지 않는다.
 
+**Nexus 수용(2026-09-28)** — *"저는 `policy/model-assignment.md`를 저장소 루트의 `policy/`로 잘못 보고 「보존」이라 답했다. 실제 경로는 `docs/SSOT/policy/`이고 삭제되고 복원되지 않는다. 정확한 지적이다."*
+
+**dry-run 맹점 — 2차 수정판(커밋 `48f6352`, 22:01)에서 닫혔다.** 갱신된 `reinstall.sh` 438~460행에 `ORPHAN_REPORT` 가 있고, 계산식이 본 문서 §3 과 **동일**하다(대상 `docs/SSOT` 실파일 − 번들 MANIFEST 의 `docs/SSOT/*`, seed registry 제외). Nexus 는 기존 표시 문구(「구 install 당시 있었던 …」)가 *"삭제되고 복원되지 않는다"* 는 뜻을 전하지 못한 것이 문제였다며 문구 수정을 자기 쪽 사용자에게 올리겠다고 회신했다.
+⚠️ 다만 **우리가 최초 분석한 판(27442 bytes)에 이 보고가 있었는지는 이제 확인할 수 없다** — 파일이 두 차례 교체됐다. 현재 판에는 있고 계산이 맞다는 것만 실측으로 말할 수 있다.
+
 ### ④ 보존/삭제 확정 (코드 근거)
 
 | 대상 | 판정 | 근거 |
 |---|---|---|
-| `PROJECT.md` · `hooks.env` · `settings.local.json` · `pointer-map.md` | ✅ **절대 보존** | `reinstall.sh:139` 하드 목록 |
+| `PROJECT.md` · `hooks.env` · `settings.local.json` · `pointer-map.md` · `WORKFLOW/refactoring/refactoring-registry.md` | ✅ **절대 보존** | `reinstall.sh:138` 하드 목록 (registry 는 2차 수정판 E2 에서 추가) |
 | `scripts/monitoring/` (7파일) · `scripts/wiki/` | ✅ **보존** | 두 매니페스트 부재 + `KEPT_CUSTOM` 로직이 `scripts/` 비번들 파일을 남김 |
 | `docs/phases/` · `docs/history/` · `docs/handoff/` | ✅ 보존 | 두 매니페스트 0건 |
 | `.claude/CLAUDE.md` · `.claude/settings.json` | 🔴 번들 판으로 **덮임** | MANIFEST 등재 |
@@ -106,8 +112,24 @@ Nexus는 "두 목록에 없어 보존됩니다"라고 했으나 **삭제된다.*
 | 1 | **상태 코드 20종 → 17종.** `auto_fix_count` 폐지, `token_budget` 7키 재정의 → 기존 status.md 칸 대조 |
 | 2 | ver6-6 VP의 **G2 판정이 「등급 산출」 표**(사실 4칸 I·R·D·V → 등급)로 바뀜 → `phase-2-exceptions.md`가 옛 판정 표현을 인용하는지 대조 |
 | 3 | `state-transition-guard`가 무효 전이에 **경고만 하고 막지 않음**(exit 0) → 진행 중 산출물 차단 없음 |
-| 4 | ver6-2 이월 7항목(V-5·V-2·T-5·D8-1·FB-01-2·FB-01-4·FB-01-6) 반영 여부 — **Nexus도 추적 기록 없음**. 목록 주면 대조해 준다고 회신 |
+| 4 | ver6-2 이월 7항목 — **Nexus 1차 대조 수신(2026-09-28), 전부 「상태 미확인」으로 유지 권고**. 아래 표 |
 | 5 | `UPGRADE.md` 폐지 → 절차 정본은 `INSTALL.md` §7 |
+
+### 5.1 ver6-2 이월 7항목 — Nexus 1차 대조 (2026-09-28)
+
+> Nexus 원문: *"항목별로 추적한 기록이 없어서 ver6-6 코드와 문서를 짧게 확인한 정도. 「해소 확정」이 아니니 설치 후 확인 목록에서 빼지 말고 「상태 미확인」으로 남기길 권한다."*
+
+| 항목 | Nexus 판단 | 우리 검증 |
+|---|---|---|
+| **D8-1** `--arm` 폴링 rc 폐기 | **미해소로 보임** | 🔴 **미해소 확정** — 직접 확인: ver6-6 `zombie_watch_poll.sh:52,55` 가 `_zw_check_one … \|\| true`. pane/inproc 2경로로 분리됐으나 rc 폐기는 그대로 |
+| **V-2** cmd_once 회귀 케이스 | 해소 가능성 높음 (selftest 21건·regression 8건, regression 파일 분리) | 미검증 — D-1 필터 케이스 여부는 Nexus도 미확인 |
+| **T-5** shell prompt 정규식 회귀 수단 | 부분 해소 (`zombie_check_selftest` 가 tmux 있으면 `_zc_pane_tail_real` 실제 실행, 134·157행) | 미검증 — 정규식 오탐(`$` 종결 문장) 개선 여부 불명 |
+| **V-5** self-test 스텁 3종 미복원 | 미확인 | 미검증 |
+| **FB-01-2** shutdown_approved 잔존 pane 억제 | 미확인 | 미검증 |
+| **FB-01-4** 워처 로그 타임스탬프 | 미확인 | 미검증 |
+| **FB-01-6** 다중 프로젝트 전역 상태 혼선 | 미확인 | 미검증 |
+
+→ **7항목 전부 확인 목록에 남긴다.** 정식 대조가 필요하면 Nexus 측 별도 작업으로 올린다고 회신받았다.
 
 ---
 
