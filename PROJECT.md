@@ -100,6 +100,8 @@ PAB-LLMDATA(로컬) → LiveSync → CouchDB pab-llmdata(홉1, 3800X :5984)
 
 ## 5. 운영 스크립트 (`code_dirs` = HR-1 가드 대상)
 
+**제품 코드 구역** = frontmatter `code_dirs`의 경로(`scripts/` 전체 — 아래 표의 운영 스크립트와 번들 하네스 스크립트 `log-prompt.sh`·`sync-project-config.sh`·`statusline.sh`·`comment/`·`tokenusage/` 포함)다. 디자인 구역은 없다(`docs/design/` 미사용). 주석 규칙은 작성자가 아니라 이 구역으로 가린다 — 구역 안의 코드는 누가 쓰든 NOTE-1~6(`docs/comment-policy/comment-policy.md`), 구역 밖 하네스는 COMMENT-1(`docs/SSOT/WORKFLOW/handoff/common.md` §5).
+
 | 경로 | 용도 |
 |---|---|
 | `scripts/monitoring/` | vault 동기화 헬스 수집기 + Observer Push + 맥북 역방향 watchdog |
