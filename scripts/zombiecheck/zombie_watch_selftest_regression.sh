@@ -4,6 +4,11 @@
 #       로드된다. source 는 새 함수 스코프를 만들지 않으므로 case_count/fail_count 등
 #       호출측 지역변수를 공유·갱신한다. 쉘 안전 옵션은 소싱하는 쪽에서 상속되므로 재선언하지 않는다.
 
+if ! (return 0 2>/dev/null); then
+  echo "zombie_watch_selftest_regression.sh 는 source 전용이다 — bash zombie_watch_selftest.sh 로 실행한다" >&2
+  exit 2
+fi
+
   echo ""
   echo "=== D-2 / D-7 회귀 ==="
 
