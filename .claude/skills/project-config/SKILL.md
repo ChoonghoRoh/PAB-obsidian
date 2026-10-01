@@ -93,7 +93,7 @@ PROJECT.md (단일 소스)
 | 7 | 번들 기본값 미변경 | `project_name`이 `PAB-claude`인데 저장소 폴더명이 다름 (이식 후 PROJECT.md 미설정) → `/project-config init` 안내 |
 | 8 | `PAB_CODE_DIRS`/`PAB_CODE_EXTS` 가드 허용 문자 | hooks.env 값이 hr1-guard 허용 문자(디렉터리 `A-Za-z0-9._/ -`, 확장자 `A-Za-z0-9._ -`) 밖 — 가드가 값을 버리고 기본값으로 동작한다. `sync-project-config.sh check`가 stderr로 알린다 → frontmatter를 공백 구분으로 고친 뒤 sync |
 | 9 | 폐지된 번호 SSOT 문서 잔존 | `.git`·`node_modules`·백업 폴더·`docs/phases`·`docs/history`·`docs/handoff`·`docs/reports`를 뺀 저장소에 옛 번호 SSOT 파일명(`0-entrypoint.md`·`1-project.md`·`2-architecture.md`·`3-workflow.md`·`4-event-protocol.md`·`5-automation.md`·`6-rules-index.md`·`7-shared-definitions.md` 등 번들 INSTALL.md §7.2 ⓐ·ⓑ·ⓓ 목록)이 있음. git 저장소면 git이 무시하는 경로(`git check-ignore`)는 뺀다 → §7.2 ⓑ 대상인지 확인한다 — 옮길 서술은 옮기고(통째 복원 금지), 지울지는 사용자가 정한다(보관본이면 둔다). 경고만 하고 파일은 건드리지 않는다 |
-| 10 | 스폰 로딩 대상 | `PROJECT.md` §6 표의 「기본」 열이나 본문 스폰 지시가 `docs/SSOT/ROLES/` 밖 문서를 가리킴 → 기본은 `ROLES/*.md` §1, 프로젝트 고유 내용은 §6 오버라이드 칸으로 |
+| 10 | 스폰 로딩 대상 | `PROJECT.md` §6 표의 「기본」 열이나 본문 스폰 지시가 `docs/SSOT/ROLES/` 밖 문서를 가리킴 → 기본은 `ROLES/*.md` §1, 프로젝트 고유 내용은 §6 오버라이드 칸으로. 또는 §6 표 역할 이름을 소문자로 바꾸고 공백을 `-`로 바꾼 값의 `docs/SSOT/ROLES/<이름>.md`가 없는데(`ls docs/SSOT/ROLES/*.md`로 대조) 그 행 「기본」 칸이 비었거나 `—`이거나 `ROLES/` 밖을 가리킴(예: `infra-dev`) → 그 역할의 Charter 출처(가까운 `ROLES/*.md` §1 등)를 「기본」 칸에 적게 한다 |
 
 WARN 발견 시 수정 방법을 함께 안내한다.
 
